@@ -39,6 +39,17 @@ All colors MUST be HSL.
     --radius: 0.25rem;
 
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+    /* Category colors */
+    --category-agenda: 351 100% 69%;
+    --category-politics: 31 100% 71%;
+    --category-fp-defense: 200 100% 73%;
+    --category-business: 159 78% 64%;
+    --category-life: 252 100% 85%;
+    --category-health: 287 100% 87%;
+    --category-sports: 215 100% 63%;
+    --category-world: 0 100% 82%;
+    --category-xtra: 354 100% 84%;
   }
 
   .dark {
@@ -69,6 +80,17 @@ All colors MUST be HSL.
     --border: 220 10% 20%;
     --input: 220 10% 20%;
     --ring: 220 90% 45%;
+
+    /* Category colors (same as light mode) */
+    --category-agenda: 351 100% 69%;
+    --category-politics: 31 100% 71%;
+    --category-fp-defense: 200 100% 73%;
+    --category-business: 159 78% 64%;
+    --category-life: 252 100% 85%;
+    --category-health: 287 100% 87%;
+    --category-sports: 215 100% 63%;
+    --category-world: 0 100% 82%;
+    --category-xtra: 354 100% 84%;
   }
 }
 

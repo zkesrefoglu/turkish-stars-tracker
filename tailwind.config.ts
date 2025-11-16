@@ -57,6 +57,17 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
+        category: {
+          agenda: "hsl(var(--category-agenda))",
+          politics: "hsl(var(--category-politics))",
+          "fp-defense": "hsl(var(--category-fp-defense))",
+          business: "hsl(var(--category-business))",
+          life: "hsl(var(--category-life))",
+          health: "hsl(var(--category-health))",
+          sports: "hsl(var(--category-sports))",
+          world: "hsl(var(--category-world))",
+          xtra: "hsl(var(--category-xtra))",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",

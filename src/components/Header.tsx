@@ -12,10 +12,11 @@ import {
 
 const sections = [
   "Agenda",
-  "Defense",
   "Business & Economy",
-  "Life",
+  "FP & Defense",
   "Health",
+  "Life",
+  "Politics",
   "Sports",
   "World",
   "Xtra",
