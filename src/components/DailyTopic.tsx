@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import dailyTopicBg from "@/assets/daily-topic-bg.jpg";
 
 interface DailyTopicProps {
   title: string;
@@ -10,26 +11,34 @@ interface DailyTopicProps {
 
 export const DailyTopic = ({ title, excerpt, author, date, slug }: DailyTopicProps) => {
   return (
-    <article className="border-b border-border pb-12 mb-12 animate-fade-in">
-      <div className="mb-3 flex items-center space-x-3">
-        <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-primary text-primary-foreground rounded">
-          Daily Topic
-        </span>
-        <time className="text-sm text-muted-foreground">{date}</time>
-      </div>
+    <article className="relative mb-16 animate-fade-in overflow-hidden rounded-lg">
+      <div 
+        className="absolute inset-0 bg-cover bg-center"
+        style={{ backgroundImage: `url(${dailyTopicBg})` }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/70" />
       
-      <Link to={`/article/${slug}`}>
-        <h2 className="text-4xl md:text-5xl font-bold mb-4 leading-tight tracking-tight hover:text-primary transition-colors text-balance">
-          {title}
-        </h2>
-      </Link>
-      
-      <p className="text-lg text-muted-foreground leading-relaxed mb-4 max-w-3xl">
-        {excerpt}
-      </p>
-      
-      <div className="flex items-center text-sm">
-        <span className="font-medium text-foreground">{author}</span>
+      <div className="relative px-8 md:px-12 py-16 md:py-20">
+        <div className="mb-4 flex items-center space-x-3">
+          <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-primary text-primary-foreground rounded">
+            Daily Topic
+          </span>
+          <time className="text-sm text-muted-foreground">{date}</time>
+        </div>
+        
+        <Link to={`/article/${slug}`}>
+          <h2 className="text-4xl md:text-6xl font-bold mb-6 leading-tight tracking-tight hover:text-primary transition-colors text-balance max-w-4xl">
+            {title}
+          </h2>
+        </Link>
+        
+        <p className="text-lg md:text-xl text-muted-foreground leading-relaxed mb-6 max-w-3xl">
+          {excerpt}
+        </p>
+        
+        <div className="flex items-center text-sm">
+          <span className="font-medium text-foreground">{author}</span>
+        </div>
       </div>
     </article>
   );
