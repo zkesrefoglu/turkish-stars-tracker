@@ -59,12 +59,12 @@ export const Header = () => {
                 <SheetTitle>Menu</SheetTitle>
               </SheetHeader>
               <nav className="mt-8">
-                <ul className="flex flex-col space-y-4">
+                <ul className="flex flex-col space-y-2">
                   {sections.map((section) => (
                     <li key={section}>
                       <Link
                         to={`/section/${section.toLowerCase().replace(/\s&\s/g, '-').replace(/\s/g, '-')}`}
-                        className="block text-lg font-medium text-foreground hover:text-primary transition-colors py-2"
+                        className="block text-lg font-medium text-foreground hover:text-primary hover:bg-muted/50 active:bg-muted transition-colors py-3 px-4 rounded-md"
                       >
                         {section}
                       </Link>
