@@ -13,7 +13,7 @@ export const DailyTopic = ({ title, excerpt, author, date, slug }: DailyTopicPro
   return (
     <article className="relative mb-16 animate-fade-in overflow-hidden rounded-lg">
       <div 
-        className="absolute inset-0 bg-cover bg-center brightness-75"
+        className="absolute inset-0 bg-cover bg-center brightness-50"
         style={{ backgroundImage: `url(${dailyTopicBg})` }}
       />
       <div className="absolute inset-0 bg-gradient-to-r from-background/95 via-background/85 to-background/60" />
