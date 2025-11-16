@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import logo from "@/assets/logo.png";
 
 const sections = [
   "Agenda",
@@ -16,8 +17,8 @@ export const Header = () => {
     <header className="border-b border-border bg-background sticky top-0 z-50">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center space-x-2">
-            <h1 className="text-2xl font-bold tracking-tight">Bosphorus News</h1>
+          <Link to="/" className="flex items-center space-x-3">
+            <img src={logo} alt="Bosphorus News" className="h-12 w-auto" />
           </Link>
         </div>
         
