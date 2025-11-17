@@ -657,18 +657,40 @@ Second article content -- SOURCE {Category}
    - Clean and format content
 5. **AI Processing Phase**:
    - For each article, call `generate-headline` edge function
-   - Generate catchy excerpt/headline
+   - Generate catchy excerpt/headline (stored as article excerpt)
+   - Use excerpt as the article title
    - Show progress: "Processing 5/20..."
 6. **Output**:
-   - Display formatted JSON or CSV
+   - Display formatted JSON with structure:
+     ```json
+     {
+       "title": "AI-generated headline",  // Used as the article title
+       "excerpt": "AI-generated headline",  // Same as title
+       "category": "Business",
+       "content": "Full article text...",
+       "author": "News Team"
+     }
+     ```
    - Download button to save locally
-7. **Optional**: Copy-paste output for manual review before bulk insert
+7. **Direct Upload**:
+   - Click "Upload to Database" button
+   - Articles automatically published (`published: true`)
+   - Slugs auto-generated from excerpt/title
+   - Batch insert all articles
+   - Success toast notification
+
+**Recent Fixes**:
+- Fixed title/excerpt field mapping (now correctly uses AI-generated excerpt as title)
+- Articles now publish automatically by default
+- Proper slug generation from excerpt instead of undefined title
+- Improved error handling for undefined fields
 
 **Error Handling**:
 - Invalid file format
 - Parsing errors
 - AI generation failures (falls back to truncated content)
 - Rate limiting (shows user-friendly message)
+- Missing field validation before upload
 
 ### Tab 3: Add Daily Topic (Agenda)
 
@@ -1016,6 +1038,162 @@ console.error("AI gateway error:", response.status, errorText);
 - Rate limiting handled by Lovable AI Gateway
 - Input validation prevents malicious content
 
+### Function: `send-newsletter-confirmation`
+
+**File**: `supabase/functions/send-newsletter-confirmation/index.ts`
+
+**Purpose**: Send welcome email to new newsletter subscribers.
+
+**Request**:
+```typescript
+POST /functions/v1/send-newsletter-confirmation
+Content-Type: application/json
+
+{
+  "email": "user@example.com"
+}
+```
+
+**Response** (Success):
+```typescript
+HTTP 200 OK
+{
+  "success": true,
+  "message": "Welcome email sent successfully"
+}
+```
+
+**Response** (Error):
+```typescript
+HTTP 400 Bad Request
+{
+  "error": "Email is required"
+}
+
+HTTP 500 Internal Server Error
+{
+  "error": "Failed to send email"
+}
+```
+
+**Email Configuration**:
+- **From**: `Bosphorus News <newsletter@send.newsletter>`
+- **Subject**: "Welcome to Bosphorus News - Your Daily News Source"
+- **Service**: Resend API
+
+**Features**:
+- HTML email template with branding
+- Lists newsletter benefits
+- Call-to-action button to website
+- Footer with unsubscribe option
+
+**Environment Variables**:
+- `RESEND_API_KEY`: Resend service API key (stored in secrets)
+
+**Security**:
+- No authentication required (public function)
+- Email validation on input
+- Rate limiting via Resend
+
+### Function: `send-daily-newsletter`
+
+**File**: `supabase/functions/send-daily-newsletter/index.ts`
+
+**Purpose**: Send daily newsletter digest to all subscribers with articles from the last 24 hours.
+
+**Request**:
+```typescript
+POST /functions/v1/send-daily-newsletter
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+{}  // No body required
+```
+
+**Response** (Success):
+```typescript
+HTTP 200 OK
+{
+  "success": true,
+  "message": "Newsletter sent successfully",
+  "stats": {
+    "totalSubscribers": 150,
+    "articlesIncluded": 12,
+    "successfulSends": 148,
+    "failedSends": 2
+  }
+}
+```
+
+**Functionality**:
+1. Fetches all newsletter subscribers from database
+2. Retrieves published articles from last 24 hours
+3. Groups articles by category
+4. Generates HTML newsletter with categorized sections
+5. Sends emails in batches of 50 to avoid rate limits
+6. Includes 1-second delay between batches
+
+**Email Configuration**:
+- **From**: `Bosphorus News <newsletter@send.newsletter>`
+- **Subject**: `📰 Bosphorus News Daily Digest - [Date]`
+- **Batch Size**: 50 emails per batch
+- **Rate Limiting**: 1 second delay between batches
+
+**Security**:
+- Requires authentication (JWT token)
+- Uses service role key for database access
+- Admin-only access recommended
+
+### Function: `send-weekly-newsletter`
+
+**File**: `supabase/functions/send-weekly-newsletter/index.ts`
+
+**Purpose**: Send weekly newsletter digest with articles from the last 7 days.
+
+**Request**:
+```typescript
+POST /functions/v1/send-weekly-newsletter
+Content-Type: application/json
+Authorization: Bearer <JWT>
+
+{}  // No body required
+```
+
+**Response**: Same format as `send-daily-newsletter`
+
+**Functionality**:
+- Fetches articles from last 7 days
+- Groups by category
+- Sends in batches of 50
+- Same structure as daily newsletter with weekly date range
+
+**Email Configuration**:
+- **From**: `Bosphorus News <newsletter@send.newsletter>`
+- **Subject**: `📰 Bosphorus News Weekly Digest - [End Date]`
+
+**Scheduling**:
+To run automatically via cron job:
+```sql
+-- Example: Send daily newsletter every day at 8 AM
+select cron.schedule(
+  'daily-newsletter',
+  '0 8 * * *',
+  $$
+  select net.http_post(
+    url:='https://mxmarjrkwrqnhhipckzj.supabase.co/functions/v1/send-daily-newsletter',
+    headers:='{"Content-Type": "application/json", "Authorization": "Bearer YOUR_ANON_KEY"}'::jsonb,
+    body:='{}'::jsonb
+  ) as request_id;
+  $$
+);
+```
+
+**Resend Domain Setup**:
+1. Add and verify your domain in Resend dashboard
+2. Configure DNS records (DKIM, SPF, DMARC)
+3. Update edge function `from` addresses to use verified domain
+4. Current configuration: `newsletter@send.newsletter`
+
 ### Calling Edge Functions
 
 **From Frontend**:
@@ -1074,6 +1252,7 @@ verify_jwt = false  # Public access, no authentication required
 - `LOVABLE_API_KEY`: Lovable AI Gateway key
 - `SUPABASE_SERVICE_ROLE_KEY`: Admin access key
 - `SUPABASE_DB_URL`: Direct database connection string
+- `RESEND_API_KEY`: Resend email service API key (for newsletter functions)
 
 **File**: `.env` (Auto-generated, do not edit manually)
 
@@ -1117,7 +1296,16 @@ site_url = "http://localhost:3000"
 email_confirm = false  # Auto-confirm for development
 
 [functions.generate-headline]
-verify_jwt = false
+verify_jwt = false  # Public access for AI headline generation
+
+[functions.send-newsletter-confirmation]
+verify_jwt = false  # Public access for welcome emails
+
+[functions.send-daily-newsletter]
+# verify_jwt = true (default) - Requires authentication
+
+[functions.send-weekly-newsletter]
+# verify_jwt = true (default) - Requires authentication
 ```
 
 ### Deployment Workflow
@@ -1287,6 +1475,42 @@ verify_jwt = false
 
 ---
 
+## Changelog
+
+### Version 1.1 - November 2025
+
+#### Newsletter System Enhancements
+- **Email Domain Configuration**: Updated all newsletter edge functions to use verified domain `newsletter@send.newsletter`
+  - `send-newsletter-confirmation`: Welcome email sender updated
+  - `send-daily-newsletter`: Daily digest sender updated
+  - `send-weekly-newsletter`: Weekly digest sender updated
+- **DNS Records**: Configured DKIM, SPF, and DMARC records for email authentication
+- **Documentation**: Added comprehensive edge function documentation for newsletter system
+
+#### NewsConverter Component Fixes
+- **Fixed Title Mapping**: Resolved issue where `article.title` was undefined during upload
+  - Now correctly maps AI-generated excerpt to the title field
+  - Slug generation now uses excerpt instead of undefined title
+- **Auto-Publish**: Articles now automatically publish by default (`published: true`)
+- **Error Handling**: Added validation for undefined fields before upload
+- **Upload Flow**: Direct database upload button now works correctly without errors
+
+#### Configuration Updates
+- **Edge Functions**: Added configuration for newsletter functions in `config.toml`
+  - `send-newsletter-confirmation`: Public access (verify_jwt = false)
+  - `send-daily-newsletter`: Authenticated access (default)
+  - `send-weekly-newsletter`: Authenticated access (default)
+- **Secrets**: Documented `RESEND_API_KEY` in environment variables section
+
+#### Documentation Improvements
+- Comprehensive edge function documentation
+- Newsletter scheduling examples with cron jobs
+- Resend domain setup instructions
+- Updated workflow diagrams for NewsConverter
+- Added error handling documentation
+
+---
+
 ## Conclusion
 
 This news platform demonstrates a modern, secure, and scalable approach to content management with AI-powered features. The combination of React, TypeScript, Supabase, and Lovable AI creates a powerful yet maintainable system suitable for production use.
@@ -1297,6 +1521,6 @@ Future enhancements will focus on user engagement features, advanced analytics, 
 
 ---
 
-**Document Version**: 1.0  
+**Document Version**: 1.1  
 **Last Updated**: 2025-11-17  
 **Maintained By**: Project Team
