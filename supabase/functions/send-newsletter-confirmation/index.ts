@@ -70,7 +70,7 @@ serve(async (req) => {
                         <p style="color: #333; font-size: 16px; line-height: 26px; margin: 16px 0;">
                           Start exploring our latest stories now:
                         </p>
-                        <a href="https://bosphorusnews.lovable.app" 
+                        <a href="https://bosphorusnews.com" 
                            style="display: inline-block; background-color: #2563eb; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px; border-radius: 8px; margin-top: 16px;">
                           Visit Bosphorus News
                         </a>
@@ -84,7 +84,7 @@ serve(async (req) => {
 
                       <p style="color: #8898aa; font-size: 12px; line-height: 20px; margin-top: 32px; text-align: center;">
                         © 2025 Bosphorus News. All rights reserved.<br>
-                        <a href="https://bosphorusnews.lovable.app" style="color: #2563eb; text-decoration: underline;">bosphorusnews.lovable.app</a>
+                        <a href="https://bosphorusnews.com" style="color: #2563eb; text-decoration: underline;">bosphorusnews.com</a>
                       </p>
 
                       <p style="color: #ababab; font-size: 12px; line-height: 18px; margin-top: 16px; text-align: center;">

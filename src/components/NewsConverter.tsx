@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { FileText, Download, AlertCircle, Sparkles } from 'lucide-react';
+import { FileText, Download, AlertCircle, Sparkles, Upload } from 'lucide-react';
 import * as mammoth from 'mammoth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -144,6 +144,56 @@ export default function NewsConverter() {
     }
   };
 
+  const handleDirectUpload = async () => {
+    try {
+      if (!output) {
+        setError('Nothing to upload. Please convert text first.');
+        toast.error('No data to upload');
+        return;
+      }
+
+      setLoading(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        toast.error('Not authenticated');
+        return;
+      }
+
+      const articles = JSON.parse(output);
+      
+      const validArticles = articles.map((article: any) => {
+        const slug = `${article.excerpt.toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${Date.now()}`;
+        
+        return {
+          title: article.excerpt,
+          slug: slug,
+          category: article.category,
+          excerpt: article.excerpt,
+          content: article.content,
+          author: session.user.email || "Admin",
+          image_url: null,
+          published: false,
+        };
+      });
+
+      const { error } = await supabase
+        .from("news_articles")
+        .insert(validArticles);
+
+      if (error) throw error;
+
+      toast.success(`Successfully uploaded ${validArticles.length} articles to database!`);
+      setOutput('');
+      setInputText('');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+      setError('Error uploading: ' + errorMessage);
+      toast.error('Failed to upload articles');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleDownload = () => {
     try {
       if (!output) {
@@ -271,6 +321,17 @@ export default function NewsConverter() {
         >
           {loading || generatingAI ? 'Processing...' : 'Convert with AI'}
         </button>
+        
+        {format === 'json' && (
+          <button
+            onClick={handleDirectUpload}
+            disabled={!output || loading || generatingAI}
+            className="px-6 py-3 bg-green-600 text-white rounded-lg font-medium hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+          >
+            <Upload className="w-4 h-4" />
+            Upload to Database
+          </button>
+        )}
         
         <button
           onClick={handleDownload}
