@@ -38,24 +38,45 @@ export const Footer = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from("newsletter_subscriptions").insert([{ email }]);
+      // First, save email to database
+      const { error: dbError } = await supabase
+        .from("newsletter_subscriptions")
+        .insert([{ email }]);
 
-      if (error) {
-        if (error.code === "23505") {
+      if (dbError) {
+        if (dbError.code === "23505") {
           toast({
             title: "Already subscribed",
             description: "This email is already subscribed to our newsletter",
           });
         } else {
-          throw error;
+          throw dbError;
         }
+        return;
+      }
+
+      // Then send welcome email
+      const { error: emailError } = await supabase.functions.invoke(
+        "send-newsletter-confirmation",
+        {
+          body: { email },
+        }
+      );
+
+      if (emailError) {
+        console.error("Email sending error:", emailError);
+        toast({
+          title: "Subscribed!",
+          description: "You're subscribed, but welcome email failed to send. We'll send it later.",
+        });
       } else {
         toast({
-          title: "Success!",
-          description: "You've been subscribed to our newsletter",
+          title: "Welcome! 🎉",
+          description: "Check your email for a welcome message from Bosphorus News",
         });
-        setEmail("");
       }
+      
+      setEmail("");
     } catch (error) {
       toast({
         title: "Error",
