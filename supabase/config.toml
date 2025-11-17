@@ -2,3 +2,6 @@ project_id = "mxmarjrkwrqnhhipckzj"
 
 [functions.generate-headline]
 verify_jwt = false
+
+[functions.send-newsletter-confirmation]
+verify_jwt = false
