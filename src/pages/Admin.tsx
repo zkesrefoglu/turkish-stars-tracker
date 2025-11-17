@@ -476,7 +476,7 @@ const Admin = () => {
     try {
       setSendingNewsletter(true);
       
-      const { data, error } = await supabase.functions.invoke('send-weekly-newsletter');
+      const { data, error } = await supabase.functions.invoke('send-daily-newsletter');
       
       if (error) throw error;
       
@@ -885,9 +885,9 @@ const Admin = () => {
           <TabsContent value="newsletter">
             <Card>
               <CardHeader>
-                <CardTitle>Send Weekly Newsletter</CardTitle>
+                <CardTitle>Send Daily Newsletter</CardTitle>
                 <CardDescription>
-                  Manually send the weekly newsletter digest to all subscribers. It includes all published articles from the last 7 days.
+                  Manually send the daily newsletter digest to all subscribers. It includes all published articles from the last 24 hours.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -896,19 +896,19 @@ const Admin = () => {
                     <strong>How it works:</strong>
                   </p>
                   <ul className="text-sm text-muted-foreground list-disc list-inside space-y-1">
-                    <li>Collects all published articles from the last 7 days</li>
+                    <li>Collects all published articles from the last 24 hours</li>
                     <li>Groups them by category</li>
                     <li>Sends a formatted email to all newsletter subscribers</li>
                   </ul>
                 </div>
                 
                 <div className="p-4 bg-primary/5 rounded-lg space-y-2">
-                  <p className="text-sm font-medium">For automated weekly sending:</p>
+                  <p className="text-sm font-medium">For automated daily sending:</p>
                   <p className="text-sm text-muted-foreground">
-                    Use a free service like <a href="https://cron-job.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">cron-job.org</a> to schedule weekly calls to:
+                    Use a free service like <a href="https://cron-job.org" target="_blank" rel="noopener noreferrer" className="text-primary hover:underline">cron-job.org</a> to schedule daily calls (e.g., 9 AM) to:
                   </p>
                   <code className="block text-xs bg-background p-2 rounded mt-2 break-all">
-                    https://mxmarjrkwrqnhhipckzj.supabase.co/functions/v1/send-weekly-newsletter
+                    https://mxmarjrkwrqnhhipckzj.supabase.co/functions/v1/send-daily-newsletter
                   </code>
                 </div>
 
