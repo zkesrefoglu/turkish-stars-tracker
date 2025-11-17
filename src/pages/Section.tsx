@@ -1,11 +1,26 @@
 import { useParams, Link } from "react-router-dom";
+import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { NewsFeedItem } from "@/components/NewsFeedItem";
-import { getArticlesBySection } from "@/data/newsData";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
+
+interface NewsArticleData {
+  title: string;
+  excerpt: string;
+  section: string;
+  author: string;
+  date: string;
+  slug: string;
+  timestamp: Date;
+}
 
 const Section = () => {
   const { section } = useParams<{ section: string }>();
+  const { toast } = useToast();
+  const [articles, setArticles] = useState<NewsArticleData[]>([]);
+  const [loading, setLoading] = useState(true);
   
   // Convert URL slug back to proper section name
   const getSectionName = (slug: string): string => {
@@ -24,7 +39,54 @@ const Section = () => {
   };
 
   const sectionName = section ? getSectionName(section) : "";
-  const articles = sectionName ? getArticlesBySection(sectionName) : [];
+
+  useEffect(() => {
+    if (!sectionName) return;
+    
+    const fetchArticles = async () => {
+      try {
+        const { data, error } = await supabase
+          .from("news_articles")
+          .select("*")
+          .eq("published", true)
+          .eq("category", sectionName)
+          .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        if (data) {
+          setArticles(
+            data.map((article) => ({
+              title: article.title,
+              excerpt: article.excerpt,
+              section: article.category,
+              author: article.author,
+              date: new Date(article.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              slug: article.slug,
+              timestamp: new Date(article.created_at),
+            }))
+          );
+        }
+      } catch (error: any) {
+        toast({
+          title: "Error",
+          description: "Failed to load articles",
+          variant: "destructive",
+        });
+        console.error("Error fetching articles:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, [sectionName, toast]);
 
   return (
     <div className="min-h-screen bg-background">
@@ -36,25 +98,33 @@ const Section = () => {
           Back to Home
         </Link>
 
-        <div className="mb-8">
-          <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">{sectionName}</h1>
-          <p className="text-muted-foreground">
-            {articles.length} {articles.length === 1 ? 'article' : 'articles'} in this section
-          </p>
-        </div>
-
-        {articles.length > 0 ? (
-          <section>
-            <div className="space-y-0 rounded-lg overflow-hidden border border-border">
-              {articles.map((item, index) => (
-                <NewsFeedItem key={index} {...item} />
-              ))}
-            </div>
-          </section>
-        ) : (
+        {loading ? (
           <div className="text-center py-16">
-            <p className="text-muted-foreground text-lg">No articles found in this section yet.</p>
+            <p className="text-muted-foreground">Loading...</p>
           </div>
+        ) : (
+          <>
+            <div className="mb-8">
+              <h1 className="text-4xl md:text-5xl font-bold mb-2 tracking-tight">{sectionName}</h1>
+              <p className="text-muted-foreground">
+                {articles.length} {articles.length === 1 ? 'article' : 'articles'} in this section
+              </p>
+            </div>
+
+            {articles.length > 0 ? (
+              <section>
+                <div className="space-y-0 rounded-lg overflow-hidden border border-border">
+                  {articles.map((item, index) => (
+                    <NewsFeedItem key={index} {...item} />
+                  ))}
+                </div>
+              </section>
+            ) : (
+              <div className="text-center py-16">
+                <p className="text-muted-foreground text-lg">No articles found in this section yet.</p>
+              </div>
+            )}
+          </>
         )}
       </main>
 
