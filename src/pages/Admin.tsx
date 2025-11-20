@@ -565,7 +565,7 @@ const Admin = () => {
                         <SelectItem value="Health">Health</SelectItem>
                         <SelectItem value="Sports">Sports</SelectItem>
                         <SelectItem value="World">World</SelectItem>
-                        <SelectItem value="Xtra">Xtra</SelectItem>
+                        <SelectItem value="Editorial">Editorial</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -677,7 +677,7 @@ const Admin = () => {
                 <CardDescription>
                   Upload multiple news articles at once using a CSV or JSON file. You can include any category including Agenda.
                   <br /><br />
-                  <strong>Required fields:</strong> title, category (or section - must be: Agenda, Politics, FP & Defense, Business, Life, Health, Sports, World, or Xtra), excerpt, content
+                  <strong>Required fields:</strong> title, category (or section - must be: Agenda, Politics, FP & Defense, Business, Life, Health, Sports, World, or Editorial), excerpt, content
                   <br />
                   <strong>Optional fields:</strong> image_url (or source)
                 </CardDescription>
@@ -762,7 +762,7 @@ const Admin = () => {
                             <SelectItem value="Health">Health</SelectItem>
                             <SelectItem value="Sports">Sports</SelectItem>
                             <SelectItem value="World">World</SelectItem>
-                            <SelectItem value="Xtra">Xtra</SelectItem>
+                            <SelectItem value="Editorial">Editorial</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>

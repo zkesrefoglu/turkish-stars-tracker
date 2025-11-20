@@ -22,7 +22,7 @@ const getCategoryColor = (category: string): string => {
     "Technology": "bg-category-technology",
     "Life": "bg-category-life",
     "Sports": "bg-category-sports",
-    "Xtra": "bg-category-xtra",
+    "Editorial": "bg-category-xtra",
   };
   return categoryMap[category] || "bg-accent";
 };

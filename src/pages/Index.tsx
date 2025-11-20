@@ -7,6 +7,7 @@ import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router-dom";
 
 interface Article {
   title: string;
@@ -24,6 +25,7 @@ const Index = () => {
   const [secondMatrixCategories, setSecondMatrixCategories] = useState<Array<{ name: string; articles: Article[] }>>([]);
   const [firstMidFeatured, setFirstMidFeatured] = useState<Article | null>(null);
   const [secondMidFeatured, setSecondMidFeatured] = useState<Article | null>(null);
+  const [agendaArticles, setAgendaArticles] = useState<Article[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -198,6 +200,33 @@ const Index = () => {
           }),
         });
       }
+
+      // 6. AGENDA: All Agenda articles
+      const { data: agendaData, error: agendaError } = await supabase
+        .from("news_articles")
+        .select("*")
+        .eq("published", true)
+        .eq("category", "Agenda")
+        .order("created_at", { ascending: false });
+
+      if (agendaError) throw agendaError;
+
+      if (agendaData) {
+        setAgendaArticles(
+          agendaData.map((article) => ({
+            title: article.title,
+            excerpt: article.excerpt,
+            slug: article.slug,
+            imageUrl: article.image_url || `https://picsum.photos/seed/${article.slug}/600/400`,
+            category: article.category,
+            date: new Date(article.created_at).toLocaleDateString("en-US", {
+              month: "short",
+              day: "numeric",
+              year: "numeric",
+            }),
+          }))
+        );
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -264,6 +293,36 @@ const Index = () => {
         {secondMidFeatured && (
           <div className="container-custom">
             <HomeFeaturedMid article={secondMidFeatured} />
+          </div>
+        )}
+
+        {/* AGENDA SECTION */}
+        {agendaArticles.length > 0 && (
+          <div className="container-custom mt-16">
+            <h2 className="text-3xl font-bold mb-6">Agenda</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {agendaArticles.map((article, index) => (
+                <Link key={index} to={`/article/${article.slug}`} className="block group">
+                  <article className="h-full border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow">
+                    <div className="p-6">
+                      <div className="flex items-center space-x-3 mb-3">
+                        <span className="text-xs font-semibold uppercase tracking-wide text-primary">
+                          {article.category}
+                        </span>
+                        <span className="text-muted-foreground">•</span>
+                        <time className="text-xs text-muted-foreground">{article.date}</time>
+                      </div>
+                      <h3 className="text-xl font-bold mb-2 leading-tight group-hover:text-primary transition-colors">
+                        {article.title}
+                      </h3>
+                      <p className="text-muted-foreground leading-relaxed line-clamp-3">
+                        {article.excerpt}
+                      </p>
+                    </div>
+                  </article>
+                </Link>
+              ))}
+            </div>
           </div>
         )}
       </main>

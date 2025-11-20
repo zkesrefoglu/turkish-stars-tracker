@@ -21,7 +21,7 @@ const sections = [
   "Politics",
   "Sports",
   "World",
-  "Xtra",
+  "Editorial",
 ];
 
 export const Header = () => {

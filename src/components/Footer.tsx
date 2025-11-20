@@ -20,7 +20,7 @@ export const Footer = () => {
     { name: "Health", path: "/section/health" },
     { name: "Sports", path: "/section/sports" },
     { name: "World", path: "/section/world" },
-    { name: "Xtra", path: "/section/xtra" },
+    { name: "Editorial", path: "/section/editorial" },
   ];
 
   const handleSubscribe = async (e: React.FormEvent) => {
