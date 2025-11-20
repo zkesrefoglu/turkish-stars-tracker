@@ -2,7 +2,12 @@ import type { Config } from "tailwindcss";
 
 export default {
   darkMode: ["class"],
-  content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  content: [
+    './pages/**/*.{ts,tsx}',
+    './components/**/*.{ts,tsx}',
+    './app/**/*.{ts,tsx}',
+    './src/**/*.{ts,tsx}',
+  ],
   prefix: "",
   theme: {
     container: {
@@ -22,6 +27,7 @@ export default {
         primary: {
           DEFAULT: "hsl(var(--primary))",
           foreground: "hsl(var(--primary-foreground))",
+          hover: "hsl(var(--primary-hover))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -38,6 +44,7 @@ export default {
         accent: {
           DEFAULT: "hsl(var(--accent))",
           foreground: "hsl(var(--accent-foreground))",
+          light: "hsl(var(--accent-light))",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -57,22 +64,27 @@ export default {
           border: "hsl(var(--sidebar-border))",
           ring: "hsl(var(--sidebar-ring))",
         },
-        category: {
-          agenda: "hsl(var(--category-agenda))",
-          politics: "hsl(var(--category-politics))",
-          "fp-defense": "hsl(var(--category-fp-defense))",
-          business: "hsl(var(--category-business))",
-          life: "hsl(var(--category-life))",
-          health: "hsl(var(--category-health))",
-          sports: "hsl(var(--category-sports))",
-          world: "hsl(var(--category-world))",
-          xtra: "hsl(var(--category-xtra))",
-        },
+        "category-agenda": "hsl(var(--category-agenda))",
+        "category-politics": "hsl(var(--category-politics))",
+        "category-fp-defense": "hsl(var(--category-fp-defense))",
+        "category-business": "hsl(var(--category-business))",
+        "category-technology": "hsl(var(--category-technology))",
+        "category-life": "hsl(var(--category-life))",
+        "category-health": "hsl(var(--category-health))",
+        "category-sports": "hsl(var(--category-sports))",
+        "category-world": "hsl(var(--category-world))",
+        "category-xtra": "hsl(var(--category-xtra))",
       },
       borderRadius: {
         lg: "var(--radius)",
         md: "calc(var(--radius) - 2px)",
         sm: "calc(var(--radius) - 4px)",
+      },
+      fontFamily: {
+        headline: ['Playfair Display', 'Georgia', 'serif'],
+        body: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+        ui: ['Roboto Condensed', 'sans-serif'],
+        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       keyframes: {
         "accordion-down": {
