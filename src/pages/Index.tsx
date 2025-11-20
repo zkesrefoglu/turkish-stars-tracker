@@ -2,12 +2,11 @@ import { useEffect, useState } from "react";
 import { Header } from "@/components/Header";
 import { NewsCarousel } from "@/components/NewsCarousel";
 import { HomeMatrixSection } from "@/components/HomeMatrixSection";
-import { HomeFeaturedMid } from "@/components/HomeFeaturedMid";
+import { DailyTopic } from "@/components/DailyTopic";
 import { Footer } from "@/components/Footer";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Link } from "react-router-dom";
 
 interface Article {
   title: string;
@@ -22,7 +21,13 @@ const Index = () => {
   const { toast } = useToast();
   const [carouselArticles, setCarouselArticles] = useState<Article[]>([]);
   const [matrixCategories, setMatrixCategories] = useState<Array<{ name: string; articles: Article[] }>>([]);
-  const [agendaArticles, setAgendaArticles] = useState<Article[]>([]);
+  const [editorsPick, setEditorsPick] = useState<{
+    title: string;
+    excerpt: string;
+    author: string;
+    date: string;
+    slug: string;
+  } | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -76,8 +81,8 @@ const Index = () => {
         }))
       );
 
-      // 2. MATRIX SECTION: Politics, FP & Defense, Business & Economy (3 articles each)
-      const matrixCats = ["Politics", "FP & Defense", "Business & Economy"];
+      // 2. MATRIX SECTION: Economy, Defense, Life (3 articles each)
+      const matrixCats = ["Economy", "Defense", "Life"];
       const matrixData = await Promise.all(
         matrixCats.map(async (category) => {
           const { data, error } = await supabase
@@ -109,31 +114,31 @@ const Index = () => {
       );
       setMatrixCategories(matrixData);
 
-      // 3. AGENDA: All Agenda articles
-      const { data: agendaData, error: agendaError } = await supabase
-        .from("news_articles")
+      // 3. EDITOR'S PICK: Latest from daily_topics table
+      const { data: dailyTopicData, error: dailyTopicError } = await supabase
+        .from("daily_topics")
         .select("*")
         .eq("published", true)
-        .eq("category", "Agenda")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
 
-      if (agendaError) throw agendaError;
+      if (dailyTopicError) {
+        console.error("Error fetching daily topic:", dailyTopicError);
+      }
 
-      if (agendaData) {
-        setAgendaArticles(
-          agendaData.map((article) => ({
-            title: article.title,
-            excerpt: article.excerpt,
-            slug: article.slug,
-            imageUrl: article.image_url || `https://picsum.photos/seed/${article.slug}/600/400`,
-            category: article.category,
-            date: new Date(article.created_at).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-            }),
-          }))
-        );
+      if (dailyTopicData) {
+        setEditorsPick({
+          title: dailyTopicData.title,
+          excerpt: dailyTopicData.excerpt,
+          author: dailyTopicData.author,
+          date: new Date(dailyTopicData.created_at).toLocaleDateString("en-US", {
+            month: "short",
+            day: "numeric",
+            year: "numeric",
+          }),
+          slug: dailyTopicData.slug,
+        });
       }
     } catch (error: any) {
       toast({
@@ -183,40 +188,16 @@ const Index = () => {
           </div>
         )}
 
-        {/* AGENDA SECTION */}
-        {agendaArticles.length > 0 && (
+        {/* EDITOR'S PICK SECTION */}
+        {editorsPick && (
           <div className="container-custom mt-16">
-            <h2 className="text-3xl font-bold mb-8">Agenda</h2>
-            <div className="space-y-6">
-              {agendaArticles.map((article, index) => (
-                <Link key={index} to={`/article/${article.slug}`} className="block group">
-                  <article className="flex flex-col md:flex-row gap-6 border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow p-6">
-                    <div className="flex-1 flex flex-col justify-center order-2 md:order-1">
-                      <div className="flex items-center space-x-3 mb-3">
-                        <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-                          {article.category}
-                        </span>
-                        <span className="text-muted-foreground">•</span>
-                        <time className="text-xs text-muted-foreground">{article.date}</time>
-                      </div>
-                      <h3 className="text-2xl font-bold mb-3 leading-tight group-hover:text-primary transition-colors">
-                        {article.title}
-                      </h3>
-                      <p className="text-muted-foreground leading-relaxed line-clamp-2">
-                        {article.excerpt}
-                      </p>
-                    </div>
-                    <div className="w-full md:w-[400px] h-[250px] flex-shrink-0 order-1 md:order-2">
-                      <img
-                        src={article.imageUrl}
-                        alt={article.title}
-                        className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-105"
-                      />
-                    </div>
-                  </article>
-                </Link>
-              ))}
-            </div>
+            <DailyTopic 
+              title={editorsPick.title}
+              excerpt={editorsPick.excerpt}
+              author={editorsPick.author}
+              date={editorsPick.date}
+              slug={editorsPick.slug}
+            />
           </div>
         )}
       </main>

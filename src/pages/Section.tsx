@@ -28,13 +28,12 @@ const Section = () => {
   const getSectionName = (slug: string): string => {
     const sectionMap: { [key: string]: string } = {
       "agenda": "Agenda",
-      "politics": "Politics",
-      "fp-defense": "FP & Defense",
-      "business-economy": "Business & Economy",
+      "economy": "Economy",
+      "defense": "Defense",
       "life": "Life",
-      "health": "Health",
-      "sports": "Sports",
+      "turkiye": "Turkiye",
       "world": "World",
+      "xtra": "Xtra",
       "editorial": "Editorial",
     };
     return sectionMap[slug] || slug;

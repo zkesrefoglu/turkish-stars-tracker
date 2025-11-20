@@ -32,10 +32,6 @@ export const NewsFeedItem = ({ title, excerpt, content, section, author, date, s
     <Link to={`/article/${slug}`}>
       <article className={`py-6 px-6 border-b border-border last:border-0 animate-fade-up hover:opacity-80 transition-opacity cursor-pointer ${categoryColor}`}>
         <div className="flex items-center space-x-3 mb-2">
-          <span className="text-xs font-semibold uppercase tracking-wide text-primary">
-            {section}
-          </span>
-          <span className="text-muted-foreground">•</span>
           <time className="text-xs text-muted-foreground">{date}</time>
         </div>
         

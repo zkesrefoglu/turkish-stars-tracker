@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
 import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useToast } from "@/hooks/use-toast";
@@ -7,21 +7,59 @@ import { supabase } from "@/integrations/supabase/client";
 import logoImage from "@/assets/logo.png";
 
 export const Footer = () => {
+  const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
 
   const sections = [
     { name: "Agenda", path: "/section/agenda" },
-    { name: "Politics", path: "/section/politics" },
-    { name: "FP & Defense", path: "/section/fp-defense" },
-    { name: "Business", path: "/section/business" },
+    { name: "Economy", path: "/section/economy" },
+    { name: "Defense", path: "/section/defense" },
     { name: "Life", path: "/section/life" },
-    { name: "Health", path: "/section/health" },
-    { name: "Sports", path: "/section/sports" },
+    { name: "Turkiye", path: "/section/turkiye" },
     { name: "World", path: "/section/world" },
+    { name: "Xtra", path: "/section/xtra" },
     { name: "Editorial", path: "/section/editorial" },
   ];
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdmin(session.user.id);
+      }
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        checkAdmin(session.user.id);
+      } else {
+        setIsAdmin(false);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const checkAdmin = async (userId: string) => {
+    const { data } = await supabase
+      .from("user_roles")
+      .select("role")
+      .eq("user_id", userId)
+      .eq("role", "admin")
+      .maybeSingle();
+    
+    setIsAdmin(!!data);
+  };
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    navigate("/");
+  };
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,8 +156,32 @@ export const Footer = () => {
           </div>
         </div>
 
-        {/* Social & Contact */}
+        {/* Auth Buttons, Social & Contact */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border gap-4">
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => navigate("/admin")}
+                  >
+                    Admin
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+                Sign In
+              </Button>
+            )}
+          </div>
+
           <div className="flex gap-4">
             <a
               href="https://x.com/BosphorusNN"
