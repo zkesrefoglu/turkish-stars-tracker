@@ -239,7 +239,7 @@ const Admin = () => {
       // Validate input data
       const validationResult = newsArticleSchema.safeParse({
         title: topicTitle,
-        category: "Agenda",
+        category: "Editorial",
         excerpt: topicExcerpt,
         content: topicContent,
         image_url: topicImageUrl,
@@ -274,16 +274,15 @@ const Admin = () => {
         }
       }
       
+      // Save to daily_topics table (for Editor's Pick)
       const { error } = await supabase
-        .from("news_articles")
+        .from("daily_topics")
         .insert({
           title: validData.title,
           slug: slug,
-          category: "Agenda",
           excerpt: validData.excerpt,
           content: validData.content,
           author: session.user.email || "Admin",
-          image_url: imageUrl,
           published: true,
         });
 
@@ -291,7 +290,7 @@ const Admin = () => {
 
       toast({
         title: "Success!",
-        description: "Daily topic (Agenda article) has been uploaded successfully",
+        description: "Editor's Pick has been uploaded successfully",
       });
 
       // Reset form
@@ -631,9 +630,9 @@ const Admin = () => {
         <Tabs defaultValue="news" className="w-full" onValueChange={(value) => {
           if (value === "manage") fetchArticles();
         }}>
-          <TabsList className="grid w-full grid-cols-6">
+            <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="news">Latest News</TabsTrigger>
-            <TabsTrigger value="topic">Daily Topic (Agenda)</TabsTrigger>
+            <TabsTrigger value="topic">Editor's Pick</TabsTrigger>
             <TabsTrigger value="bulk">Bulk Upload</TabsTrigger>
             <TabsTrigger value="converter">News Converter</TabsTrigger>
             <TabsTrigger value="manage">Manage Articles</TabsTrigger>
@@ -645,7 +644,7 @@ const Admin = () => {
               <CardHeader>
                 <CardTitle>Add Single News Article</CardTitle>
                 <CardDescription>
-                  Manually add one news article at a time. Select any category except Agenda (use the Daily Topic tab for Agenda articles).
+                  Manually add one news article. All articles are part of Agenda but must have a specific category (Economy, Defense, Life, Turkiye, World, Xtra, or Editorial).
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -667,13 +666,13 @@ const Admin = () => {
                         <SelectValue placeholder="Select a section" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Politics">Politics</SelectItem>
-                        <SelectItem value="FP & Defense">FP & Defense</SelectItem>
-                        <SelectItem value="Business">Business</SelectItem>
+                        <SelectItem value="Agenda">Agenda</SelectItem>
+                        <SelectItem value="Economy">Economy</SelectItem>
+                        <SelectItem value="Defense">Defense</SelectItem>
                         <SelectItem value="Life">Life</SelectItem>
-                        <SelectItem value="Health">Health</SelectItem>
-                        <SelectItem value="Sports">Sports</SelectItem>
+                        <SelectItem value="Turkiye">Turkiye</SelectItem>
                         <SelectItem value="World">World</SelectItem>
+                        <SelectItem value="Xtra">Xtra</SelectItem>
                         <SelectItem value="Editorial">Editorial</SelectItem>
                       </SelectContent>
                     </Select>
@@ -736,9 +735,9 @@ const Admin = () => {
           <TabsContent value="topic">
             <Card>
               <CardHeader>
-                <CardTitle>Featured Daily Topic (Agenda)</CardTitle>
+                <CardTitle>Editor's Pick (Daily Topic)</CardTitle>
                 <CardDescription>
-                  Upload the main featured story that appears at the top of the homepage. This automatically creates an Agenda article.
+                  Upload the main featured story that appears as "Editor's Pick" on the homepage. This is the big breaking news of the day.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -800,7 +799,7 @@ const Admin = () => {
                   </div>
 
                   <Button type="submit" disabled={submitting || uploadingImage}>
-                    {uploadingImage ? "Uploading Image..." : submitting ? "Uploading..." : "Upload Daily Topic"}
+                    {uploadingImage ? "Uploading Image..." : submitting ? "Uploading..." : "Upload Editor's Pick"}
                   </Button>
                 </form>
               </CardContent>
