@@ -2,95 +2,100 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Premium Design System - Better Than Reuters */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 220 15% 20%;
+    /* Core Colors - Sophisticated Navy & Warm Neutrals */
+    --background: 40 20% 99%;
+    --foreground: 222 47% 11%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 20%;
+    --card: 40 15% 97%;
+    --card-foreground: 222 47% 11%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 20%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 220 90% 35%;
+    /* Primary - Deep Navy (Sophisticated) */
+    --primary: 222 47% 11%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 222 47% 18%;
 
-    --secondary: 220 10% 95%;
-    --secondary-foreground: 220 15% 20%;
-
-    --muted: 220 10% 96%;
-    --muted-foreground: 220 10% 55%;
-
-    --accent: 220 90% 35%;
+    /* Accent - Vibrant Coral/Red (Breaking News) */
+    --accent: 4 90% 58%;
     --accent-foreground: 0 0% 100%;
+    --accent-light: 4 90% 65%;
 
+    /* Secondary - Light Surface */
+    --secondary: 40 15% 95%;
+    --secondary-foreground: 222 47% 11%;
+
+    /* Muted - Subtle Backgrounds */
+    --muted: 40 15% 96%;
+    --muted-foreground: 222 20% 45%;
+
+    /* Destructive */
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 90%;
-    --input: 220 10% 90%;
-    --ring: 220 90% 35%;
+    /* Borders - Ultra Subtle */
+    --border: 220 15% 90%;
+    --input: 220 15% 90%;
+    --ring: 222 47% 11%;
 
-    --radius: 0.25rem;
+    --radius: 0.5rem;
 
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    /* Category colors */
+    /* Category Colors - Refined & Vibrant */
     --category-agenda: 351 100% 69%;
-    --category-politics: 31 100% 71%;
-    --category-fp-defense: 200 100% 73%;
-    --category-business: 159 78% 64%;
-    --category-life: 252 100% 85%;
+    --category-politics: 210 100% 45%;
+    --category-fp-defense: 140 50% 40%;
+    --category-business: 280 65% 50%;
+    --category-technology: 30 100% 50%;
+    --category-life: 340 75% 55%;
     --category-health: 287 100% 87%;
-    --category-sports: 215 100% 63%;
+    --category-sports: 200 90% 50%;
     --category-world: 0 100% 82%;
-    --category-xtra: 354 100% 84%;
+    --category-xtra: 25 95% 53%;
+
+    /* Typography Variables */
+    --font-headline: 'Playfair Display', 'Georgia', serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    --font-ui: 'Roboto Condensed', sans-serif;
+
+    /* Transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
   .dark {
-    --background: 220 15% 10%;
+    --background: 222 47% 8%;
     --foreground: 0 0% 98%;
 
-    --card: 220 15% 12%;
+    --card: 222 40% 10%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 220 15% 12%;
+    --popover: 222 40% 10%;
     --popover-foreground: 0 0% 98%;
 
-    --primary: 220 90% 45%;
+    --primary: 222 90% 55%;
     --primary-foreground: 0 0% 100%;
+    --primary-hover: 222 90% 65%;
 
-    --secondary: 220 10% 18%;
+    --accent: 4 90% 58%;
+    --accent-foreground: 0 0% 100%;
+
+    --secondary: 222 30% 15%;
     --secondary-foreground: 0 0% 98%;
 
-    --muted: 220 10% 18%;
-    --muted-foreground: 220 10% 60%;
-
-    --accent: 220 90% 45%;
-    --accent-foreground: 0 0% 100%;
+    --muted: 222 30% 18%;
+    --muted-foreground: 0 0% 70%;
 
     --destructive: 0 62.8% 50%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 220 10% 20%;
-    --input: 220 10% 20%;
-    --ring: 220 90% 45%;
-
-    /* Category colors (same as light mode) */
-    --category-agenda: 351 100% 69%;
-    --category-politics: 31 100% 71%;
-    --category-fp-defense: 200 100% 73%;
-    --category-business: 159 78% 64%;
-    --category-life: 252 100% 85%;
-    --category-health: 287 100% 87%;
-    --category-sports: 215 100% 63%;
-    --category-world: 0 100% 82%;
-    --category-xtra: 354 100% 84%;
+    --border: 222 30% 20%;
+    --input: 222 30% 20%;
+    --ring: 222 90% 55%;
   }
 }
 
@@ -101,20 +106,247 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground antialiased;
+    font-family: var(--font-body);
     font-feature-settings: "kern", "liga", "clig", "calt";
   }
 
   h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-headline);
     @apply font-bold tracking-tight;
+  }
+
+  h1 {
+    @apply text-5xl md:text-7xl;
+    letter-spacing: -0.02em;
+  }
+
+  h2 {
+    @apply text-4xl md:text-5xl;
+    letter-spacing: -0.02em;
+  }
+
+  h3 {
+    @apply text-2xl md:text-3xl;
   }
 }
 
 @layer utilities {
-  .hover-underline {
-    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-primary after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
-  }
-
+  /* Typography Utilities */
   .text-balance {
     text-wrap: balance;
   }
+
+  .font-headline {
+    font-family: var(--font-headline);
+  }
+
+  .font-ui {
+    font-family: var(--font-ui);
+  }
+
+  /* Container */
+  .container-custom {
+    @apply max-w-[1400px] mx-auto px-6 md:px-12;
+  }
+
+  /* Hover Effects */
+  .hover-lift {
+    @apply transition-transform duration-300 hover:-translate-y-2;
+  }
+
+  .hover-scale {
+    @apply transition-transform duration-300 hover:scale-105;
+  }
+
+  .hover-glow {
+    @apply transition-shadow duration-300;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px currentColor;
+  }
+
+  /* Underline Animation */
+  .hover-underline {
+    @apply relative inline-block after:content-[''] after:absolute after:w-full after:scale-x-0 after:h-0.5 after:bottom-0 after:left-0 after:bg-accent after:origin-bottom-right after:transition-transform after:duration-300 hover:after:scale-x-100 hover:after:origin-bottom-left;
+  }
+
+  /* Text Shadows */
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+  }
+
+  .text-shadow-md {
+    text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+  }
+
+  .text-shadow-lg {
+    text-shadow: 0 2px 20px rgba(0, 0, 0, 0.6);
+  }
+
+  /* Gradients */
+  .gradient-overlay-dark {
+    background: linear-gradient(
+      to top,
+      rgba(15, 20, 25, 0.95) 0%,
+      rgba(15, 20, 25, 0.7) 40%,
+      rgba(15, 20, 25, 0.3) 70%,
+      transparent 100%
+    );
+  }
+
+  .gradient-overlay-subtle {
+    background: linear-gradient(
+      135deg,
+      rgba(0, 0, 0, 0.7) 0%,
+      rgba(0, 0, 0, 0.4) 50%,
+      transparent 100%
+    );
+  }
+
+  /* Scroll Animations */
+  .fade-up-scroll {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: opacity 0.6s ease, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .fade-up-scroll.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* Image Filters */
+  .image-enhanced {
+    filter: brightness(0.9) contrast(1.1) saturate(1.05);
+  }
+
+  .image-darkened {
+    filter: brightness(0.7) contrast(1.1);
+  }
+}
+
+/* Custom Animations */
+@layer utilities {
+  @keyframes ken-burns {
+    0% {
+      transform: scale(1);
+    }
+    100% {
+      transform: scale(1.1);
+    }
+  }
+
+  @keyframes shimmer {
+    0% {
+      background-position: -1000px 0;
+    }
+    100% {
+      background-position: 1000px 0;
+    }
+  }
+
+  @keyframes fade-in-up {
+    0% {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    100% {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes slide-in-right {
+    0% {
+      transform: translateX(100%);
+    }
+    100% {
+      transform: translateX(0);
+    }
+  }
+
+  .animate-ken-burns {
+    animation: ken-burns 8s ease-out infinite alternate;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s infinite linear;
+  }
+
+  .animate-fade-in-up {
+    animation: fade-in-up 0.6s ease-out;
+  }
+}
+
+/* Component Styles */
+@layer components {
+  /* Category Badges */
+  .category-badge {
+    @apply inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-sm transition-all duration-200;
+    font-family: var(--font-ui);
+    letter-spacing: 0.1em;
+  }
+
+  .category-badge:hover {
+    @apply -translate-y-0.5 shadow-lg;
+  }
+
+  /* Article Cards */
+  .article-card {
+    @apply overflow-hidden rounded-lg cursor-pointer transition-all duration-300;
+  }
+
+  .article-card:hover {
+    @apply -translate-y-2 shadow-2xl;
+  }
+
+  .article-card:hover .article-image {
+    @apply scale-110;
+  }
+
+  .article-image {
+    @apply w-full h-full object-cover transition-transform duration-500 ease-out;
+    filter: contrast(1.05) saturate(1.1);
+  }
+
+  /* Skeleton Loading */
+  .skeleton {
+    @apply animate-pulse bg-muted rounded-md;
+  }
+
+  .skeleton-shimmer {
+    background: linear-gradient(
+      90deg,
+      hsl(var(--muted)) 0%,
+      hsl(var(--muted) / 0.8) 50%,
+      hsl(var(--muted)) 100%
+    );
+    background-size: 1000px 100%;
+    animation: shimmer 2s infinite linear;
+  }
+}
+
+/* Carousel Specific Styles */
+.carousel-slide {
+  @apply relative overflow-hidden;
+  height: 75vh;
+  min-height: 500px;
+}
+
+.carousel-slide .carousel-image {
+  @apply w-full h-full object-cover;
+  filter: brightness(0.7) contrast(1.1);
+  transform: scale(1.05);
+  transition: transform 8s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-slide:hover .carousel-image {
+  transform: scale(1.15);
+}
+
+/* Header Scroll Effect */
+.header-scrolled {
+  @apply shadow-lg;
+  backdrop-filter: blur(12px);
 }

@@ -1,5 +1,5 @@
+import React from "react";
 import { Link } from "react-router-dom";
-import { Card } from "@/components/ui/card";
 import {
   Carousel,
   CarouselContent,
@@ -23,57 +23,64 @@ interface NewsCarouselProps {
 }
 
 export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
+  const plugin = React.useRef(
+    Autoplay({ delay: 3000, stopOnInteraction: true })
+  );
+
   return (
-    <div className="mb-16 animate-fade-in">
-      <Carousel
-        opts={{
-          align: "start",
-          loop: true,
-        }}
-        plugins={[
-          Autoplay({
-            delay: 5000,
-          }),
-        ]}
-        className="w-full"
-      >
-        <CarouselContent>
-          {articles.map((article, index) => (
-            <CarouselItem key={index}>
-              <Link to={`/article/${article.slug}`}>
-                <Card className="relative overflow-hidden rounded-lg group cursor-pointer h-[500px] md:h-[600px]">
-                  <div 
-                    className="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
-                    style={{ 
-                      backgroundImage: `url(${article.imageUrl})`,
-                    }}
-                  />
-                  <div className="absolute inset-0 bg-gradient-to-t from-background via-background/60 to-transparent" />
-                  
-                  <div className="relative h-full flex flex-col justify-end p-8 md:p-12">
-                    <div className="mb-4 flex items-center space-x-3">
-                      <span className="inline-block px-3 py-1 text-xs font-semibold tracking-wide uppercase bg-primary text-primary-foreground rounded">
+    <Carousel
+      opts={{
+        align: "start",
+        loop: true,
+      }}
+      plugins={[plugin.current]}
+      className="w-full mb-16"
+    >
+      <CarouselContent>
+        {articles.map((article, index) => (
+          <CarouselItem key={index}>
+            <Link to={`/article/${article.slug}`}>
+              <div className="carousel-slide group cursor-pointer border-0 rounded-lg overflow-hidden shadow-2xl">
+                {/* Background Image with Ken Burns Effect */}
+                <img
+                  src={article.imageUrl}
+                  alt={article.title}
+                  className="carousel-image"
+                />
+                
+                {/* Gradient Overlay */}
+                <div className="absolute inset-0 gradient-overlay-dark" />
+                
+                {/* Content */}
+                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 container-custom">
+                  <div className="max-w-4xl">
+                    <div className="flex items-center gap-3 mb-4">
+                      <span className="category-badge bg-accent text-white">
                         {article.category}
                       </span>
-                      <time className="text-sm text-muted-foreground">{article.date}</time>
+                      <time className="text-sm text-white/80 font-ui uppercase tracking-wide">
+                        {article.date}
+                      </time>
                     </div>
                     
-                    <h2 className="text-3xl md:text-5xl font-bold mb-4 leading-tight tracking-tight text-foreground group-hover:text-primary transition-colors">
+                    <h2 className="font-headline text-4xl md:text-6xl font-bold text-white leading-tight mb-6 text-shadow-lg text-balance group-hover:text-white/90 transition-colors">
                       {article.title}
                     </h2>
                     
-                    <p className="text-lg text-foreground/90 leading-relaxed max-w-3xl line-clamp-2">
+                    <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-3xl line-clamp-3">
                       {article.excerpt}
                     </p>
                   </div>
-                </Card>
-              </Link>
-            </CarouselItem>
-          ))}
-        </CarouselContent>
-        <CarouselPrevious className="left-4" />
-        <CarouselNext className="right-4" />
-      </Carousel>
-    </div>
+                </div>
+              </div>
+            </Link>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      
+      {/* Navigation Buttons */}
+      <CarouselPrevious className="left-6 w-12 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-foreground transition-all" />
+      <CarouselNext className="right-6 w-12 h-12 bg-white/10 backdrop-blur-md border-white/20 text-white hover:bg-white hover:text-foreground transition-all" />
+    </Carousel>
   );
 };

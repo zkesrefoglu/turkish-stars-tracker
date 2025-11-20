@@ -56,9 +56,12 @@ export type Database = {
           category: string
           content: string
           created_at: string
+          display_order: number | null
           excerpt: string
           id: string
           image_url: string | null
+          is_carousel_featured: boolean | null
+          is_mid_featured: boolean | null
           published: boolean
           slug: string
           title: string
@@ -69,9 +72,12 @@ export type Database = {
           category: string
           content: string
           created_at?: string
+          display_order?: number | null
           excerpt: string
           id?: string
           image_url?: string | null
+          is_carousel_featured?: boolean | null
+          is_mid_featured?: boolean | null
           published?: boolean
           slug: string
           title: string
@@ -82,9 +88,12 @@ export type Database = {
           category?: string
           content?: string
           created_at?: string
+          display_order?: number | null
           excerpt?: string
           id?: string
           image_url?: string | null
+          is_carousel_featured?: boolean | null
+          is_mid_featured?: boolean | null
           published?: boolean
           slug?: string
           title?: string
