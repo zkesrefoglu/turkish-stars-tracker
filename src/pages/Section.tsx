@@ -35,7 +35,7 @@ const Section = () => {
       "health": "Health",
       "sports": "Sports",
       "world": "World",
-      "xtra": "Xtra",
+      "editorial": "Editorial",
     };
     return sectionMap[slug] || slug;
   };
@@ -91,9 +91,9 @@ const Section = () => {
     fetchArticles();
   }, [sectionName, toast]);
 
-  // Check if this is the Xtra section - show as Daily Topic format
-  const isXtraSection = sectionName === "Xtra";
-  const latestXtraArticle = isXtraSection && articles.length > 0 ? articles[0] : null;
+  // Check if this is the Editorial section - show as Daily Topic format
+  const isEditorialSection = sectionName === "Editorial";
+  const latestEditorialArticle = isEditorialSection && articles.length > 0 ? articles[0] : null;
 
   return (
     <div className="min-h-screen bg-background">
@@ -111,14 +111,14 @@ const Section = () => {
           </div>
         ) : (
           <>
-            {isXtraSection && latestXtraArticle ? (
-              // Show Xtra as Daily Topic format
+            {isEditorialSection && latestEditorialArticle ? (
+              // Show Editorial as Daily Topic format
               <DailyTopic 
-                title={latestXtraArticle.title}
-                excerpt={latestXtraArticle.excerpt}
-                author={latestXtraArticle.author}
-                date={latestXtraArticle.date}
-                slug={latestXtraArticle.slug}
+                title={latestEditorialArticle.title}
+                excerpt={latestEditorialArticle.excerpt}
+                author={latestEditorialArticle.author}
+                date={latestEditorialArticle.date}
+                slug={latestEditorialArticle.slug}
               />
             ) : (
               <>

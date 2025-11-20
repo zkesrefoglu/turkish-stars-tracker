@@ -24,7 +24,7 @@ const getCategoryColor = (category: string): string => {
     "Health": "bg-category-health/20",
     "Sports": "bg-category-sports/20",
     "World": "bg-category-world/20",
-    "Xtra": "bg-category-xtra/20",
+    "Editorial": "bg-category-xtra/20",
   };
   return categoryMap[category] || "bg-muted/20";
 };
