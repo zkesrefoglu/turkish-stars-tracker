@@ -33,7 +33,7 @@ export const HomeFeaturedMid = ({ article }: HomeFeaturedMidProps) => {
   return (
     <section className="my-16">
       <Link to={`/article/${article.slug}`}>
-        <div className="relative overflow-hidden rounded-lg group cursor-pointer" style={{ height: "400px" }}>
+        <div className="relative overflow-hidden rounded-lg group cursor-pointer" style={{ height: "600px" }}>
           {/* Background Image */}
           <img
             src={article.imageUrl || `https://picsum.photos/seed/${article.slug}/1200/800`}
