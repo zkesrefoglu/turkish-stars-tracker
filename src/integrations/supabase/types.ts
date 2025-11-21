@@ -54,6 +54,7 @@ export type Database = {
         Row: {
           author: string
           category: string
+          category_pin_order: number | null
           content: string
           created_at: string
           display_order: number | null
@@ -61,7 +62,9 @@ export type Database = {
           id: string
           image_url: string | null
           is_carousel_featured: boolean | null
+          is_carousel_pinned: boolean | null
           is_mid_featured: boolean | null
+          photo_credit: string | null
           published: boolean
           slug: string
           title: string
@@ -70,6 +73,7 @@ export type Database = {
         Insert: {
           author: string
           category: string
+          category_pin_order?: number | null
           content: string
           created_at?: string
           display_order?: number | null
@@ -77,7 +81,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_carousel_featured?: boolean | null
+          is_carousel_pinned?: boolean | null
           is_mid_featured?: boolean | null
+          photo_credit?: string | null
           published?: boolean
           slug: string
           title: string
@@ -86,6 +92,7 @@ export type Database = {
         Update: {
           author?: string
           category?: string
+          category_pin_order?: number | null
           content?: string
           created_at?: string
           display_order?: number | null
@@ -93,7 +100,9 @@ export type Database = {
           id?: string
           image_url?: string | null
           is_carousel_featured?: boolean | null
+          is_carousel_pinned?: boolean | null
           is_mid_featured?: boolean | null
+          photo_credit?: string | null
           published?: boolean
           slug?: string
           title?: string

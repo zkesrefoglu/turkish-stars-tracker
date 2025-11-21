@@ -15,6 +15,7 @@ interface Article {
   imageUrl: string;
   category: string;
   date: string;
+  photoCredit?: string;
 }
 
 const Index = () => {
@@ -38,11 +39,13 @@ const Index = () => {
   const fetchData = async () => {
     try {
       // 1. CAROUSEL: Top 5 carousel-featured articles
+      // Pinned articles first, then by display_order, then by date
       let carouselQuery = supabase
         .from("news_articles")
         .select("*")
         .eq("published", true)
         .eq("is_carousel_featured", true)
+        .order("is_carousel_pinned", { ascending: false })
         .order("display_order", { ascending: true, nullsFirst: false })
         .order("created_at", { ascending: false })
         .limit(5);
@@ -79,19 +82,36 @@ const Index = () => {
             day: "numeric",
             year: "numeric",
           }),
+          photoCredit: article.photo_credit,
         }))
       );
 
-      // 2. MATRIX SECTION: Türkiye, Economy, World (3 articles each)
-      const matrixCats = ["Türkiye", "Economy", "World"];
+      // 2. MATRIX SECTION: Get all categories dynamically (3 articles each)
+      // First get distinct categories excluding Xtra
+      const { data: categoriesData, error: categoriesError } = await supabase
+        .from("news_articles")
+        .select("category")
+        .eq("published", true)
+        .neq("category", "Xtra")
+        .order("category");
+
+      if (categoriesError) throw categoriesError;
+
+      // Get unique categories
+      const uniqueCategories = Array.from(
+        new Set(categoriesData?.map((item) => item.category) || [])
+      );
+
+      // Fetch articles for each category
       const matrixData = await Promise.all(
-        matrixCats.map(async (category) => {
+        uniqueCategories.map(async (category) => {
           const { data, error } = await supabase
             .from("news_articles")
             .select("*")
             .eq("published", true)
             .eq("category", category)
             .eq("is_carousel_featured", false)
+            .order("category_pin_order", { ascending: true, nullsFirst: false })
             .order("created_at", { ascending: false })
             .limit(3);
 
@@ -109,6 +129,7 @@ const Index = () => {
                 month: "short",
                 day: "numeric",
               }),
+              photoCredit: article.photo_credit,
             })),
           };
         })

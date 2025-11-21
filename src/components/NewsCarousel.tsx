@@ -10,6 +10,7 @@ interface CarouselArticle {
   imageUrl: string;
   category: string;
   date: string;
+  photoCredit?: string;
 }
 
 interface NewsCarouselProps {
@@ -51,7 +52,14 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
             <Link to={`/article/${article.slug}`}>
               <div className="carousel-slide group cursor-pointer border-0 rounded-lg overflow-hidden shadow-2xl">
                 {/* Background Image with Ken Burns Effect */}
-                <img src={article.imageUrl} alt={article.title} className="carousel-image" />
+                <div className="relative w-full h-full">
+                  <img src={article.imageUrl} alt={article.title} className="carousel-image" />
+                  {article.photoCredit && (
+                    <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/30 px-2 py-1 rounded">
+                      {article.photoCredit}
+                    </div>
+                  )}
+                </div>
 
                 {/* Gradient Overlay */}
                 <div className="absolute inset-0 gradient-overlay-dark" />
@@ -61,7 +69,7 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
                   <div className="max-w-4xl">
                     <div className="flex items-center gap-3 mb-4">
                       <span className={`category-badge ${getCategoryColor(article.category)} text-white`}>
-                        {article.category}
+                        {article.category.toLocaleUpperCase('tr-TR')}
                       </span>
                       <time className="text-sm text-white/80 font-ui uppercase tracking-wide">{article.date}</time>
                     </div>
