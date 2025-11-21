@@ -34,6 +34,7 @@ const Section = () => {
       "life": "Life",
       "turkiye": "Turkiye",
       "world": "World",
+      "sports": "Sports",
       "xtra": "Xtra",
       "editorial": "Editorial",
     };
@@ -41,6 +42,7 @@ const Section = () => {
   };
 
   const sectionName = section ? getSectionName(section) : "";
+  const [dailyTopic, setDailyTopic] = useState<NewsArticleData | null>(null);
 
   useEffect(() => {
     if (!sectionName) return;
@@ -75,6 +77,36 @@ const Section = () => {
               timestamp: new Date(article.created_at),
             }))
           );
+        }
+
+        // Fetch Daily Topic for Xtra section
+        if (sectionName === "Xtra") {
+          const { data: dailyTopicData, error: dailyTopicError } = await supabase
+            .from("daily_topics")
+            .select("*")
+            .eq("published", true)
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .single();
+
+          if (!dailyTopicError && dailyTopicData) {
+            setDailyTopic({
+              title: dailyTopicData.title,
+              excerpt: dailyTopicData.excerpt,
+              content: dailyTopicData.content,
+              section: "Editorial",
+              author: dailyTopicData.author,
+              date: new Date(dailyTopicData.created_at).toLocaleDateString("en-US", {
+                year: "numeric",
+                month: "2-digit",
+                day: "2-digit",
+                hour: "2-digit",
+                minute: "2-digit",
+              }),
+              slug: dailyTopicData.slug,
+              timestamp: new Date(dailyTopicData.created_at),
+            });
+          }
         }
       } catch (error: any) {
         toast({
@@ -167,6 +199,19 @@ const Section = () => {
                 <p className="text-muted-foreground">
                   {articles.length} {articles.length === 1 ? 'article' : 'articles'} in this section
                 </p>
+              </div>
+            )}
+
+            {/* Daily Topic for Xtra section */}
+            {isXtraSection && dailyTopic && (
+              <div className="mb-12">
+                <DailyTopic 
+                  title={dailyTopic.title}
+                  excerpt={dailyTopic.excerpt}
+                  author={dailyTopic.author}
+                  date={dailyTopic.date}
+                  slug={dailyTopic.slug}
+                />
               </div>
             )}
 
