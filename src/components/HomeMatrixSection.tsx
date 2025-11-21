@@ -8,6 +8,7 @@ interface Article {
   imageUrl: string;
   category: string;
   date: string;
+  photoCredit?: string;
 }
 
 interface CategoryColumn {
@@ -45,7 +46,7 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
             <div className="flex items-center justify-between mb-4">
               <Link to={`/section/${categoryColumn.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}>
                 <h3 className="text-lg font-ui font-bold uppercase tracking-wider text-foreground hover:text-accent transition-colors">
-                  {categoryColumn.name}
+                  {categoryColumn.name.toLocaleUpperCase('tr-TR')}
                 </h3>
               </Link>
             </div>
@@ -62,11 +63,16 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
                         alt={article.title}
                         className="article-image"
                       />
+                      {article.photoCredit && (
+                        <div className="absolute bottom-2 right-2 text-xs text-white/70 bg-black/30 px-2 py-1 rounded z-10">
+                          {article.photoCredit}
+                        </div>
+                      )}
                       <div className="absolute inset-0 gradient-overlay-dark opacity-80" />
                       
                       <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
                         <span className={`category-badge ${getCategoryColor(article.category)} text-white mb-3`}>
-                          {article.category}
+                          {article.category.toLocaleUpperCase('tr-TR')}
                         </span>
                         <h4 className="font-headline text-2xl font-bold leading-tight mb-2 text-shadow-lg group-hover:text-accent-light transition-colors">
                           {article.title}
