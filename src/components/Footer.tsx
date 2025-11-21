@@ -227,7 +227,7 @@ export const Footer = () => {
           </div>
 
           <div className="text-sm text-muted-foreground">
-            Contact:{" "}
+            {" "}
             <a href="mailto:info@bosphorusnews.com" className="hover:text-foreground transition-colors">
               info@bosphorusnews.com
             </a>
