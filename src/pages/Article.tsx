@@ -4,6 +4,7 @@ import { Header } from "@/components/Header";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { stripCategoryPlaceholders } from "@/lib/contentUtils";
 
 interface ArticleData {
   title: string;
@@ -132,7 +133,7 @@ const Article = () => {
               {article.excerpt}
             </p>
             <div className="whitespace-pre-wrap text-foreground">
-              {article.content}
+              {stripCategoryPlaceholders(article.content)}
             </div>
           </div>
         </article>
