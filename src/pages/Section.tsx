@@ -7,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import xtraLogo from "@/assets/xtra-logo.png";
+import bannerImage from "@/assets/banner-diplomatic.jpg";
 
 interface NewsArticleData {
   title: string;
@@ -160,8 +161,22 @@ const Section = () => {
             {isXtraSection ? (
               // Special Xtra Banner - Horizontal Layout
               <div className="mb-12 relative overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-r from-background via-primary/5 to-background">
-                {/* Animated background effects */}
-                <div className="absolute inset-0 opacity-30">
+                {/* Diplomatic Banner Background */}
+                <div className="absolute inset-0 opacity-20">
+                  <img 
+                    src={bannerImage} 
+                    alt="Diplomatic" 
+                    className="w-full h-full object-cover"
+                    style={{
+                      filter: 'grayscale(40%) contrast(1.1) brightness(0.7)',
+                      mixBlendMode: 'multiply'
+                    }}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-background via-transparent to-background" />
+                </div>
+
+                {/* Animated accent effects */}
+                <div className="absolute inset-0 opacity-20">
                   <div className="absolute top-0 -left-4 w-72 h-72 bg-primary rounded-full mix-blend-multiply filter blur-3xl animate-pulse" />
                   <div className="absolute top-0 -right-4 w-72 h-72 bg-accent rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
                   <div className="absolute -bottom-8 left-20 w-72 h-72 bg-primary/50 rounded-full mix-blend-multiply filter blur-3xl animate-pulse" style={{ animationDelay: '2s' }} />
