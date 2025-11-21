@@ -1,4 +1,5 @@
 import { Link } from "react-router-dom";
+import { stripCategoryPlaceholders } from "@/lib/contentUtils";
 
 interface NewsFeedItemProps {
   title: string;
@@ -46,7 +47,7 @@ export const NewsFeedItem = ({ title, excerpt, content, section, author, date, s
         </p>
         
         <div className="text-foreground leading-relaxed whitespace-pre-wrap mt-4">
-          {content}
+          {stripCategoryPlaceholders(content)}
         </div>
       </article>
     </Link>
