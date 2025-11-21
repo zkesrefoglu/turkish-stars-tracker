@@ -155,26 +155,6 @@ export const Footer = () => {
 
         {/* Auth Buttons, Social & Contact */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-8 border-t border-border gap-4">
-          {/* Auth Buttons */}
-          <div className="flex items-center gap-2">
-            {user ? (
-              <>
-                {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
-                    Admin
-                  </Button>
-                )}
-                <Button variant="outline" size="sm" onClick={handleSignOut}>
-                  Sign Out
-                </Button>
-              </>
-            ) : (
-              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
-                Sign In
-              </Button>
-            )}
-          </div>
-
           <div className="flex gap-4">
             <a
               href="https://x.com/BosphorusNN"
@@ -238,6 +218,25 @@ export const Footer = () => {
 
         {/* Navigation Links */}
         <div className="flex justify-end pt-4 border-t border-border">
+          {/* Auth Buttons */}
+          <div className="flex items-center gap-2">
+            {user ? (
+              <>
+                {isAdmin && (
+                  <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+                    Admin
+                  </Button>
+                )}
+                <Button variant="outline" size="sm" onClick={handleSignOut}>
+                  Sign Out
+                </Button>
+              </>
+            ) : (
+              <Button variant="outline" size="sm" onClick={() => navigate("/auth")}>
+                Sign In
+              </Button>
+            )}
+          </div>
           <div className="text-xs text-muted-foreground flex flex-wrap justify-end gap-x-2">
             <Link to="/" className="hover:text-foreground transition-colors">
               HOME
