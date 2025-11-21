@@ -33,7 +33,9 @@ export const Footer = () => {
       }
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
       if (session?.user) {
         checkAdmin(session.user.id);
@@ -52,7 +54,7 @@ export const Footer = () => {
       .eq("user_id", userId)
       .eq("role", "admin")
       .maybeSingle();
-    
+
     setIsAdmin(!!data);
   };
 
@@ -77,9 +79,7 @@ export const Footer = () => {
 
     try {
       // First, save email to database
-      const { error: dbError } = await supabase
-        .from("newsletter_subscriptions")
-        .insert([{ email }]);
+      const { error: dbError } = await supabase.from("newsletter_subscriptions").insert([{ email }]);
 
       if (dbError) {
         if (dbError.code === "23505") {
@@ -94,12 +94,9 @@ export const Footer = () => {
       }
 
       // Then send welcome email
-      const { error: emailError } = await supabase.functions.invoke(
-        "send-newsletter-confirmation",
-        {
-          body: { email },
-        }
-      );
+      const { error: emailError } = await supabase.functions.invoke("send-newsletter-confirmation", {
+        body: { email },
+      });
 
       if (emailError) {
         console.error("Email sending error:", emailError);
@@ -113,7 +110,7 @@ export const Footer = () => {
           description: "Check your email for a welcome message from Bosphorus News",
         });
       }
-      
+
       setEmail("");
     } catch (error) {
       toast({
@@ -132,7 +129,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 mb-8">
           {/* Logo and About */}
           <div>
-            <img src={logoImage} alt="Bosphorus News" className="h-8 mb-4" />
+            <img src={logoImage} alt="Bosphorus News" className="h-10 mb-4" />
             <p className="text-sm text-muted-foreground">
               Your trusted source for news and analysis from Turkey and beyond.
             </p>
@@ -163,11 +160,7 @@ export const Footer = () => {
             {user ? (
               <>
                 {isAdmin && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => navigate("/admin")}
-                  >
+                  <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
                     Admin
                   </Button>
                 )}
