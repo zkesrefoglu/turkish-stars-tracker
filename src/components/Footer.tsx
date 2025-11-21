@@ -129,7 +129,7 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 mb-8">
           {/* Logo and About */}
           <div>
-            <img src={logoImage} alt="Bosphorus News" className="h-10 mb-4" />
+            <img src={logoImage} alt="Bosphorus News" className="h-12 mb-4" />
             <p className="text-sm text-muted-foreground">
               Your trusted source for news and analysis from Turkey and beyond.
             </p>
