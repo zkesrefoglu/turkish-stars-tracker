@@ -24,7 +24,7 @@ interface ArticleData {
   image_url?: string;
 }
 
-const REACTIONS = ['😊', '🤣', '😒', '❤️', '👍', '🙌', '👌', '😢', '👎'];
+const REACTIONS = ['😊', '🤣', '😢', '😒', '😡', '👍', '🙌', '👎'];
 
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -291,20 +291,20 @@ const Article = () => {
             </div>
 
             <h3 className="text-lg font-semibold mb-4">React to this article</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               {REACTIONS.map((reaction) => (
                 <button
                   key={reaction}
                   onClick={() => handleReaction(reaction)}
-                  className={`flex items-center gap-1 px-4 py-2 rounded-full border transition-all hover:scale-110 ${
+                  className={`flex items-center gap-2 px-5 py-2.5 rounded-full border transition-all duration-200 hover:scale-105 hover:shadow-lg ${
                     userReaction === reaction
-                      ? 'bg-primary/20 border-primary'
-                      : 'bg-background border-border hover:border-primary/50'
+                      ? 'bg-primary/15 border-primary shadow-md scale-105'
+                      : 'bg-background/50 border-border/50 hover:border-primary/40 hover:bg-background'
                   }`}
                 >
                   <span className="text-2xl">{reaction}</span>
                   {reactionCounts[reaction] > 0 && (
-                    <span className="text-sm font-medium text-muted-foreground ml-1">
+                    <span className="text-sm font-semibold text-foreground/70 ml-0.5">
                       {reactionCounts[reaction]}
                     </span>
                   )}

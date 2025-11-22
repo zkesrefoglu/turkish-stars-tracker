@@ -40,7 +40,7 @@ const getCategoryColor = (section: string): string => {
   return categoryMap[section] || "bg-muted/20";
 };
 
-const REACTIONS = ['😊', '🤣', '😒', '❤️', '👍', '🙌', '👌', '😢', '👎'];
+const REACTIONS = ['😊', '🤣', '😢', '😒', '😡', '👍', '🙌', '👎'];
 
 export const NewsFeedItem = ({ title, excerpt, content, section, author, date, slug }: NewsFeedItemProps) => {
   const categoryColor = getCategoryColor(section);
@@ -221,15 +221,15 @@ export const NewsFeedItem = ({ title, excerpt, content, section, author, date, s
               e.preventDefault();
               handleReaction(reaction);
             }}
-            className={`flex items-center gap-1 px-3 py-1.5 rounded-full border transition-all hover:scale-110 ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-full border transition-all duration-200 hover:scale-105 hover:shadow-md ${
               userReaction === reaction
-                ? 'bg-primary/20 border-primary'
-                : 'bg-background border-border hover:border-primary/50'
+                ? 'bg-primary/15 border-primary shadow-sm scale-105'
+                : 'bg-background/50 border-border/50 hover:border-primary/40 hover:bg-background'
             }`}
           >
-            <span className="text-lg">{reaction}</span>
+            <span className="text-xl">{reaction}</span>
             {reactionCounts[reaction] > 0 && (
-              <span className="text-xs font-medium text-muted-foreground">
+              <span className="text-xs font-semibold text-foreground/70">
                 {reactionCounts[reaction]}
               </span>
             )}
