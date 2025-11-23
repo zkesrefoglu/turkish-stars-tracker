@@ -281,7 +281,7 @@
 @layer components {
   /* Category Badges */
   .category-badge {
-    @apply inline-flex items-center px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-sm transition-all duration-200;
+    @apply inline-flex items-center px-2 md:px-3 py-0.5 md:py-1 font-bold uppercase tracking-wider rounded-sm transition-all duration-200;
     font-family: var(--font-ui);
     letter-spacing: 0.1em;
   }

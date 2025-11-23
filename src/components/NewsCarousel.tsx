@@ -70,20 +70,20 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
                 <div className="absolute inset-0 gradient-overlay-dark" />
 
                 {/* Content */}
-                <div className="absolute bottom-0 left-0 right-0 p-8 md:p-12 container-custom">
+                <div className="absolute bottom-0 left-0 right-0 p-4 md:p-8 lg:p-12 container-custom">
                   <div className="max-w-4xl">
-                    <div className="flex items-center gap-3 mb-4">
-                      <span className={`category-badge ${getCategoryColor(article.category)} text-white`}>
+                    <div className="flex items-center gap-2 md:gap-3 mb-2 md:mb-4">
+                      <span className={`category-badge ${getCategoryColor(article.category)} text-white text-[10px] md:text-xs`}>
                         {formatCategoryLabel(article.category)}
                       </span>
-                      <time className="text-sm text-white/80 font-ui uppercase tracking-wide">{article.date}</time>
+                      <time className="text-xs md:text-sm text-white/80 font-ui uppercase tracking-wide">{article.date}</time>
                     </div>
 
-                    <h2 className="font-headline text-4xl md:text-6xl font-bold text-white leading-tight mb-6 text-shadow-lg text-balance group-hover:text-white/90 transition-colors">
+                    <h2 className="font-headline text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-3 md:mb-6 text-shadow-lg text-balance group-hover:text-white/90 transition-colors">
                       {article.title}
                     </h2>
 
-                    <p className="text-lg md:text-xl text-white/90 leading-relaxed max-w-3xl line-clamp-3">
+                    <p className="text-sm md:text-base lg:text-lg xl:text-xl text-white/90 leading-relaxed max-w-3xl line-clamp-2 md:line-clamp-3">
                       {article.excerpt}
                     </p>
                   </div>
