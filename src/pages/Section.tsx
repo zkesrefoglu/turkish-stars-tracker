@@ -252,12 +252,6 @@ const Section = () => {
                       <div className="flex-1 p-6 space-y-3">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <time>{item.date}</time>
-                          {item.author && (
-                            <>
-                              <span>•</span>
-                              <span>{item.author.includes("@") ? item.author.split("@")[0] : item.author}</span>
-                            </>
-                          )}
                         </div>
                         
                         <h3 className="font-headline text-xl md:text-2xl font-bold leading-tight group-hover:text-primary transition-colors">
