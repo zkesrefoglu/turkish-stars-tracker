@@ -240,31 +240,16 @@ const Section = () => {
             )}
 
             {articles.length > 0 ? (
-              <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <section className="space-y-4">
                 {articles.map((item, index) => (
                   <Link 
                     key={index} 
                     to={`/article/${item.slug}`}
                     className="group block"
                   >
-                    <article className="h-full border border-border rounded-lg overflow-hidden bg-card hover:shadow-xl transition-all duration-300 hover:-translate-y-1">
-                      {/* Thumbnail */}
-                      <div className="relative aspect-[3/2] overflow-hidden bg-muted">
-                        <img
-                          src={item.imageUrl || `https://picsum.photos/seed/${item.slug}/600/400`}
-                          alt={item.title}
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                        />
-                        {item.photoCredit && (
-                          <div className="absolute bottom-2 right-2 text-xs text-white/80 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
-                            {item.photoCredit}
-                          </div>
-                        )}
-                        <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-                      </div>
-
-                      {/* Content */}
-                      <div className="p-4 space-y-2">
+                    <article className="flex flex-col sm:flex-row gap-4 border border-border rounded-lg overflow-hidden bg-card hover:shadow-xl transition-all duration-300 hover:border-primary/50">
+                      {/* Content - Left Side */}
+                      <div className="flex-1 p-6 space-y-3">
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <time>{item.date}</time>
                           {item.author && (
@@ -275,13 +260,27 @@ const Section = () => {
                           )}
                         </div>
                         
-                        <h3 className="font-headline text-lg font-bold leading-tight line-clamp-2 group-hover:text-primary transition-colors">
+                        <h3 className="font-headline text-xl md:text-2xl font-bold leading-tight group-hover:text-primary transition-colors">
                           {item.title}
                         </h3>
                         
-                        <p className="text-sm text-muted-foreground line-clamp-3 leading-relaxed">
+                        <p className="text-sm md:text-base text-muted-foreground line-clamp-2 leading-relaxed">
                           {item.excerpt}
                         </p>
+                      </div>
+
+                      {/* Image - Right Side */}
+                      <div className="relative w-full sm:w-64 md:w-80 h-48 sm:h-auto overflow-hidden bg-muted flex-shrink-0">
+                        <img
+                          src={item.imageUrl || `https://picsum.photos/seed/${item.slug}/600/400`}
+                          alt={item.title}
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                        />
+                        {item.photoCredit && (
+                          <div className="absolute bottom-2 right-2 text-xs text-white/80 bg-black/40 px-2 py-1 rounded backdrop-blur-sm">
+                            {item.photoCredit}
+                          </div>
+                        )}
                       </div>
                     </article>
                   </Link>
