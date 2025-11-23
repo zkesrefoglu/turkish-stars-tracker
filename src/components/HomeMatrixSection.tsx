@@ -53,7 +53,7 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
             {/* Category Header */}
             <div className="flex items-center justify-between mb-4">
               <Link to={`/section/${categoryColumn.name.toLowerCase().replace(/ & /g, '-').replace(/ /g, '-')}`}>
-                <h3 className="text-lg font-ui font-bold uppercase tracking-wider text-foreground hover:text-accent transition-colors">
+                <h3 className="text-sm md:text-base lg:text-lg font-ui font-bold uppercase tracking-wider text-foreground hover:text-accent transition-colors">
                   {formatCategoryLabel(categoryColumn.name)}
                 </h3>
               </Link>
@@ -78,14 +78,14 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
                       )}
                       <div className="absolute inset-0 gradient-overlay-dark opacity-80" />
                       
-                      <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
-                         <span className={`category-badge ${getCategoryColor(article.category)} text-white mb-3`}>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 md:p-6 text-white">
+                         <span className={`category-badge ${getCategoryColor(article.category)} text-white mb-2 md:mb-3 text-[10px] md:text-xs`}>
                            {formatCategoryLabel(article.category)}
                          </span>
-                        <h4 className="font-headline text-2xl font-bold leading-tight mb-2 text-shadow-lg group-hover:text-accent-light transition-colors">
+                        <h4 className="font-headline text-lg md:text-xl lg:text-2xl font-bold leading-tight mb-1 md:mb-2 text-shadow-lg group-hover:text-accent-light transition-colors">
                           {article.title}
                         </h4>
-                        <p className="text-sm text-white/90 line-clamp-2 leading-relaxed">
+                        <p className="text-xs md:text-sm text-white/90 line-clamp-2 leading-relaxed">
                           {article.excerpt}
                         </p>
                       </div>
@@ -93,11 +93,11 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
                   </Card>
                 ) : (
                   /* Small Text-Heavy Card */
-                  <div className="group py-4 border-t border-border hover:bg-muted/50 transition-colors px-2 -mx-2 rounded">
-                    <h5 className="font-body text-base font-semibold leading-snug mb-2 text-foreground group-hover:text-accent transition-colors line-clamp-3">
+                  <div className="group py-3 md:py-4 border-t border-border hover:bg-muted/50 transition-colors px-2 -mx-2 rounded">
+                    <h5 className="font-body text-sm md:text-base font-semibold leading-snug mb-1 md:mb-2 text-foreground group-hover:text-accent transition-colors line-clamp-3">
                       {article.title}
                     </h5>
-                    <time className="text-xs text-muted-foreground font-ui uppercase tracking-wide">
+                    <time className="text-[10px] md:text-xs text-muted-foreground font-ui uppercase tracking-wide">
                       {article.date}
                     </time>
                   </div>
