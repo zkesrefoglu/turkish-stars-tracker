@@ -503,8 +503,8 @@ const Admin = () => {
       }
 
       const validData = validationResult.data;
-      const baseSlug = validData.title.toLowerCase().replace(/[^a-z0-9]+/g, "-");
-      const slug = `${baseSlug}-${Date.now()}`;
+      // Keep original slug when editing - don't regenerate
+      const baseSlug = editingArticle.slug.replace(/-\d+$/, ""); // Remove timestamp from original slug
 
       // Handle image upload if file is selected
       const imageInput = document.getElementById('editNewsImage') as HTMLInputElement;
@@ -525,7 +525,7 @@ const Admin = () => {
         .from("news_articles")
         .update({
           title: validData.title,
-          slug: slug,
+          // Don't update slug - keep the original
           category: validData.category,
           excerpt: validData.excerpt,
           content: validData.content,
