@@ -8,7 +8,7 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/co
 import { LiveTicker } from "@/components/LiveTicker";
 
 const sections = [
-  { name: "Home", slug: "", isLogo: false },
+  { name: "Reyiz", slug: "", isLogo: false },
   { name: "Agenda", slug: "agenda", isLogo: false },
   { name: "Economy", slug: "economy", isLogo: false },
   { name: "Defense", slug: "defense", isLogo: false },
@@ -72,9 +72,9 @@ export const Header = () => {
                         to={section.slug === "" ? "/" : `/section/${section.slug}`}
                         onClick={() => setMobileMenuOpen(false)}
                         className={`flex items-center gap-3 text-lg font-medium hover:text-primary hover:bg-primary/10 active:bg-primary/20 transition-colors py-3 px-4 rounded-md ${
-                          section.slug === 'xtra' 
-                            ? 'bg-xtra-light hover:bg-xtra-light/90 text-foreground' 
-                            : 'text-foreground'
+                          section.slug === "xtra"
+                            ? "bg-xtra-light hover:bg-xtra-light/90 text-foreground"
+                            : "text-foreground"
                         }`}
                       >
                         {section.isLogo ? (
