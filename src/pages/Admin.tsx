@@ -1128,6 +1128,16 @@ const Admin = () => {
                         </p>
                       </div>
 
+                      <div className="space-y-2">
+                        <Label htmlFor="edit-photo-credit">Photo Credit (optional)</Label>
+                        <Input
+                          id="edit-photo-credit"
+                          value={newsPhotoCredit}
+                          onChange={(e) => setNewsPhotoCredit(e.target.value)}
+                          placeholder="e.g., AP Photo/John Doe"
+                        />
+                      </div>
+
                       <Button type="submit" disabled={submitting || uploadingImage}>
                         {uploadingImage ? "Uploading Image..." : submitting ? "Updating..." : "Update Article"}
                       </Button>
