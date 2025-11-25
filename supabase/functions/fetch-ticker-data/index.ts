@@ -43,8 +43,8 @@ async function fetchBIST100() {
     const data = await response.json();
     console.log('Yahoo Finance response:', JSON.stringify(data));
     
-    // Check if we have valid data structure
-    if (!data.quoteResponse || !data.quoteResponse.results || data.quoteResponse.results.length === 0) {
+    // Check if we have valid data structure - Note: it's "result" not "results"
+    if (!data.quoteResponse || !data.quoteResponse.result || data.quoteResponse.result.length === 0) {
       console.error('Invalid Yahoo Finance response structure');
       // Return fallback data instead of throwing
       return {
@@ -54,7 +54,7 @@ async function fetchBIST100() {
       };
     }
     
-    const result = data.quoteResponse.results[0];
+    const result = data.quoteResponse.result[0];
     
     return {
       price: result.regularMarketPrice || 9500,
