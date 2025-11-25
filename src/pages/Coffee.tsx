@@ -1,8 +1,21 @@
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { Coffee as CoffeeIcon } from "lucide-react";
+import { useEffect } from "react";
 
 const Coffee = () => {
+  useEffect(() => {
+    // Load GoFundMe embed script
+    const script = document.createElement('script');
+    script.src = 'https://www.gofundme.com/static/js/embed.js';
+    script.defer = true;
+    document.body.appendChild(script);
+    
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
+
   const paymentMethods = [
     {
       name: "Venmo",
@@ -51,8 +64,7 @@ const Coffee = () => {
               Buy Me a Coffee
             </h1>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Support independent journalism from the Bosphorus. Your contribution helps us continue
-              delivering quality news and analysis that matters.
+              Bosphorus News is an independent, ad-free news platform committed to delivering unbiased journalism from Türkiye and beyond. In an era of misinformation and media consolidation, we stand as a beacon of free press—beholden to no government, corporation, or special interest. Our mission is to provide accurate, in-depth reporting that empowers readers with the truth. Every contribution, no matter how small, helps us maintain our editorial independence, cover critical stories, and continue serving as a vital voice in the global media landscape. By supporting us, you're not just funding journalism—you're defending the principles of a free and independent press.
             </p>
           </div>
 
@@ -116,6 +128,29 @@ const Coffee = () => {
                   )}
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* GoFundMe Section */}
+          <div className="mb-12">
+            <h2 className="text-xl font-semibold text-center mb-6">Or Support via GoFundMe</h2>
+            <div className="bg-card border border-border rounded-lg p-8 max-w-md mx-auto">
+              <div className="flex justify-center mb-6">
+                <img
+                  src="/images/qr-gofundme.png"
+                  alt="GoFundMe QR Code"
+                  className="w-64 aspect-square object-contain"
+                />
+              </div>
+              <a
+                href="https://gofund.me/3f1e2217e"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block w-full bg-primary text-primary-foreground py-2 rounded-md text-center font-medium hover:bg-primary/90 transition-colors mb-4"
+              >
+                Open GoFundMe
+              </a>
+              <div className="gfm-embed" data-url="https://www.gofundme.com/f/keep-independent-journalism-alive-donate-now/widget/large?sharesheet=undefined&attribution_id=sl:dc7f98e0-bacc-4752-ac00-2cc735a75c6e"></div>
             </div>
           </div>
 
