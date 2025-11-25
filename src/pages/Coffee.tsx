@@ -95,7 +95,7 @@ const Coffee = () => {
                     <img
                       src={method.qrCode}
                       alt={`${method.name} QR Code`}
-                      className="w-48 aspect-square object-contain rounded-lg border border-border"
+                      className="w-48 aspect-square object-contain"
                     />
                   </div>
 
