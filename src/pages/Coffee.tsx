@@ -63,8 +63,8 @@ const Coffee = () => {
             <h1 className="text-4xl md:text-5xl font-headline font-bold mb-4">
               Buy Me a Coffee
             </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Bosphorus News is an independent, ad-free news platform committed to delivering unbiased journalism from Türkiye and beyond. In an era of misinformation and media consolidation, we stand as a beacon of free press—beholden to no government, corporation, or special interest. Our mission is to provide accurate, in-depth reporting that empowers readers with the truth. Every contribution, no matter how small, helps us maintain our editorial independence, cover critical stories, and continue serving as a vital voice in the global media landscape. By supporting us, you're not just funding journalism—you're defending the principles of a free and independent press.
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto text-justify">
+              Bosphorus News is an independent, ad-free news platform committed to delivering unbiased journalism from Türkiye and beyond. In an era of misinformation and media consolidation, we stand as a beacon of free press—beholden to no government, corporation, or special interest. Our mission is to provide accurate, in-depth reporting that empowers readers with the truth. Every contribution, no matter how small, helps us maintain our editorial independence, cover critical stories, and continue serving as a vital voice in the global media landscape. By supporting us, you are not just funding journalism—you are defending the principles of a free and independent press.
             </p>
           </div>
 
