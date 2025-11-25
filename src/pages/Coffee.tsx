@@ -84,18 +84,12 @@ const Coffee = () => {
                   </div>
 
                   {/* QR Code */}
-                  <div className="flex justify-center mb-4">
+                  <div className="flex justify-center mb-6">
                     <img
                       src={method.qrCode}
                       alt={`${method.name} QR Code`}
                       className="w-48 h-48 rounded-lg border border-border"
                     />
-                  </div>
-
-                  {/* Username */}
-                  <div className="text-center mb-4">
-                    <p className="text-sm text-muted-foreground mb-1">Scan QR or use:</p>
-                    <p className="font-mono font-semibold text-lg">{method.username}</p>
                   </div>
 
                   {/* Link Button */}
