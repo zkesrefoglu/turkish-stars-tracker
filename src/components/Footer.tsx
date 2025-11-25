@@ -149,13 +149,13 @@ export const Footer = () => {
               <Button type="submit" size="sm" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Subscribing..." : "Subscribe"}
               </Button>
-              <Link to="/coffee" className="mt-2.5">
+              <Link to="/coffee" className="mt-2.5" onClick={() => window.scrollTo(0, 0)}>
                 <Button 
                   type="button" 
                   size="sm" 
                   className="w-full bg-gray-200 hover:bg-[#F54927] text-gray-900 hover:text-white transition-colors"
                 >
-                  Buy Me a Cup ☕
+                  Buy Me a Cup
                 </Button>
               </Link>
             </form>
