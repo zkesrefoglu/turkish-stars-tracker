@@ -149,7 +149,7 @@ export const Footer = () => {
               <Button type="submit" size="sm" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Subscribing..." : "Subscribe"}
               </Button>
-              <Link to="/coffee" className="mt-0.5">
+              <Link to="/coffee" className="mt-2.5">
                 <Button 
                   type="button" 
                   size="sm" 
