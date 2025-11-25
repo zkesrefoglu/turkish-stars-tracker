@@ -149,6 +149,16 @@ export const Footer = () => {
               <Button type="submit" size="sm" className="w-full" disabled={isSubmitting}>
                 {isSubmitting ? "Subscribing..." : "Subscribe"}
               </Button>
+              <Link to="/coffee">
+                <Button 
+                  type="button" 
+                  size="sm" 
+                  className="w-full"
+                  style={{ backgroundColor: '#F54927' }}
+                >
+                  Buy Me a Cup ☕
+                </Button>
+              </Link>
             </form>
           </div>
         </div>
