@@ -161,21 +161,6 @@ export const ImageSizeFix = () => {
     setScale(Math.round(newScale * 100));
   };
 
-  const fitWithoutCrop = () => {
-    if (!sourceImage) return;
-
-    // Calculate scale to fit entire image within canvas (opposite of resetPosition)
-    const scaleX = currentRes.width / sourceImage.width;
-    const scaleY = currentRes.height / sourceImage.height;
-    
-    // Use the smaller scale to ensure entire image fits
-    const newScale = Math.min(scaleX, scaleY);
-
-    setPosX(0);
-    setPosY(0);
-    setScale(Math.round(newScale * 100));
-    toast.success("Image fitted without cropping!");
-  };
 
   const drawCanvas = () => {
     const canvas = canvasRef.current;
@@ -500,9 +485,6 @@ export const ImageSizeFix = () => {
                   <Button variant="outline" onClick={() => resetPosition()}>
                     <RotateCcw className="w-4 h-4 mr-2" />
                     Reset Position
-                  </Button>
-                  <Button variant="outline" onClick={fitWithoutCrop}>
-                    Fit to Canvas (No Crop)
                   </Button>
                   <Button onClick={downloadImage}>
                     <Download className="w-4 h-4 mr-2" />
