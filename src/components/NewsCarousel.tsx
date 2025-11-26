@@ -83,7 +83,7 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
                     
                     {article.breakingNews && (
                       <div className="mb-3 md:mb-4">
-                        <BreakingNewsBadge className="[&_span]:text-white [&_img]:bg-white/20 [&_img]:rounded [&_img]:p-1 [&_img]:w-16 [&_img]:h-16" />
+                        <BreakingNewsBadge className="[&_span]:text-white [&_span]:drop-shadow-[0_2px_8px_rgba(0,0,0,0.8)] [&_img]:backdrop-blur-[2px] [&_img]:backdrop-brightness-[1.2] [&_img]:rounded [&_img]:p-1 [&_img]:w-16 [&_img]:h-16" />
                       </div>
                     )}
 
