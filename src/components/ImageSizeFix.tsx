@@ -103,9 +103,11 @@ export const ImageSizeFix = () => {
 
     let newScale = 1;
     if (imgRatio > canvasRatio) {
-      newScale = currentRes.height / image.height;
-    } else {
+      // Image is wider - fit to canvas width
       newScale = currentRes.width / image.width;
+    } else {
+      // Image is taller - fit to canvas height
+      newScale = currentRes.height / image.height;
     }
 
     setPosX(0);
