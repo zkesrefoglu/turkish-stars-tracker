@@ -80,6 +80,7 @@ export type Database = {
       news_articles: {
         Row: {
           author: string
+          breaking_news: boolean | null
           category: string
           category_pin_order: number | null
           content: string
@@ -99,6 +100,7 @@ export type Database = {
         }
         Insert: {
           author: string
+          breaking_news?: boolean | null
           category: string
           category_pin_order?: number | null
           content: string
@@ -118,6 +120,7 @@ export type Database = {
         }
         Update: {
           author?: string
+          breaking_news?: boolean | null
           category?: string
           category_pin_order?: number | null
           content?: string

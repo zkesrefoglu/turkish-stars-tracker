@@ -56,6 +56,7 @@ const Admin = () => {
   const [newsPhotoCredit, setNewsPhotoCredit] = useState("");
   const [postToBluesky, setPostToBluesky] = useState(false);
   const [postingToBluesky, setPostingToBluesky] = useState(false);
+  const [isBreakingNews, setIsBreakingNews] = useState(false);
 
   // Xtra (Editorial) form state
   const [topicTitle, setTopicTitle] = useState("");
@@ -211,6 +212,7 @@ const Admin = () => {
           image_url: imageUrl,
           photo_credit: newsPhotoCredit || null,
           published: true,
+          breaking_news: isBreakingNews,
         });
 
       if (error) throw error;
@@ -255,6 +257,7 @@ const Admin = () => {
       setNewsImageUrl("");
       setNewsPhotoCredit("");
       setPostToBluesky(false);
+      setIsBreakingNews(false);
       if (imageInput) imageInput.value = '';
     } catch (error: any) {
       toast({
@@ -493,6 +496,7 @@ const Admin = () => {
     setNewsContent(article.content);
     setNewsImageUrl(article.image_url || "");
     setNewsPhotoCredit(article.photo_credit || "");
+    setIsBreakingNews(article.breaking_news || false);
   };
 
   const handleUpdateArticle = async (e: React.FormEvent) => {
@@ -543,6 +547,7 @@ const Admin = () => {
           content: validData.content,
           image_url: imageUrl,
           photo_credit: newsPhotoCredit || null,
+          breaking_news: isBreakingNews,
         })
         .eq("id", editingArticle.id);
 
@@ -559,6 +564,7 @@ const Admin = () => {
       setNewsContent("");
       setNewsImageUrl("");
       setNewsPhotoCredit("");
+      setIsBreakingNews(false);
       setEditingArticle(null);
       fetchArticles();
     } catch (error: any) {
@@ -885,6 +891,17 @@ const Admin = () => {
                       />
                       <Label htmlFor="post-to-bluesky" className="cursor-pointer">
                         Post to Bluesky when published
+                      </Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="breaking-news"
+                        checked={isBreakingNews}
+                        onCheckedChange={setIsBreakingNews}
+                      />
+                      <Label htmlFor="breaking-news" className="cursor-pointer">
+                        Mark as Breaking News
                       </Label>
                     </div>
 

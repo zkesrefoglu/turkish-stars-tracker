@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { Card } from "./ui/card";
+import { BreakingNewsBadge } from "@/components/BreakingNewsBadge";
 
 interface Article {
   title: string;
@@ -9,6 +10,7 @@ interface Article {
   category: string;
   date: string;
   photoCredit?: string;
+  breakingNews?: boolean;
 }
 
 interface CategoryColumn {
@@ -82,6 +84,13 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
                          <span className={`category-badge ${getCategoryColor(article.category)} text-white mb-2 md:mb-3 text-[10px] md:text-xs`}>
                            {formatCategoryLabel(article.category)}
                          </span>
+                         
+                         {article.breakingNews && (
+                           <div className="mb-2">
+                             <BreakingNewsBadge className="[&_span]:text-white [&_img]:brightness-0 [&_img]:invert [&_span]:text-xs" />
+                           </div>
+                         )}
+                         
                         <h4 className="font-headline text-lg md:text-xl lg:text-2xl font-bold leading-tight mb-1 md:mb-2 text-shadow-lg group-hover:text-accent-light transition-colors">
                           {article.title}
                         </h4>
@@ -94,6 +103,11 @@ export const HomeMatrixSection = ({ categories }: HomeMatrixSectionProps) => {
                 ) : (
                   /* Small Text-Heavy Card */
                   <div className="group py-3 md:py-4 border-t border-border hover:bg-muted/50 transition-colors px-2 -mx-2 rounded">
+                    {article.breakingNews && (
+                      <div className="mb-1">
+                        <BreakingNewsBadge className="[&_img]:w-5 [&_img]:h-5 [&_span]:text-[10px]" />
+                      </div>
+                    )}
                     <h5 className="font-body text-sm md:text-base font-semibold leading-snug mb-1 md:mb-2 text-foreground group-hover:text-accent transition-colors line-clamp-3">
                       {article.title}
                     </h5>
