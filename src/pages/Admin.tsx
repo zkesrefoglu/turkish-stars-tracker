@@ -818,20 +818,46 @@ const Admin = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-admin-bg">
       <Header />
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         <div className="flex items-center justify-between mb-8">
           <h1 className="text-3xl font-bold">Admin Dashboard</h1>
+        </div>
+
+        {/* Navigation Section */}
+        <nav className="flex flex-wrap gap-3 mb-12 p-4 bg-background rounded-lg shadow-sm">
+          {["Agenda", "Türkiye", "FP & Defense", "Business", "Life", "Sports", "World", "Xtra"].map((section) => (
+            <Button
+              key={section}
+              variant="outline"
+              onClick={() => {
+                const sectionMap: Record<string, string> = {
+                  "Agenda": "agenda",
+                  "Türkiye": "turkiye",
+                  "FP & Defense": "fp-defense",
+                  "Business": "business",
+                  "Life": "life",
+                  "Sports": "sports",
+                  "World": "world",
+                  "Xtra": "xtra"
+                };
+                navigate(`/section/${sectionMap[section]}`);
+              }}
+              className="capitalize transition-all duration-200"
+            >
+              {section}
+            </Button>
+          ))}
           <Button
             variant="outline"
             onClick={() => navigate("/watermark")}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover:bg-admin-red hover:text-white hover:border-admin-red transition-all duration-300 hover:scale-105 hover:shadow-lg"
           >
             <Image className="w-4 h-4" />
-            Watermark Tool
+            Watermark
           </Button>
-        </div>
+        </nav>
 
         <Tabs defaultValue="news" className="w-full" onValueChange={(value) => {
           if (value === "manage") fetchArticles();

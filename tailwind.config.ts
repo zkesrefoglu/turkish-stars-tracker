@@ -73,6 +73,8 @@ export default {
         "category-world": "hsl(var(--category-world))",
         "category-xtra": "hsl(var(--category-xtra))",
         "xtra-light": "hsl(var(--xtra-light))",
+        "admin-red": "hsl(var(--admin-red))",
+        "admin-bg": "hsl(var(--admin-bg))",
       },
       borderRadius: {
         lg: "var(--radius)",

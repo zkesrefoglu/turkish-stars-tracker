@@ -26,6 +26,10 @@
     --accent-foreground: 0 0% 100%;
     --accent-light: 4 90% 65%;
 
+    /* Admin & Special Colors */
+    --admin-red: 9 90% 55%;
+    --admin-bg: 206 33% 84%;
+
     /* Secondary - Light Surface */
     --secondary: 40 15% 95%;
     --secondary-foreground: 222 47% 11%;
