@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { z } from "zod";
 import NewsConverter from "@/components/NewsConverter";
+import { ImageSizeFix } from "@/components/ImageSizeFix";
 import { Pencil, Trash2, Eye, EyeOff, Send, Search, Image } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { ArticlePreview } from "@/components/ArticlePreview";
@@ -828,11 +829,12 @@ const Admin = () => {
         <Tabs defaultValue="news" className="w-full" onValueChange={(value) => {
           if (value === "manage") fetchArticles();
         }}>
-            <TabsList className="grid w-full grid-cols-7">
+          <TabsList className="grid w-full grid-cols-8">
             <TabsTrigger value="news" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Latest News</TabsTrigger>
             <TabsTrigger value="topic" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Editor's Pick</TabsTrigger>
             <TabsTrigger value="bulk" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Bulk Upload</TabsTrigger>
             <TabsTrigger value="converter" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">News Converter</TabsTrigger>
+            <TabsTrigger value="imagefix" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Image Size Fix</TabsTrigger>
             <TabsTrigger value="manage" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Manage Articles</TabsTrigger>
             <TabsTrigger value="newsletter" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Newsletter</TabsTrigger>
             <button
@@ -1196,6 +1198,20 @@ const Admin = () => {
               </CardHeader>
               <CardContent>
                 <NewsConverter />
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          <TabsContent value="imagefix" className="mt-8">
+            <Card>
+              <CardHeader>
+                <CardTitle>Image Size Fix</CardTitle>
+                <CardDescription>
+                  Validate and resize images for optimal carousel display
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <ImageSizeFix />
               </CardContent>
             </Card>
           </TabsContent>
