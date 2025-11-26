@@ -12,6 +12,7 @@ import { useState, useEffect } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BreakingNewsBadge } from "@/components/BreakingNewsBadge";
 
 interface NewsFeedItemProps {
   title: string;
@@ -21,6 +22,7 @@ interface NewsFeedItemProps {
   author: string;
   date: string;
   slug: string;
+  breakingNews?: boolean;
 }
 
 const getCategoryColor = (section: string): string => {
@@ -40,7 +42,7 @@ const getCategoryColor = (section: string): string => {
   return categoryMap[section] || "bg-muted/20";
 };
 
-export const NewsFeedItem = ({ title, excerpt, content, section, author, date, slug }: NewsFeedItemProps) => {
+export const NewsFeedItem = ({ title, excerpt, content, section, author, date, slug, breakingNews }: NewsFeedItemProps) => {
   const categoryColor = getCategoryColor(section);
   const { toast } = useToast();
   const [copied, setCopied] = useState(false);
@@ -146,6 +148,12 @@ export const NewsFeedItem = ({ title, excerpt, content, section, author, date, s
         <div className="flex items-center space-x-3 mb-2">
           <time className="text-xs text-muted-foreground">{date}</time>
         </div>
+        
+        {breakingNews && (
+          <div className="mb-3">
+            <BreakingNewsBadge />
+          </div>
+        )}
         
         <h3 className="text-xl md:text-2xl font-bold mb-2 leading-tight">
           {title}

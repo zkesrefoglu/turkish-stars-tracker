@@ -13,6 +13,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { useIsMobile } from "@/hooks/use-mobile";
+import { BreakingNewsBadge } from "@/components/BreakingNewsBadge";
 
 interface ArticleData {
   title: string;
@@ -23,6 +24,7 @@ interface ArticleData {
   created_at: string;
   image_url?: string;
   photo_credit?: string;
+  breaking_news?: boolean;
 }
 
 const Article = () => {
@@ -257,6 +259,12 @@ const Article = () => {
               {article.category}
             </Link>
           </div>
+
+          {article.breaking_news && (
+            <div className="mb-6">
+              <BreakingNewsBadge />
+            </div>
+          )}
 
           <h1 className="text-4xl md:text-5xl font-bold mb-4 leading-tight tracking-tight">
             {article.title}

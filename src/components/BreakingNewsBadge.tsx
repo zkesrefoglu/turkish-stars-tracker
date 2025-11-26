@@ -1,0 +1,20 @@
+import breakingNewsGif from "@/assets/breaking-news.gif";
+
+interface BreakingNewsBadgeProps {
+  className?: string;
+}
+
+export const BreakingNewsBadge = ({ className = "" }: BreakingNewsBadgeProps) => {
+  return (
+    <div className={`inline-flex items-center gap-2 ${className}`}>
+      <img 
+        src={breakingNewsGif} 
+        alt="Breaking News" 
+        className="w-8 h-8 animate-pulse"
+      />
+      <span className="font-bold text-destructive text-sm uppercase tracking-wide">
+        Breaking News
+      </span>
+    </div>
+  );
+};

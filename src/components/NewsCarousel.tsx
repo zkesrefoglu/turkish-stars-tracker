@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
+import { BreakingNewsBadge } from "@/components/BreakingNewsBadge";
 
 interface CarouselArticle {
   title: string;
@@ -11,6 +12,7 @@ interface CarouselArticle {
   category: string;
   date: string;
   photoCredit?: string;
+  breakingNews?: boolean;
 }
 
 interface NewsCarouselProps {
@@ -78,6 +80,12 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
                       </span>
                       <time className="text-xs md:text-sm text-white/80 font-ui uppercase tracking-wide">{article.date}</time>
                     </div>
+                    
+                    {article.breakingNews && (
+                      <div className="mb-3 md:mb-4">
+                        <BreakingNewsBadge className="[&_span]:text-white [&_img]:brightness-0 [&_img]:invert" />
+                      </div>
+                    )}
 
                     <h2 className="font-headline text-2xl md:text-4xl lg:text-5xl xl:text-6xl font-bold text-white leading-tight mb-3 md:mb-6 text-shadow-lg text-balance group-hover:text-white/90 transition-colors">
                       {article.title}

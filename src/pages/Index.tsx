@@ -16,6 +16,7 @@ interface Article {
   category: string;
   date: string;
   photoCredit?: string;
+  breakingNews?: boolean;
 }
 
 const Index = () => {
@@ -83,6 +84,7 @@ const Index = () => {
             year: "numeric",
           }),
           photoCredit: article.photo_credit,
+          breakingNews: article.breaking_news || false,
         }))
       );
 
@@ -129,6 +131,7 @@ const Index = () => {
                 day: "numeric",
               }),
               photoCredit: article.photo_credit,
+              breakingNews: article.breaking_news || false,
             })),
           };
         })

@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft } from "lucide-react";
 import xtraLogo from "@/assets/xtra-logo.png";
 import bannerImage from "@/assets/banner-diplomatic.jpg";
+import { BreakingNewsBadge } from "@/components/BreakingNewsBadge";
 
 interface NewsArticleData {
   title: string;
@@ -19,6 +20,7 @@ interface NewsArticleData {
   timestamp: Date;
   imageUrl?: string;
   photoCredit?: string;
+  breakingNews?: boolean;
 }
 
 const Section = () => {
@@ -80,6 +82,7 @@ const Section = () => {
               timestamp: new Date(article.created_at),
               imageUrl: article.image_url,
               photoCredit: article.photo_credit,
+              breakingNews: article.breaking_news || false,
             }))
           );
 
@@ -253,6 +256,12 @@ const Section = () => {
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
                           <time>{item.date}</time>
                         </div>
+                        
+                        {item.breakingNews && (
+                          <div className="mb-2">
+                            <BreakingNewsBadge />
+                          </div>
+                        )}
                         
                         <h3 className="font-headline text-xl md:text-2xl font-bold leading-tight group-hover:text-primary transition-colors">
                           {item.title}
