@@ -166,7 +166,7 @@ export const Footer = () => {
         </div>
 
         {/* Social & Contact - Single Line */}
-        <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-border gap-4 md:gap-6">
+        <div className="flex flex-col md:flex-row justify-between items-center pt-6 gap-4 md:gap-6">
           {/* Social Icons */}
           <div className="flex gap-4">
             <a
