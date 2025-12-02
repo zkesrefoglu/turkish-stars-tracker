@@ -3,6 +3,47 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <!-- CRAWLER DETECTION - Must be first script, before anything else loads -->
+    <script>
+      (function() {
+        // Detect social media crawlers
+        var userAgent = navigator.userAgent || '';
+        var crawlers = [
+          'facebookexternalhit',
+          'Facebot',
+          'Twitterbot',
+          'LinkedInBot',
+          'WhatsApp',
+          'Slackbot',
+          'TelegramBot',
+          'Discordbot',
+          'Pinterest',
+          'vkShare',
+          'Applebot',
+          'bingbot',
+          'Embedly',
+          'redditbot'
+        ];
+
+        var isCrawler = false;
+        for (var i = 0; i < crawlers.length; i++) {
+          if (userAgent.toLowerCase().indexOf(crawlers[i].toLowerCase()) !== -1) {
+            isCrawler = true;
+            break;
+          }
+        }
+
+        // If crawler and on article page, redirect to edge function
+        if (isCrawler && window.location.pathname.indexOf('/article/') === 0) {
+          var slug = window.location.pathname.split('/article/')[1].split('/')[0];
+          if (slug) {
+            window.location.replace('https://mxmarjrkwrqnhhipckzj.supabase.co/functions/v1/og-image?slug=' + encodeURIComponent(slug));
+          }
+        }
+      })();
+    </script>
+
     <title>Bosphorus News - Daily News & Analysis</title>
     <meta
       name="description"
@@ -10,17 +51,14 @@
     />
     <meta name="author" content="Bosphorus News" />
     <link rel="icon" type="image/png" href="/logo.png" />
-
     <meta property="og:title" content="Bosphorus News - Daily News & Analysis" />
     <meta
       property="og:description"
       content="Modern news coverage with daily topics, analysis from expert contributors across Defense, Business, Health, Sports, World and more."
     />
     <meta property="og:type" content="website" />
-
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:site" content="@BosphorusNews" />
-
     <!-- Google Analytics -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-XT29R8GH3K"></script>
     <script>
@@ -29,7 +67,6 @@
       gtag('js', new Date());
       gtag('config', 'G-XT29R8GH3K');
     </script>
-
     <!-- Google Fonts - Premium Typography -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -38,7 +75,6 @@
       rel="stylesheet"
     />
   </head>
-
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
