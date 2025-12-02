@@ -26,7 +26,6 @@ interface ArticleData {
   image_url?: string;
   photo_credit?: string;
   breaking_news?: boolean;
-  short_url?: string;
 }
 
 const Article = () => {
@@ -137,30 +136,64 @@ const Article = () => {
       user_id: user?.id,
     });
     
-    const shareText = `${article.title} | Bosphorus News`;
+    const getBlueskyText = () => {
+      const baseText = `${article.title} | Bosphorus News Network`;
+      const urlPart = `\n\n${articleUrl}`;
+      const maxLength = 300;
+
+      let middle = article.excerpt ? `\n\n${article.excerpt}` : '';
+      let fullText = baseText + middle + urlPart;
+
+      if (fullText.length <= maxLength) return fullText;
+
+      if (!article.excerpt) {
+        // No excerpt to trim, just truncate the base text if needed
+        const allowedBaseLength = maxLength - urlPart.length - 3; // 3 for '...'
+        const truncatedBase = allowedBaseLength > 0
+          ? baseText.slice(0, allowedBaseLength) + '...'
+          : baseText;
+        return truncatedBase + urlPart;
+      }
+
+      // Trim excerpt to fit within limit
+      const fixedLength = baseText.length + urlPart.length + 5; // 5 for "\n\n" and "..."
+      const allowedExcerptLength = maxLength - fixedLength;
+
+      if (allowedExcerptLength <= 0) {
+        return baseText + urlPart;
+      }
+
+      const truncatedExcerpt = article.excerpt.slice(0, allowedExcerptLength) + '...';
+      middle = `\n\n${truncatedExcerpt}`;
+      return baseText + middle + urlPart;
+    };
     
     switch (platform) {
       case 'twitter':
         window.open(
-          `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}&url=${encodeURIComponent(articleUrl)}`,
+          `https://twitter.com/intent/tweet?text=${encodeURIComponent(`${article.title} | Bosphorus News Network`)}&url=${encodeURIComponent(articleUrl)}`,
           '_blank',
           'width=550,height=420'
         );
         break;
-      case 'bluesky':
+      case 'bluesky': {
+        const text = getBlueskyText();
         window.open(
-          `https://bsky.app/intent/compose?text=${encodeURIComponent(`${shareText}\n\n${articleUrl}`)}`,
+          `https://bsky.app/intent/compose?text=${encodeURIComponent(text)}`,
           '_blank',
           'width=550,height=420'
         );
         break;
-      case 'facebook':
+      }
+      case 'facebook': {
+        const facebookText = `${article.title}\n\n${article.excerpt}`;
         window.open(
-          `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(articleUrl)}`,
+          `https://www.facebook.com/share.php?u=${encodeURIComponent(articleUrl)}&quote=${encodeURIComponent(facebookText)}`,
           '_blank',
           'width=550,height=680'
         );
         break;
+      }
       case 'copy':
         navigator.clipboard.writeText(articleUrl).then(() => {
           setCopied(true);

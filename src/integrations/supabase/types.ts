@@ -96,7 +96,6 @@ export type Database = {
           is_mid_featured: boolean | null
           photo_credit: string | null
           published: boolean
-          short_url: string | null
           slug: string
           title: string
           updated_at: string
@@ -119,7 +118,6 @@ export type Database = {
           is_mid_featured?: boolean | null
           photo_credit?: string | null
           published?: boolean
-          short_url?: string | null
           slug: string
           title: string
           updated_at?: string
@@ -142,7 +140,6 @@ export type Database = {
           is_mid_featured?: boolean | null
           photo_credit?: string | null
           published?: boolean
-          short_url?: string | null
           slug?: string
           title?: string
           updated_at?: string
