@@ -31,34 +31,6 @@ interface ArticleData {
 const Article = () => {
   const { slug } = useParams<{ slug: string }>();
 
-  // Crawler detection - redirects social media bots to edge function with proper meta tags
-  useEffect(() => {
-    const userAgent = navigator.userAgent || "";
-    const crawlers = [
-      "facebookexternalhit",
-      "Facebot",
-      "Twitterbot",
-      "LinkedInBot",
-      "WhatsApp",
-      "Slackbot",
-      "TelegramBot",
-      "Discordbot",
-      "Pinterest",
-      "vkShare",
-      "Applebot",
-      "bingbot",
-      "Embedly",
-      "redditbot",
-    ];
-
-    const isCrawler = crawlers.some((bot) => userAgent.toLowerCase().includes(bot.toLowerCase()));
-
-    if (isCrawler && slug) {
-      // Redirect crawlers to Supabase edge function which serves HTML with proper Open Graph tags
-      window.location.replace(`https://mxmarjrkwrqnhhipckzj.supabase.co/functions/v1/og-image?slug=${slug}`);
-    }
-  }, [slug]);
-
   const { toast } = useToast();
   const [article, setArticle] = useState<ArticleData | null>(null);
   const [loading, setLoading] = useState(true);
