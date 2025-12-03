@@ -200,7 +200,7 @@ const AthleteProfilePage = () => {
               <img 
                 src={athlete.action_photo_url} 
                 alt={`${athlete.name} in action`}
-                className="w-full h-full object-cover"
+                className="w-full h-full object-cover object-top"
               />
               <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-background/40 to-background/20" />
             </div>
