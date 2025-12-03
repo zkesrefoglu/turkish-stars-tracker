@@ -12,6 +12,7 @@ import Admin from "./pages/Admin";
 // import Coffee from "./pages/Coffee";
 import Watermark from "./pages/Watermark";
 import NotFound from "./pages/NotFound";
+import TurkishStars from "./pages/TurkishStars";
 
 const queryClient = new QueryClient();
 
@@ -25,6 +26,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/article/:slug" element={<Article />} />
           <Route path="/section/:section" element={<Section />} />
+          <Route path="/section/sports/turkish-stars" element={<TurkishStars />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin" element={<Admin />} />
           {/* TEMPORARILY HIDDEN - Uncomment when payment account is finalized */}
