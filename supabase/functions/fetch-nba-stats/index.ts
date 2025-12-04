@@ -129,7 +129,9 @@ Deno.serve(async (req) => {
       if (!game) continue;
 
       const isHome = stat.team?.id === game.home_team?.id;
-      const opponent = isHome ? game.visitor_team?.full_name : game.home_team?.full_name;
+      const opponent = isHome 
+        ? (game.visitor_team?.full_name || game.visitor_team?.name || 'Unknown')
+        : (game.home_team?.full_name || game.home_team?.name || 'Unknown');
       const teamScore = isHome ? game.home_team_score : game.visitor_team_score;
       const opponentScore = isHome ? game.visitor_team_score : game.home_team_score;
 
@@ -137,19 +139,27 @@ Deno.serve(async (req) => {
       
       if (!matchDate) continue;
 
+      // Determine if player actually played - ensure it's always a boolean
+      const minutesStr = stat.min || '0';
+      const minutesPlayed = typeof minutesStr === 'string' 
+        ? parseInt(minutesStr.split(':')[0]) || 0 
+        : (typeof minutesStr === 'number' ? minutesStr : 0);
+      const didPlay = minutesPlayed > 0;
+
       const { error: updateError } = await supabase
         .from('athlete_daily_updates')
         .upsert({
           athlete_id: athlete.id,
           date: matchDate,
-          opponent: opponent || 'Unknown',
+          opponent: opponent,
           competition: 'NBA',
           home_away: isHome ? 'home' : 'away',
           match_result: teamScore !== undefined && opponentScore !== undefined 
             ? `${teamScore}-${opponentScore}` 
             : null,
-          played: stat.min && stat.min !== '00' && stat.min !== '0:00',
-          minutes_played: stat.min ? parseInt(stat.min.split(':')[0]) || 0 : 0,
+          played: didPlay, // Always boolean now
+          minutes_played: minutesPlayed,
+          injury_status: 'healthy',
           stats: {
             points: stat.pts || 0,
             rebounds: stat.reb || 0,
@@ -176,7 +186,7 @@ Deno.serve(async (req) => {
         });
 
       if (updateError) {
-        console.error(`Error upserting daily update:`, updateError);
+        console.error(`Error upserting daily update for ${matchDate}:`, updateError);
       }
     }
 
