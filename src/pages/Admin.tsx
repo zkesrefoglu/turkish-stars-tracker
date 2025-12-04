@@ -60,6 +60,7 @@ const Admin = () => {
   const [postToBluesky, setPostToBluesky] = useState(false);
   const [postingToBluesky, setPostingToBluesky] = useState(false);
   const [isBreakingNews, setIsBreakingNews] = useState(false);
+  const [excludeFromCarousel, setExcludeFromCarousel] = useState(false);
 
   // Xtra (Editorial) form state
   const [topicTitle, setTopicTitle] = useState("");
@@ -238,6 +239,7 @@ const Admin = () => {
           extra_image_credit: newsExtraImageCredit || null,
           published: true,
           breaking_news: isBreakingNews,
+          is_carousel_featured: !excludeFromCarousel,
         });
 
       if (error) throw error;
@@ -285,6 +287,7 @@ const Admin = () => {
       setNewsExtraImageCredit("");
       setPostToBluesky(false);
       setIsBreakingNews(false);
+      setExcludeFromCarousel(false);
       if (imageInput) imageInput.value = '';
       if (extraImageInput) extraImageInput.value = '';
     } catch (error: any) {
@@ -979,6 +982,17 @@ const Admin = () => {
                       />
                       <Label htmlFor="breaking-news" className="cursor-pointer">
                         Mark as Breaking News
+                      </Label>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <Switch
+                        id="exclude-carousel"
+                        checked={excludeFromCarousel}
+                        onCheckedChange={setExcludeFromCarousel}
+                      />
+                      <Label htmlFor="exclude-carousel" className="cursor-pointer text-muted-foreground">
+                        Exclude from Carousel
                       </Label>
                     </div>
 
