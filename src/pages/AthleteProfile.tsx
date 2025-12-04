@@ -315,94 +315,61 @@ const AthleteProfilePage = () => {
 
                   {/* Quick Season Stats - Totals */}
                   {seasonStats.length > 0 && (
-                    <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                      <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                        <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.games_played}</div>
-                        <div className="text-xs text-muted-foreground uppercase">Games</div>
-                      </div>
-                      {athlete.sport === "basketball" && (
-                        <>
-                          {(() => {
-                            // Calculate milestones from daily updates
-                            const playedGames = dailyUpdates.filter(u => u.played && u.stats);
-                            const doubleDoubles = playedGames.filter(u => {
-                              const stats = u.stats;
-                              const categories = [stats.points || 0, stats.rebounds || 0, stats.assists || 0, stats.steals || 0, stats.blocks || 0];
-                              return categories.filter(c => c >= 10).length >= 2;
-                            }).length;
-                            const tripleDoubles = playedGames.filter(u => {
-                              const stats = u.stats;
-                              const categories = [stats.points || 0, stats.rebounds || 0, stats.assists || 0, stats.steals || 0, stats.blocks || 0];
-                              return categories.filter(c => c >= 10).length >= 3;
-                            }).length;
-                            const twentyPtGames = playedGames.filter(u => u.stats?.points >= 20).length;
-                            const thirtyPtGames = playedGames.filter(u => u.stats?.points >= 30).length;
-                            
-                            // Career highs
-                            const maxPts = Math.max(...playedGames.map(u => u.stats?.points || 0), 0);
-                            const maxReb = Math.max(...playedGames.map(u => u.stats?.rebounds || 0), 0);
-                            const maxAst = Math.max(...playedGames.map(u => u.stats?.assists || 0), 0);
-                            const maxBlk = Math.max(...playedGames.map(u => u.stats?.blocks || 0), 0);
+                    <>
+                      <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.games_played}</div>
+                          <div className="text-xs text-muted-foreground uppercase">Games</div>
+                        </div>
+                        {athlete.sport === "basketball" && (
+                          <>
+                            {(() => {
+                              // Career highs
+                              const playedGames = dailyUpdates.filter(u => u.played && u.stats);
+                              const maxPts = Math.max(...playedGames.map(u => u.stats?.points || 0), 0);
+                              const maxReb = Math.max(...playedGames.map(u => u.stats?.rebounds || 0), 0);
+                              const maxAst = Math.max(...playedGames.map(u => u.stats?.assists || 0), 0);
+                              const maxBlk = Math.max(...playedGames.map(u => u.stats?.blocks || 0), 0);
 
-                            return (
-                              <>
-                                <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                                  <div className="text-2xl font-bold text-foreground">{avgPpg?.toFixed(1) || "—"}</div>
-                                  <div className="text-xs text-muted-foreground uppercase">PPG</div>
-                                  {seasonStats[0]?.rankings?.ppg_rank && (
-                                    <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.ppg_rank)} in NBA</div>
-                                  )}
-                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxPts}</div>
-                                </div>
-                                <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                                  <div className="text-2xl font-bold text-foreground">{avgRpg?.toFixed(1) || "—"}</div>
-                                  <div className="text-xs text-muted-foreground uppercase">RPG</div>
-                                  {seasonStats[0]?.rankings?.rpg_rank && (
-                                    <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.rpg_rank)} in NBA</div>
-                                  )}
-                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxReb}</div>
-                                </div>
-                                <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                                  <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
-                                  <div className="text-xs text-muted-foreground uppercase">APG</div>
-                                  {seasonStats[0]?.rankings?.apg_rank && (
-                                    <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.apg_rank)} in NBA</div>
-                                  )}
-                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxAst}</div>
-                                </div>
-                                <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                                  <div className="text-2xl font-bold text-foreground">{avgBpg?.toFixed(1) || "—"}</div>
-                                  <div className="text-xs text-muted-foreground uppercase">BPG</div>
-                                  {seasonStats[0]?.rankings?.bpg_rank && (
-                                    <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.bpg_rank)} in NBA</div>
-                                  )}
-                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxBlk}</div>
-                                </div>
-                                
-                                {/* Milestones row */}
-                                <div className="col-span-4 grid grid-cols-4 gap-2 mt-2 pt-2 border-t border-border/30">
-                                  <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-accent">{doubleDoubles}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">Double-Doubles</div>
+                              return (
+                                <>
+                                  <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                                    <div className="text-2xl font-bold text-foreground">{avgPpg?.toFixed(1) || "—"}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">PPG</div>
+                                    {seasonStats[0]?.rankings?.ppg_rank && (
+                                      <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.ppg_rank)} in NBA</div>
+                                    )}
+                                    <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxPts}</div>
                                   </div>
-                                  <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-accent">{tripleDoubles}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">Triple-Doubles</div>
+                                  <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                                    <div className="text-2xl font-bold text-foreground">{avgRpg?.toFixed(1) || "—"}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">RPG</div>
+                                    {seasonStats[0]?.rankings?.rpg_rank && (
+                                      <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.rpg_rank)} in NBA</div>
+                                    )}
+                                    <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxReb}</div>
                                   </div>
-                                  <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-accent">{twentyPtGames}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">20+ Pts</div>
+                                  <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                                    <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">APG</div>
+                                    {seasonStats[0]?.rankings?.apg_rank && (
+                                      <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.apg_rank)} in NBA</div>
+                                    )}
+                                    <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxAst}</div>
                                   </div>
-                                  <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-accent">{thirtyPtGames}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">30+ Pts</div>
+                                  <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                                    <div className="text-2xl font-bold text-foreground">{avgBpg?.toFixed(1) || "—"}</div>
+                                    <div className="text-xs text-muted-foreground uppercase">BPG</div>
+                                    {seasonStats[0]?.rankings?.bpg_rank && (
+                                      <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.bpg_rank)} in NBA</div>
+                                    )}
+                                    <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxBlk}</div>
                                   </div>
-                                </div>
-                              </>
-                            );
-                          })()}
-                        </>
-                      )}
+                                </>
+                              );
+                            })()}
+                          </>
+                        )}
                       {athlete.sport === "football" && !isGoalkeeper && (
                         <>
                           <div className="text-center bg-background/80 rounded-lg px-3 py-2">
@@ -440,14 +407,57 @@ const AthleteProfilePage = () => {
                         </>
                       )}
                       
-                      {/* Form Graphic for Football */}
-                      {athlete.sport === "football" && matchHistory.length > 0 && (
-                        <div className="w-full mt-4 pt-4 border-t border-border/50">
-                          <div className="text-xs text-muted-foreground uppercase mb-2">Recent Form</div>
-                          <FormGraphic matches={matchHistory} maxMatches={10} />
+                        {/* Form Graphic for Football */}
+                        {athlete.sport === "football" && matchHistory.length > 0 && (
+                          <div className="w-full mt-4 pt-4 border-t border-border/50">
+                            <div className="text-xs text-muted-foreground uppercase mb-2">Recent Form</div>
+                            <FormGraphic matches={matchHistory} maxMatches={10} />
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Milestones row for Basketball */}
+                      {athlete.sport === "basketball" && (
+                        <div className="grid grid-cols-4 gap-2 mt-3">
+                          {(() => {
+                            const playedGames = dailyUpdates.filter(u => u.played && u.stats);
+                            const doubleDoubles = playedGames.filter(u => {
+                              const stats = u.stats;
+                              const categories = [stats.points || 0, stats.rebounds || 0, stats.assists || 0, stats.steals || 0, stats.blocks || 0];
+                              return categories.filter(c => c >= 10).length >= 2;
+                            }).length;
+                            const tripleDoubles = playedGames.filter(u => {
+                              const stats = u.stats;
+                              const categories = [stats.points || 0, stats.rebounds || 0, stats.assists || 0, stats.steals || 0, stats.blocks || 0];
+                              return categories.filter(c => c >= 10).length >= 3;
+                            }).length;
+                            const twentyPtGames = playedGames.filter(u => u.stats?.points >= 20).length;
+                            const thirtyPtGames = playedGames.filter(u => u.stats?.points >= 30).length;
+
+                            return (
+                              <>
+                                <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
+                                  <div className="text-lg font-bold text-accent">{doubleDoubles}</div>
+                                  <div className="text-[10px] text-muted-foreground uppercase">Double-Doubles</div>
+                                </div>
+                                <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
+                                  <div className="text-lg font-bold text-accent">{tripleDoubles}</div>
+                                  <div className="text-[10px] text-muted-foreground uppercase">Triple-Doubles</div>
+                                </div>
+                                <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
+                                  <div className="text-lg font-bold text-accent">{twentyPtGames}</div>
+                                  <div className="text-[10px] text-muted-foreground uppercase">20+ Pts</div>
+                                </div>
+                                <div className="text-center bg-accent/10 rounded-lg px-2 py-1.5">
+                                  <div className="text-lg font-bold text-accent">{thirtyPtGames}</div>
+                                  <div className="text-[10px] text-muted-foreground uppercase">30+ Pts</div>
+                                </div>
+                              </>
+                            );
+                          })()}
                         </div>
                       )}
-                    </div>
+                    </>
                   )}
                 </div>
               </div>
