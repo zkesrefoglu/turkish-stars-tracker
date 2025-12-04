@@ -352,6 +352,7 @@ const AthleteProfilePage = () => {
                                   {seasonStats[0]?.rankings?.ppg_rank && (
                                     <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.ppg_rank)} in NBA</div>
                                   )}
+                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxPts}</div>
                                 </div>
                                 <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                                   <div className="text-2xl font-bold text-foreground">{avgRpg?.toFixed(1) || "—"}</div>
@@ -359,6 +360,7 @@ const AthleteProfilePage = () => {
                                   {seasonStats[0]?.rankings?.rpg_rank && (
                                     <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.rpg_rank)} in NBA</div>
                                   )}
+                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxReb}</div>
                                 </div>
                                 <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                                   <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
@@ -366,6 +368,7 @@ const AthleteProfilePage = () => {
                                   {seasonStats[0]?.rankings?.apg_rank && (
                                     <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.apg_rank)} in NBA</div>
                                   )}
+                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxAst}</div>
                                 </div>
                                 <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                                   <div className="text-2xl font-bold text-foreground">{avgBpg?.toFixed(1) || "—"}</div>
@@ -373,26 +376,7 @@ const AthleteProfilePage = () => {
                                   {seasonStats[0]?.rankings?.bpg_rank && (
                                     <div className="text-[10px] text-accent font-semibold mt-0.5">{getOrdinal(seasonStats[0].rankings.bpg_rank)} in NBA</div>
                                   )}
-                                </div>
-                                
-                                {/* Career Highs row */}
-                                <div className="col-span-4 grid grid-cols-4 gap-2 mt-2 pt-2 border-t border-border/30">
-                                  <div className="text-center bg-primary/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-primary">{maxPts || "—"}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">Max PTS</div>
-                                  </div>
-                                  <div className="text-center bg-primary/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-primary">{maxReb || "—"}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">Max REB</div>
-                                  </div>
-                                  <div className="text-center bg-primary/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-primary">{maxAst || "—"}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">Max AST</div>
-                                  </div>
-                                  <div className="text-center bg-primary/10 rounded-lg px-2 py-1.5">
-                                    <div className="text-lg font-bold text-primary">{maxBlk || "—"}</div>
-                                    <div className="text-[10px] text-muted-foreground uppercase">Max BLK</div>
-                                  </div>
+                                  <div className="text-[10px] text-primary font-medium mt-0.5">Max: {maxBlk}</div>
                                 </div>
                                 
                                 {/* Milestones row */}
