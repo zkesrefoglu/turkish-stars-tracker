@@ -365,10 +365,6 @@ const AthleteProfilePage = () => {
         {/* BIO SECTION */}
         {athlete.bio && (
           <Card className="mb-8 p-6 bg-card border-border">
-            <h2 className="text-xl font-bold text-foreground mb-4 flex items-center gap-2">
-              <User className="w-5 h-5 text-accent" />
-              About
-            </h2>
             <p className="text-muted-foreground text-justify leading-relaxed">
               {athlete.bio}
             </p>
