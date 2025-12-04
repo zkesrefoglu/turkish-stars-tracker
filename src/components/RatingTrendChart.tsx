@@ -40,7 +40,7 @@ export const RatingTrendChart = ({ matches, maxMatches = 15 }: RatingTrendChartP
   return (
     <div className="bg-background/80 rounded-lg p-3 min-w-[180px]">
       <div className="flex items-center justify-between mb-1">
-        <span className="text-xs text-muted-foreground uppercase">Rating Trend</span>
+        <span className="text-xs text-muted-foreground uppercase">Form Trend</span>
         <span className={`text-sm font-bold ${trendColor}`}>{trendDirection}</span>
       </div>
       <div className="h-[70px] w-full">
