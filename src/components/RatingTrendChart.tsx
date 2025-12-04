@@ -1,4 +1,4 @@
-import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine } from "recharts";
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, ReferenceLine, Line, ComposedChart } from "recharts";
 
 interface MatchData {
   id: string;
@@ -12,6 +12,20 @@ interface RatingTrendChartProps {
   matches: MatchData[];
   maxMatches?: number;
 }
+
+// Calculate linear regression for trend line
+const calculateTrendLine = (data: { index: number; rating: number | null }[]) => {
+  const n = data.length;
+  const sumX = data.reduce((sum, d) => sum + d.index, 0);
+  const sumY = data.reduce((sum, d) => sum + (d.rating || 0), 0);
+  const sumXY = data.reduce((sum, d) => sum + d.index * (d.rating || 0), 0);
+  const sumXX = data.reduce((sum, d) => sum + d.index * d.index, 0);
+
+  const slope = (n * sumXY - sumX * sumY) / (n * sumXX - sumX * sumX);
+  const intercept = (sumY - slope * sumX) / n;
+
+  return { slope, intercept };
+};
 
 export const RatingTrendChart = ({ matches, maxMatches = 15 }: RatingTrendChartProps) => {
   // Filter to played matches with ratings, sort oldest to newest for chart
@@ -30,11 +44,15 @@ export const RatingTrendChart = ({ matches, maxMatches = 15 }: RatingTrendChartP
     return null; // Need at least 2 points for a trend line
   }
 
-  // Calculate trend (comparing first half avg to second half avg)
-  const midpoint = Math.floor(chartData.length / 2);
-  const firstHalfAvg = chartData.slice(0, midpoint).reduce((sum, d) => sum + (d.rating || 0), 0) / midpoint;
-  const secondHalfAvg = chartData.slice(midpoint).reduce((sum, d) => sum + (d.rating || 0), 0) / (chartData.length - midpoint);
-  const trendDirection = secondHalfAvg > firstHalfAvg + 0.1 ? "↑" : secondHalfAvg < firstHalfAvg - 0.1 ? "↓" : "→";
+  // Calculate linear regression trend line
+  const { slope, intercept } = calculateTrendLine(chartData);
+  const dataWithTrend = chartData.map((d) => ({
+    ...d,
+    trend: intercept + slope * d.index,
+  }));
+
+  // Determine trend direction from slope
+  const trendDirection = slope > 0.02 ? "↑" : slope < -0.02 ? "↓" : "→";
   const trendColor = trendDirection === "↑" ? "text-emerald-500" : trendDirection === "↓" ? "text-red-500" : "text-muted-foreground";
 
   return (
@@ -45,7 +63,7 @@ export const RatingTrendChart = ({ matches, maxMatches = 15 }: RatingTrendChartP
       </div>
       <div className="h-[70px] w-full">
         <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={chartData} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
+          <ComposedChart data={dataWithTrend} margin={{ top: 5, right: 5, left: -20, bottom: 0 }}>
             <defs>
               <linearGradient id="ratingGradient" x1="0" y1="0" x2="0" y2="1">
                 <stop offset="5%" stopColor="hsl(var(--accent))" stopOpacity={0.6} />
@@ -78,7 +96,16 @@ export const RatingTrendChart = ({ matches, maxMatches = 15 }: RatingTrendChartP
               dot={false}
               activeDot={{ r: 4, fill: "hsl(var(--accent))" }}
             />
-          </AreaChart>
+            <Line
+              type="linear"
+              dataKey="trend"
+              stroke="hsl(var(--foreground))"
+              strokeWidth={1.5}
+              strokeDasharray="4 4"
+              dot={false}
+              activeDot={false}
+            />
+          </ComposedChart>
         </ResponsiveContainer>
       </div>
     </div>
