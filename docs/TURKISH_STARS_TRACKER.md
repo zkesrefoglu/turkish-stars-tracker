@@ -340,6 +340,96 @@ Count of games where the player scored 20 or more / 30 or more points.
 
 ---
 
+## Edge Functions
+
+### `fetch-football-stats`
+**Purpose**: Fetches football player statistics from API-Football.
+
+**Trigger**: Hourly cron job at :00
+
+**Data Updated**:
+- `athlete_daily_updates` - per-match performance
+- `athlete_season_stats` - season aggregates
+- `athlete_upcoming_matches` - scheduled fixtures
+
+---
+
+### `fetch-nba-stats`
+**Purpose**: Fetches Alperen Sengun's basketball statistics from Balldontlie API.
+
+**Trigger**: Hourly cron job at :30
+
+**Data Updated**:
+- `athlete_daily_updates` - per-game performance
+- `athlete_season_stats` - season averages
+
+---
+
+### `fetch-hollinger-stats`
+**Purpose**: Scrapes ESPN Hollinger statistics to fetch PER (Player Efficiency Rating) for Alperen Sengun.
+
+**Trigger**: Hourly cron job at :45
+
+**Data Source**: ESPN Hollinger Statistics page via Firecrawl API
+
+**Stats Fetched**:
+- PER (Player Efficiency Rating)
+- PER Rank (NBA ranking)
+- VA (Value Added)
+- EWA (Estimated Wins Added)
+- TS% (True Shooting Percentage)
+- GP (Games Played)
+- MPG (Minutes Per Game)
+
+**Data Updated**:
+- `athlete_season_stats.rankings` - Hollinger stats stored in rankings JSONB field
+
+**Rankings JSONB Structure** (with Hollinger):
+```json
+{
+  "ppg_rank": 15,
+  "rpg_rank": 8,
+  "apg_rank": 12,
+  "bpg_rank": 25,
+  "hollinger": {
+    "rank": 22,
+    "per": "22.24",
+    "va": "10.5",
+    "ewa": "8.2",
+    "ts_pct": "61.2",
+    "gp": "35",
+    "mpg": "32.5"
+  }
+}
+```
+
+---
+
+## Cron Job Schedule
+
+| Function | Schedule | Description |
+|----------|----------|-------------|
+| `fetch-football-stats` | Hourly at :00 | Football stats from API-Football |
+| `fetch-nba-stats` | Hourly at :30 | NBA stats from Balldontlie |
+| `fetch-hollinger-stats` | Hourly at :45 | PER rankings from ESPN |
+
+Cron jobs are configured via Supabase `pg_cron` extension and trigger edge functions via HTTP POST.
+
+---
+
+## Admin Panel Features
+
+### Manual Sync Buttons
+- **Fetch Football Stats**: Triggers `fetch-football-stats` edge function
+- **Fetch NBA Stats**: Triggers `fetch-nba-stats` edge function  
+- **Fetch Hollinger Stats**: Triggers `fetch-hollinger-stats` edge function
+- **Refresh All Data**: Triggers all stat fetching functions in parallel
+
+### Cron Job Status Display
+Shows current schedule for all automated data fetching jobs.
+
+---
+
 ## Future Enhancements
 
 Potential features to consider:
@@ -348,3 +438,4 @@ Potential features to consider:
 - Comparison tool between athletes
 - Social media feed integration
 - Fantasy points tracking
+- Display PER badge on Alperen's profile banner
