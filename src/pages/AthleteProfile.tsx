@@ -327,22 +327,22 @@ const AthleteProfilePage = () => {
                             const playedGames = dailyUpdates.filter(u => u.played && u.stats);
                             const doubleDoubles = playedGames.filter(u => {
                               const stats = u.stats;
-                              const categories = [stats.pts || 0, stats.reb || 0, stats.ast || 0, stats.stl || 0, stats.blk || 0];
+                              const categories = [stats.points || 0, stats.rebounds || 0, stats.assists || 0, stats.steals || 0, stats.blocks || 0];
                               return categories.filter(c => c >= 10).length >= 2;
                             }).length;
                             const tripleDoubles = playedGames.filter(u => {
                               const stats = u.stats;
-                              const categories = [stats.pts || 0, stats.reb || 0, stats.ast || 0, stats.stl || 0, stats.blk || 0];
+                              const categories = [stats.points || 0, stats.rebounds || 0, stats.assists || 0, stats.steals || 0, stats.blocks || 0];
                               return categories.filter(c => c >= 10).length >= 3;
                             }).length;
-                            const twentyPtGames = playedGames.filter(u => u.stats?.pts >= 20).length;
-                            const thirtyPtGames = playedGames.filter(u => u.stats?.pts >= 30).length;
+                            const twentyPtGames = playedGames.filter(u => u.stats?.points >= 20).length;
+                            const thirtyPtGames = playedGames.filter(u => u.stats?.points >= 30).length;
                             
                             // Career highs
-                            const maxPts = Math.max(...playedGames.map(u => u.stats?.pts || 0), 0);
-                            const maxReb = Math.max(...playedGames.map(u => u.stats?.reb || 0), 0);
-                            const maxAst = Math.max(...playedGames.map(u => u.stats?.ast || 0), 0);
-                            const maxBlk = Math.max(...playedGames.map(u => u.stats?.blk || 0), 0);
+                            const maxPts = Math.max(...playedGames.map(u => u.stats?.points || 0), 0);
+                            const maxReb = Math.max(...playedGames.map(u => u.stats?.rebounds || 0), 0);
+                            const maxAst = Math.max(...playedGames.map(u => u.stats?.assists || 0), 0);
+                            const maxBlk = Math.max(...playedGames.map(u => u.stats?.blocks || 0), 0);
 
                             return (
                               <>
