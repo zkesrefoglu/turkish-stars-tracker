@@ -171,10 +171,11 @@ const AthleteProfilePage = () => {
         acc.totalPpg += (stat.stats.ppg * stat.games_played);
         acc.totalRpg += ((stat.stats.rpg || 0) * stat.games_played);
         acc.totalApg += ((stat.stats.apg || 0) * stat.games_played);
+        acc.totalBpg += ((stat.stats.bpg || 0) * stat.games_played);
       }
     }
     return acc;
-  }, { games_played: 0, games_started: 0, goals: 0, assists: 0, saves: 0, goals_conceded: 0, clean_sheets: 0, penalties_saved: 0, totalRating: 0, ratedGames: 0, totalPpg: 0, totalRpg: 0, totalApg: 0 });
+  }, { games_played: 0, games_started: 0, goals: 0, assists: 0, saves: 0, goals_conceded: 0, clean_sheets: 0, penalties_saved: 0, totalRating: 0, ratedGames: 0, totalPpg: 0, totalRpg: 0, totalApg: 0, totalBpg: 0 });
 
   const avgRating = aggregatedSeasonStats.ratedGames > 0 
     ? (aggregatedSeasonStats.totalRating / aggregatedSeasonStats.ratedGames) 
@@ -187,6 +188,9 @@ const AthleteProfilePage = () => {
     : null;
   const avgApg = aggregatedSeasonStats.games_played > 0 
     ? (aggregatedSeasonStats.totalApg / aggregatedSeasonStats.games_played) 
+    : null;
+  const avgBpg = aggregatedSeasonStats.games_played > 0 
+    ? (aggregatedSeasonStats.totalBpg / aggregatedSeasonStats.games_played) 
     : null;
   
   const isGoalkeeper = athlete?.position?.toLowerCase().includes('goalkeeper') || athlete?.position?.toLowerCase().includes('gk');
@@ -321,6 +325,10 @@ const AthleteProfilePage = () => {
                           <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                             <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
                             <div className="text-xs text-muted-foreground uppercase">APG</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{avgBpg?.toFixed(1) || "—"}</div>
+                            <div className="text-xs text-muted-foreground uppercase">BPG</div>
                           </div>
                         </>
                       )}
