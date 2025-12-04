@@ -69,6 +69,31 @@ async function fetchRecentGames(teamId: number, apiKey: string): Promise<any[]> 
   return data.data || [];
 }
 
+// Fetch player injury status (ALL-STAR tier)
+async function fetchPlayerInjuries(playerId: number, apiKey: string): Promise<any | null> {
+  try {
+    const data = await fetchWithAuth(
+      `${BALLDONTLIE_BASE_URL}/injuries?player_ids[]=${playerId}`,
+      apiKey
+    );
+    
+    // Return most recent injury if exists
+    const injuries = data.data || [];
+    if (injuries.length > 0) {
+      const injury = injuries[0];
+      return {
+        status: injury.status || 'unknown',
+        comment: injury.comment || null,
+        return_date: injury.return_date || null,
+      };
+    }
+    return null;
+  } catch (error) {
+    console.log('Could not fetch injuries (may require higher tier):', error);
+    return null;
+  }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
@@ -167,6 +192,7 @@ Deno.serve(async (req) => {
             steals: stat.stl || 0,
             blocks: stat.blk || 0,
             turnovers: stat.turnover || 0,
+            plus_minus: stat.plus_minus || 0,
             fg_made: stat.fgm || 0,
             fg_attempted: stat.fga || 0,
             fg_pct: stat.fg_pct || 0,
@@ -179,6 +205,7 @@ Deno.serve(async (req) => {
             offensive_rebounds: stat.oreb || 0,
             defensive_rebounds: stat.dreb || 0,
             personal_fouls: stat.pf || 0,
+            fouls_drawn: stat.pfd || 0,
           },
         }, {
           onConflict: 'athlete_id,date',
@@ -224,6 +251,31 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Fetch current injury status
+    let injuryInfo = null;
+    try {
+      injuryInfo = await fetchPlayerInjuries(playerId, apiKey);
+      console.log('Injury status:', injuryInfo);
+      
+      // Update the most recent daily update with injury info
+      if (injuryInfo) {
+        const today = new Date().toISOString().split('T')[0];
+        await supabase
+          .from('athlete_daily_updates')
+          .update({
+            injury_status: injuryInfo.status === 'Out' ? 'injured' : 
+                          injuryInfo.status === 'Questionable' ? 'doubtful' :
+                          injuryInfo.status === 'Probable' ? 'minor' : 'healthy',
+            injury_details: injuryInfo.comment || null,
+          })
+          .eq('athlete_id', athlete.id)
+          .order('date', { ascending: false })
+          .limit(1);
+      }
+    } catch (injuryError) {
+      console.log('Injury fetch failed (may need higher tier):', injuryError);
+    }
+
     console.log('NBA stats fetch completed');
 
     return new Response(JSON.stringify({
@@ -238,6 +290,7 @@ Deno.serve(async (req) => {
         apg: seasonAverages.ast,
         games: seasonAverages.games_played,
       } : null,
+      injury_status: injuryInfo,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
