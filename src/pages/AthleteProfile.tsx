@@ -144,8 +144,40 @@ const AthleteProfilePage = () => {
   const latestUpdate = dailyUpdates[0];
   const currentInjuryStatus = latestUpdate?.injury_status || "healthy";
 
-  // Calculate quick season summary
-  const currentSeasonStats = seasonStats[0];
+  // Calculate TOTAL season stats across all competitions
+  const aggregatedSeasonStats = seasonStats.reduce((acc, stat) => {
+    acc.games_played += stat.games_played || 0;
+    acc.games_started += stat.games_started || 0;
+    if (stat.stats) {
+      // Football stats
+      acc.goals += stat.stats.goals || 0;
+      acc.assists += stat.stats.assists || 0;
+      if (stat.stats.rating && stat.games_played) {
+        acc.totalRating += (stat.stats.rating * stat.games_played);
+        acc.ratedGames += stat.games_played;
+      }
+      // Basketball stats
+      if (stat.stats.ppg && stat.games_played) {
+        acc.totalPpg += (stat.stats.ppg * stat.games_played);
+        acc.totalRpg += ((stat.stats.rpg || 0) * stat.games_played);
+        acc.totalApg += ((stat.stats.apg || 0) * stat.games_played);
+      }
+    }
+    return acc;
+  }, { games_played: 0, games_started: 0, goals: 0, assists: 0, totalRating: 0, ratedGames: 0, totalPpg: 0, totalRpg: 0, totalApg: 0 });
+
+  const avgRating = aggregatedSeasonStats.ratedGames > 0 
+    ? (aggregatedSeasonStats.totalRating / aggregatedSeasonStats.ratedGames) 
+    : null;
+  const avgPpg = aggregatedSeasonStats.games_played > 0 
+    ? (aggregatedSeasonStats.totalPpg / aggregatedSeasonStats.games_played) 
+    : null;
+  const avgRpg = aggregatedSeasonStats.games_played > 0 
+    ? (aggregatedSeasonStats.totalRpg / aggregatedSeasonStats.games_played) 
+    : null;
+  const avgApg = aggregatedSeasonStats.games_played > 0 
+    ? (aggregatedSeasonStats.totalApg / aggregatedSeasonStats.games_played) 
+    : null;
   
   const matchHistory = dailyUpdates.filter(u => u.played);
   const injuryHistory = dailyUpdates.filter(u => u.injury_status && u.injury_status !== "healthy");
@@ -256,41 +288,41 @@ const AthleteProfilePage = () => {
                   </div>
                 )}
 
-                {/* Quick Season Stats */}
-                {currentSeasonStats && (
+                {/* Quick Season Stats - Totals */}
+                {seasonStats.length > 0 && (
                   <div className="flex flex-wrap gap-4 justify-center md:justify-start">
                     <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                      <div className="text-2xl font-bold text-foreground">{currentSeasonStats.games_played || 0}</div>
+                      <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.games_played}</div>
                       <div className="text-xs text-muted-foreground uppercase">Games</div>
                     </div>
-                    {athlete.sport === "basketball" && currentSeasonStats.stats && (
+                    {athlete.sport === "basketball" && (
                       <>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{currentSeasonStats.stats.ppg?.toFixed(1) || "—"}</div>
+                          <div className="text-2xl font-bold text-foreground">{avgPpg?.toFixed(1) || "—"}</div>
                           <div className="text-xs text-muted-foreground uppercase">PPG</div>
                         </div>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{currentSeasonStats.stats.rpg?.toFixed(1) || "—"}</div>
+                          <div className="text-2xl font-bold text-foreground">{avgRpg?.toFixed(1) || "—"}</div>
                           <div className="text-xs text-muted-foreground uppercase">RPG</div>
                         </div>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{currentSeasonStats.stats.apg?.toFixed(1) || "—"}</div>
+                          <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
                           <div className="text-xs text-muted-foreground uppercase">APG</div>
                         </div>
                       </>
                     )}
-                    {athlete.sport === "football" && currentSeasonStats.stats && (
+                    {athlete.sport === "football" && (
                       <>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{currentSeasonStats.stats.goals || 0}</div>
+                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals}</div>
                           <div className="text-xs text-muted-foreground uppercase">Goals</div>
                         </div>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{currentSeasonStats.stats.assists || 0}</div>
+                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.assists}</div>
                           <div className="text-xs text-muted-foreground uppercase">Assists</div>
                         </div>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{currentSeasonStats.stats.avg_rating?.toFixed(1) || "—"}</div>
+                          <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
                           <div className="text-xs text-muted-foreground uppercase">Avg Rating</div>
                         </div>
                       </>
