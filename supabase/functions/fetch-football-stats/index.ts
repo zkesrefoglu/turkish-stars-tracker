@@ -149,6 +149,11 @@ async function getPlayerStatsFromFixture(
             fouls_drawn: stats?.fouls?.drawn || 0,
             yellow_cards: stats?.cards?.yellow || 0,
             red_cards: stats?.cards?.red || 0,
+            // Goalkeeper stats
+            saves: stats?.goals?.saves || 0,
+            goals_conceded: stats?.goals?.conceded || 0,
+            penalties_saved: stats?.penalty?.saved || 0,
+            penalties_missed: stats?.penalty?.missed || 0,
           }
         };
       }
@@ -247,6 +252,7 @@ function parseSeasonStats(data: ApiFootballResponse): any[] {
     const passes = stat.passes;
     const tackles = stat.tackles;
     const cards = stat.cards;
+    const penalty = stat.penalty;
 
     seasonStats.push({
       season: `${league?.season || CURRENT_SEASON}/${(league?.season || CURRENT_SEASON) + 1}`.slice(-7),
@@ -267,6 +273,12 @@ function parseSeasonStats(data: ApiFootballResponse): any[] {
         key_passes: passes?.key || 0,
         tackles: tackles?.total || 0,
         interceptions: tackles?.interceptions || 0,
+        // Goalkeeper stats
+        saves: goals?.saves || 0,
+        goals_conceded: goals?.conceded || 0,
+        clean_sheets: games?.lineups ? (games.lineups - (goals?.conceded > 0 ? Math.min(goals.conceded, games.lineups) : 0)) : 0,
+        penalties_saved: penalty?.saved || 0,
+        penalties_missed: penalty?.missed || 0,
       },
     });
   }
