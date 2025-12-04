@@ -152,6 +152,11 @@ const AthleteProfilePage = () => {
       // Football stats
       acc.goals += stat.stats.goals || 0;
       acc.assists += stat.stats.assists || 0;
+      // Goalkeeper stats
+      acc.saves += stat.stats.saves || 0;
+      acc.goals_conceded += stat.stats.goals_conceded || 0;
+      acc.clean_sheets += stat.stats.clean_sheets || 0;
+      acc.penalties_saved += stat.stats.penalties_saved || 0;
       if (stat.stats.rating && stat.games_played) {
         acc.totalRating += (stat.stats.rating * stat.games_played);
         acc.ratedGames += stat.games_played;
@@ -164,7 +169,7 @@ const AthleteProfilePage = () => {
       }
     }
     return acc;
-  }, { games_played: 0, games_started: 0, goals: 0, assists: 0, totalRating: 0, ratedGames: 0, totalPpg: 0, totalRpg: 0, totalApg: 0 });
+  }, { games_played: 0, games_started: 0, goals: 0, assists: 0, saves: 0, goals_conceded: 0, clean_sheets: 0, penalties_saved: 0, totalRating: 0, ratedGames: 0, totalPpg: 0, totalRpg: 0, totalApg: 0 });
 
   const avgRating = aggregatedSeasonStats.ratedGames > 0 
     ? (aggregatedSeasonStats.totalRating / aggregatedSeasonStats.ratedGames) 
@@ -178,6 +183,8 @@ const AthleteProfilePage = () => {
   const avgApg = aggregatedSeasonStats.games_played > 0 
     ? (aggregatedSeasonStats.totalApg / aggregatedSeasonStats.games_played) 
     : null;
+  
+  const isGoalkeeper = athlete?.position?.toLowerCase().includes('goalkeeper') || athlete?.position?.toLowerCase().includes('gk');
   
   const matchHistory = dailyUpdates.filter(u => u.played);
   const injuryHistory = dailyUpdates.filter(u => u.injury_status && u.injury_status !== "healthy");
@@ -311,7 +318,7 @@ const AthleteProfilePage = () => {
                         </div>
                       </>
                     )}
-                    {athlete.sport === "football" && (
+                    {athlete.sport === "football" && !isGoalkeeper && (
                       <>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                           <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals}</div>
@@ -320,6 +327,26 @@ const AthleteProfilePage = () => {
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                           <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.assists}</div>
                           <div className="text-xs text-muted-foreground uppercase">Assists</div>
+                        </div>
+                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                          <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
+                          <div className="text-xs text-muted-foreground uppercase">Avg Rating</div>
+                        </div>
+                      </>
+                    )}
+                    {athlete.sport === "football" && isGoalkeeper && (
+                      <>
+                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.saves}</div>
+                          <div className="text-xs text-muted-foreground uppercase">Saves</div>
+                        </div>
+                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals_conceded}</div>
+                          <div className="text-xs text-muted-foreground uppercase">Conceded</div>
+                        </div>
+                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.clean_sheets}</div>
+                          <div className="text-xs text-muted-foreground uppercase">Clean Sheets</div>
                         </div>
                         <div className="text-center bg-background/80 rounded-lg px-3 py-2">
                           <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
