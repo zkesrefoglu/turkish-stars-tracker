@@ -193,16 +193,16 @@ const AthleteProfilePage = () => {
         </Link>
 
         {/* HERO SECTION WITH ACTION PHOTO BACKGROUND */}
-        <div className="relative mb-8 rounded-xl overflow-hidden">
+        <div className="relative mb-8 rounded-xl overflow-hidden min-h-[180px] md:min-h-[200px]">
           {/* Action Photo Background */}
           {athlete.action_photo_url && (
             <div className="absolute inset-0 z-0">
               <img 
                 src={athlete.action_photo_url} 
                 alt={`${athlete.name} in action`}
-                className="w-full h-full object-cover object-top"
+                className="w-full h-full object-cover object-[center_20%]"
               />
-              <div className="absolute inset-0 bg-gradient-to-r from-background/50 via-background/40 to-background/20" />
+              <div className="absolute inset-0 bg-gradient-to-r from-background/70 via-background/50 to-background/30" />
             </div>
           )}
           
