@@ -152,11 +152,15 @@ const TurkishStars = () => {
       const pts = stats.points ?? stats.pts ?? "—";
       const reb = stats.rebounds ?? stats.reb ?? "—";
       const ast = stats.assists ?? stats.ast ?? "—";
-      return `${pts}/${reb}/${ast}`;
+      const plusMinus = stats.plus_minus;
+      const pmDisplay = plusMinus !== undefined ? ` (${plusMinus >= 0 ? '+' : ''}${plusMinus})` : '';
+      return `${pts}/${reb}/${ast}${pmDisplay}`;
     } else {
       const goals = stats.goals ?? 0;
       const assists = stats.assists ?? 0;
-      return `${goals}G/${assists}A`;
+      const rating = stats.rating;
+      const ratingDisplay = rating ? ` ★${rating.toFixed(1)}` : '';
+      return `${goals}G/${assists}A${ratingDisplay}`;
     }
   };
 
