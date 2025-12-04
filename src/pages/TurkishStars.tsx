@@ -315,7 +315,14 @@ const TurkishStars = () => {
                       <div>
                         <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Result</div>
                         <div className="text-sm font-semibold text-foreground">
-                          {lastMatch?.match_result || "—"}
+                          {lastMatch?.match_result ? (
+                            <>
+                              {lastMatch.match_result}
+                              <span className="text-xs text-muted-foreground ml-1">
+                                ({lastMatch.home_away === "home" ? "H" : "A"})
+                              </span>
+                            </>
+                          ) : "—"}
                         </div>
                       </div>
 
