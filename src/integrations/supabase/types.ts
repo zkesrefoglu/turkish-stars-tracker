@@ -159,6 +159,53 @@ export type Database = {
           },
         ]
       }
+      athlete_news: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          id: string
+          image_url: string | null
+          is_auto_crawled: boolean | null
+          published_at: string | null
+          source_name: string | null
+          source_url: string
+          summary: string | null
+          title: string
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_auto_crawled?: boolean | null
+          published_at?: string | null
+          source_name?: string | null
+          source_url: string
+          summary?: string | null
+          title: string
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          id?: string
+          image_url?: string | null
+          is_auto_crawled?: boolean | null
+          published_at?: string | null
+          source_name?: string | null
+          source_url?: string
+          summary?: string | null
+          title?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_news_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_profiles: {
         Row: {
           action_photo_url: string | null

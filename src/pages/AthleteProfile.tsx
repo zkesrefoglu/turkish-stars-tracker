@@ -5,7 +5,7 @@ import { Footer } from "@/components/Footer";
 import { FormGraphic } from "@/components/FormGraphic";
 import { RatingTrendChart } from "@/components/RatingTrendChart";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -83,6 +83,19 @@ interface UpcomingMatch {
   home_away: string | null;
 }
 
+interface AthleteNews {
+  id: string;
+  athlete_id: string;
+  title: string;
+  summary: string | null;
+  source_url: string;
+  source_name: string | null;
+  image_url: string | null;
+  published_at: string | null;
+  is_auto_crawled: boolean;
+  created_at: string;
+}
+
 const AthleteProfilePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [athlete, setAthlete] = useState<AthleteProfile | null>(null);
@@ -90,6 +103,7 @@ const AthleteProfilePage = () => {
   const [dailyUpdates, setDailyUpdates] = useState<DailyUpdate[]>([]);
   const [transferRumors, setTransferRumors] = useState<TransferRumor[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
+  const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
 
@@ -113,17 +127,19 @@ const AthleteProfilePage = () => {
         setAthlete(athleteData);
 
         // Fetch related data
-        const [statsRes, updatesRes, rumorsRes, matchesRes] = await Promise.all([
+        const [statsRes, updatesRes, rumorsRes, matchesRes, newsRes] = await Promise.all([
           supabase.from("athlete_season_stats").select("*").eq("athlete_id", athleteData.id).order("season", { ascending: false }),
           supabase.from("athlete_daily_updates").select("*").eq("athlete_id", athleteData.id).order("date", { ascending: false }),
           supabase.from("athlete_transfer_rumors").select("*").eq("athlete_id", athleteData.id).order("rumor_date", { ascending: false }),
           supabase.from("athlete_upcoming_matches").select("*").eq("athlete_id", athleteData.id).gte("match_date", new Date().toISOString()).order("match_date"),
+          supabase.from("athlete_news").select("*").eq("athlete_id", athleteData.id).order("published_at", { ascending: false }).limit(20),
         ]);
 
         if (statsRes.data) setSeasonStats(statsRes.data);
         if (updatesRes.data) setDailyUpdates(updatesRes.data);
         if (rumorsRes.data) setTransferRumors(rumorsRes.data);
         if (matchesRes.data) setUpcomingMatches(matchesRes.data);
+        if (newsRes.data) setAthleteNews(newsRes.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -537,6 +553,7 @@ const AthleteProfilePage = () => {
           <TabsList className="w-full justify-start mb-6 bg-secondary overflow-x-auto">
             <TabsTrigger value="stats" className="flex-1 sm:flex-none">Season Stats</TabsTrigger>
             <TabsTrigger value="history" className="flex-1 sm:flex-none">Match History</TabsTrigger>
+            <TabsTrigger value="news" className="flex-1 sm:flex-none">Latest News</TabsTrigger>
             <TabsTrigger value="injuries" className="flex-1 sm:flex-none">Injury History</TabsTrigger>
             <TabsTrigger value="transfers" className="flex-1 sm:flex-none">Transfer News</TabsTrigger>
           </TabsList>
@@ -735,7 +752,58 @@ const AthleteProfilePage = () => {
             )}
           </TabsContent>
 
-          {/* TAB 3: Injury History */}
+          {/* TAB 3: Latest News */}
+          <TabsContent value="news">
+            {athleteNews.length > 0 ? (
+              <div className="space-y-4">
+                {athleteNews.map((news) => (
+                  <Card key={news.id} className="bg-card border-border overflow-hidden">
+                    <a 
+                      href={news.source_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="block hover:bg-secondary/30 transition-colors"
+                    >
+                      <div className="flex gap-4 p-4">
+                        {news.image_url && (
+                          <div className="flex-shrink-0 w-24 h-24 rounded-lg overflow-hidden bg-muted">
+                            <img 
+                              src={news.image_url} 
+                              alt={news.title}
+                              className="w-full h-full object-cover"
+                              onError={(e) => (e.currentTarget.style.display = 'none')}
+                            />
+                          </div>
+                        )}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-start justify-between gap-2 mb-2">
+                            <h3 className="font-semibold text-foreground line-clamp-2">{news.title}</h3>
+                            <ExternalLink className="w-4 h-4 flex-shrink-0 text-muted-foreground" />
+                          </div>
+                          {news.summary && (
+                            <p className="text-sm text-muted-foreground line-clamp-2 mb-2">{news.summary}</p>
+                          )}
+                          <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                            {news.source_name && <span className="font-medium">{news.source_name}</span>}
+                            {news.published_at && (
+                              <span>{format(new Date(news.published_at), "MMM d, yyyy")}</span>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </a>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <Card className="p-8 text-center bg-card border-border">
+                <Newspaper className="w-12 h-12 mx-auto mb-4 text-muted-foreground" />
+                <p className="text-muted-foreground">No news articles available yet.</p>
+              </Card>
+            )}
+          </TabsContent>
+
+          {/* TAB 4: Injury History */}
           <TabsContent value="injuries">
             {injuryHistory.length > 0 ? (
               <div className="space-y-2">
