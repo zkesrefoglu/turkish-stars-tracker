@@ -3,6 +3,7 @@ import { Link, useParams } from "react-router-dom";
 import { Header } from "@/components/Header";
 import { Footer } from "@/components/Footer";
 import { FormGraphic } from "@/components/FormGraphic";
+import { RatingTrendChart } from "@/components/RatingTrendChart";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -250,124 +251,134 @@ const AthleteProfilePage = () => {
           )}
           
           <Card className={`relative z-10 p-6 md:p-8 ${athlete.action_photo_url ? 'bg-transparent border-transparent' : 'bg-card border-border'}`}>
-            <div className="flex flex-col md:flex-row gap-6">
-              {/* Avatar - National Photo */}
-              <div className="flex-shrink-0">
-                <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-4 border-accent/30 mx-auto md:mx-0 shadow-xl">
-                  {(athlete.national_photo_url || athlete.photo_url) ? (
-                    <img 
-                      src={athlete.national_photo_url || athlete.photo_url || ''} 
-                      alt={athlete.name} 
-                      className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" 
-                    />
-                  ) : (
-                    <User className="w-16 h-16 text-muted-foreground" />
-                  )}
-                  {athlete.jersey_number && (
-                    <div className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground text-lg font-bold w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-lg">
-                      {athlete.jersey_number}
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Info */}
-              <div className="flex-1 text-center md:text-left">
-                <h1 className="text-3xl md:text-4xl font-headline font-bold text-foreground mb-2">
-                  {athlete.name}
-                </h1>
-                <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-4">
-                  <Badge variant="outline" className="text-sm bg-background/80">{athlete.team}</Badge>
-                  <Badge variant="outline" className="text-sm bg-background/80">{athlete.league}</Badge>
-                  <Badge variant="outline" className="text-sm bg-background/80">{athlete.position}</Badge>
-                  {athlete.jersey_number && (
-                    <Badge variant="outline" className="text-sm bg-background/80">#{athlete.jersey_number}</Badge>
-                  )}
-                </div>
-
-                {/* Current Status */}
-                {currentInjuryStatus !== "healthy" && (
-                  <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
-                    <AlertTriangle className="w-4 h-4 text-destructive" />
-                    <Badge className={`${getInjuryColor(currentInjuryStatus)} border capitalize`}>
-                      {currentInjuryStatus}
-                    </Badge>
-                    {latestUpdate?.injury_details && (
-                      <span className="text-sm text-muted-foreground">({latestUpdate.injury_details})</span>
+            <div className="flex flex-col lg:flex-row gap-6">
+              {/* Left: Avatar + Info */}
+              <div className="flex flex-col md:flex-row gap-6 flex-1">
+                {/* Avatar - National Photo */}
+                <div className="flex-shrink-0">
+                  <div className="relative w-28 h-28 md:w-36 md:h-36 rounded-full bg-secondary flex items-center justify-center overflow-hidden border-4 border-accent/30 mx-auto md:mx-0 shadow-xl">
+                    {(athlete.national_photo_url || athlete.photo_url) ? (
+                      <img 
+                        src={athlete.national_photo_url || athlete.photo_url || ''} 
+                        alt={athlete.name} 
+                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-110" 
+                      />
+                    ) : (
+                      <User className="w-16 h-16 text-muted-foreground" />
                     )}
-                  </div>
-                )}
-
-                {/* Quick Season Stats - Totals */}
-                {seasonStats.length > 0 && (
-                  <div className="flex flex-wrap gap-4 justify-center md:justify-start">
-                    <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                      <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.games_played}</div>
-                      <div className="text-xs text-muted-foreground uppercase">Games</div>
-                    </div>
-                    {athlete.sport === "basketball" && (
-                      <>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{avgPpg?.toFixed(1) || "—"}</div>
-                          <div className="text-xs text-muted-foreground uppercase">PPG</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{avgRpg?.toFixed(1) || "—"}</div>
-                          <div className="text-xs text-muted-foreground uppercase">RPG</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
-                          <div className="text-xs text-muted-foreground uppercase">APG</div>
-                        </div>
-                      </>
-                    )}
-                    {athlete.sport === "football" && !isGoalkeeper && (
-                      <>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Goals</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.assists}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Assists</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Avg Rating</div>
-                        </div>
-                      </>
-                    )}
-                    {athlete.sport === "football" && isGoalkeeper && (
-                      <>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.saves}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Saves</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals_conceded}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Conceded</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.clean_sheets}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Clean Sheets</div>
-                        </div>
-                        <div className="text-center bg-background/80 rounded-lg px-3 py-2">
-                          <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
-                          <div className="text-xs text-muted-foreground uppercase">Avg Rating</div>
-                        </div>
-                      </>
-                    )}
-                    
-                    {/* Form Graphic for Football */}
-                    {athlete.sport === "football" && matchHistory.length > 0 && (
-                      <div className="w-full mt-4 pt-4 border-t border-border/50">
-                        <div className="text-xs text-muted-foreground uppercase mb-2">Recent Form</div>
-                        <FormGraphic matches={matchHistory} maxMatches={10} />
+                    {athlete.jersey_number && (
+                      <div className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground text-lg font-bold w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-lg">
+                        {athlete.jersey_number}
                       </div>
                     )}
                   </div>
-                )}
+                </div>
+
+                {/* Info */}
+                <div className="flex-1 text-center md:text-left">
+                  <h1 className="text-3xl md:text-4xl font-headline font-bold text-foreground mb-2">
+                    {athlete.name}
+                  </h1>
+                  <div className="flex flex-wrap items-center justify-center md:justify-start gap-2 mb-4">
+                    <Badge variant="outline" className="text-sm bg-background/80">{athlete.team}</Badge>
+                    <Badge variant="outline" className="text-sm bg-background/80">{athlete.league}</Badge>
+                    <Badge variant="outline" className="text-sm bg-background/80">{athlete.position}</Badge>
+                    {athlete.jersey_number && (
+                      <Badge variant="outline" className="text-sm bg-background/80">#{athlete.jersey_number}</Badge>
+                    )}
+                  </div>
+
+                  {/* Current Status */}
+                  {currentInjuryStatus !== "healthy" && (
+                    <div className="flex items-center justify-center md:justify-start gap-2 mb-4">
+                      <AlertTriangle className="w-4 h-4 text-destructive" />
+                      <Badge className={`${getInjuryColor(currentInjuryStatus)} border capitalize`}>
+                        {currentInjuryStatus}
+                      </Badge>
+                      {latestUpdate?.injury_details && (
+                        <span className="text-sm text-muted-foreground">({latestUpdate.injury_details})</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Quick Season Stats - Totals */}
+                  {seasonStats.length > 0 && (
+                    <div className="flex flex-wrap gap-4 justify-center md:justify-start">
+                      <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                        <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.games_played}</div>
+                        <div className="text-xs text-muted-foreground uppercase">Games</div>
+                      </div>
+                      {athlete.sport === "basketball" && (
+                        <>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{avgPpg?.toFixed(1) || "—"}</div>
+                            <div className="text-xs text-muted-foreground uppercase">PPG</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{avgRpg?.toFixed(1) || "—"}</div>
+                            <div className="text-xs text-muted-foreground uppercase">RPG</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{avgApg?.toFixed(1) || "—"}</div>
+                            <div className="text-xs text-muted-foreground uppercase">APG</div>
+                          </div>
+                        </>
+                      )}
+                      {athlete.sport === "football" && !isGoalkeeper && (
+                        <>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Goals</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.assists}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Assists</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Avg Rating</div>
+                          </div>
+                        </>
+                      )}
+                      {athlete.sport === "football" && isGoalkeeper && (
+                        <>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.saves}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Saves</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.goals_conceded}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Conceded</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{aggregatedSeasonStats.clean_sheets}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Clean Sheets</div>
+                          </div>
+                          <div className="text-center bg-background/80 rounded-lg px-3 py-2">
+                            <div className="text-2xl font-bold text-foreground">{avgRating?.toFixed(1) || "—"}</div>
+                            <div className="text-xs text-muted-foreground uppercase">Avg Rating</div>
+                          </div>
+                        </>
+                      )}
+                      
+                      {/* Form Graphic for Football */}
+                      {athlete.sport === "football" && matchHistory.length > 0 && (
+                        <div className="w-full mt-4 pt-4 border-t border-border/50">
+                          <div className="text-xs text-muted-foreground uppercase mb-2">Recent Form</div>
+                          <FormGraphic matches={matchHistory} maxMatches={10} />
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
+
+              {/* Right: Rating Trend Chart (Football only) */}
+              {athlete.sport === "football" && matchHistory.length >= 2 && (
+                <div className="flex-shrink-0 flex items-center justify-center lg:justify-end">
+                  <RatingTrendChart matches={matchHistory} maxMatches={15} />
+                </div>
+              )}
             </div>
           </Card>
         </div>
