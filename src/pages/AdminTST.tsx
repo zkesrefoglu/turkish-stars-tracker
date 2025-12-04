@@ -12,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink } from 'lucide-react';
 
 interface Athlete {
   id: string;
@@ -94,6 +94,19 @@ interface SeasonStats {
   stats: any;
 }
 
+interface AthleteNews {
+  id: string;
+  athlete_id: string;
+  title: string;
+  summary: string | null;
+  source_url: string;
+  source_name: string | null;
+  image_url: string | null;
+  published_at: string | null;
+  is_auto_crawled: boolean;
+  created_at: string;
+}
+
 export default function AdminTST() {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
@@ -104,6 +117,7 @@ export default function AdminTST() {
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
+  const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
   const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; all: string }>({ football: 'idle', nba: 'idle', all: 'idle' });
 
   useEffect(() => {
@@ -142,6 +156,7 @@ export default function AdminTST() {
       loadUpcomingMatches(),
       loadLiveMatches(),
       loadSeasonStats(),
+      loadAthleteNews(),
     ]);
     setLoading(false);
   };
@@ -174,6 +189,21 @@ export default function AdminTST() {
   const loadSeasonStats = async () => {
     const { data } = await supabase.from('athlete_season_stats').select('*').order('season', { ascending: false });
     if (data) setSeasonStats(data as SeasonStats[]);
+  };
+
+  const loadAthleteNews = async () => {
+    const { data } = await supabase.from('athlete_news').select('*').order('published_at', { ascending: false });
+    if (data) setAthleteNews(data as AthleteNews[]);
+  };
+
+  const deleteAthleteNews = async (id: string) => {
+    const { error } = await supabase.from('athlete_news').delete().eq('id', id);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Deleted', description: 'News article removed' });
+      loadAthleteNews();
+    }
   };
 
   const getAthleteName = (athleteId: string) => {
@@ -299,13 +329,14 @@ export default function AdminTST() {
         </div>
 
         <Tabs defaultValue="athletes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-7 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
             <TabsTrigger value="athletes">Athletes</TabsTrigger>
             <TabsTrigger value="updates">Daily Updates</TabsTrigger>
             <TabsTrigger value="live">Live Matches</TabsTrigger>
             <TabsTrigger value="rumors">Rumors</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="stats">Season Stats</TabsTrigger>
+            <TabsTrigger value="news">News</TabsTrigger>
             <TabsTrigger value="sync">Sync</TabsTrigger>
           </TabsList>
 
@@ -564,6 +595,58 @@ export default function AdminTST() {
                         <TableCell>{stat.games_played || 0}</TableCell>
                         <TableCell className="max-w-[300px] truncate">
                           {stat.stats ? JSON.stringify(stat.stats) : '-'}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* News Tab */}
+          <TabsContent value="news">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Newspaper className="h-5 w-5" />
+                  Athlete News
+                </CardTitle>
+                <AddNewsDialog athletes={athletes} onSave={loadAthleteNews} />
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Athlete</TableHead>
+                      <TableHead>Source</TableHead>
+                      <TableHead>Published</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead className="w-[100px]">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {athleteNews.map((news) => (
+                      <TableRow key={news.id}>
+                        <TableCell className="font-medium max-w-[300px]">
+                          <a href={news.source_url} target="_blank" rel="noopener noreferrer" className="hover:text-accent flex items-center gap-1">
+                            {news.title.substring(0, 60)}{news.title.length > 60 ? '...' : ''}
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        </TableCell>
+                        <TableCell>{getAthleteName(news.athlete_id)}</TableCell>
+                        <TableCell>{news.source_name || '—'}</TableCell>
+                        <TableCell>{news.published_at ? new Date(news.published_at).toLocaleDateString() : '—'}</TableCell>
+                        <TableCell>
+                          <Badge variant={news.is_auto_crawled ? 'secondary' : 'outline'}>
+                            {news.is_auto_crawled ? 'Auto' : 'Manual'}
+                          </Badge>
+                        </TableCell>
+                        <TableCell>
+                          <Button variant="ghost" size="sm" onClick={() => deleteAthleteNews(news.id)}>
+                            <Trash2 className="h-4 w-4 text-destructive" />
+                          </Button>
                         </TableCell>
                       </TableRow>
                     ))}
@@ -1220,6 +1303,96 @@ function UpcomingMatchDialog({ athletes, onSave }: { athletes: Athlete[]; onSave
           </div>
         </div>
         <Button onClick={handleSave} className="w-full">Add Match</Button>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Add News Dialog
+function AddNewsDialog({ athletes, onSave }: { athletes: Athlete[]; onSave: () => void }) {
+  const [open, setOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    athlete_id: '',
+    title: '',
+    summary: '',
+    source_url: '',
+    source_name: '',
+    image_url: '',
+    published_at: '',
+  });
+
+  const handleSave = async () => {
+    if (!formData.athlete_id || !formData.title || !formData.source_url) {
+      toast({ title: 'Error', description: 'Athlete, title, and source URL are required', variant: 'destructive' });
+      return;
+    }
+
+    const { error } = await supabase.from('athlete_news').insert({
+      athlete_id: formData.athlete_id,
+      title: formData.title,
+      summary: formData.summary || null,
+      source_url: formData.source_url,
+      source_name: formData.source_name || null,
+      image_url: formData.image_url || null,
+      published_at: formData.published_at || null,
+      is_auto_crawled: false,
+    });
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Added', description: 'News article added' });
+      setFormData({ athlete_id: '', title: '', summary: '', source_url: '', source_name: '', image_url: '', published_at: '' });
+      setOpen(false);
+      onSave();
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button><Plus className="h-4 w-4 mr-2" />Add News</Button>
+      </DialogTrigger>
+      <DialogContent className="max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add News Article</DialogTitle>
+        </DialogHeader>
+        <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto">
+          <div>
+            <Label>Athlete *</Label>
+            <Select value={formData.athlete_id} onValueChange={v => setFormData({...formData, athlete_id: v})}>
+              <SelectTrigger><SelectValue placeholder="Select athlete" /></SelectTrigger>
+              <SelectContent>
+                {athletes.map(a => <SelectItem key={a.id} value={a.id}>{a.name}</SelectItem>)}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Label>Title *</Label>
+            <Input value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="News headline" />
+          </div>
+          <div>
+            <Label>Source URL *</Label>
+            <Input value={formData.source_url} onChange={e => setFormData({...formData, source_url: e.target.value})} placeholder="https://..." />
+          </div>
+          <div>
+            <Label>Source Name</Label>
+            <Input value={formData.source_name} onChange={e => setFormData({...formData, source_name: e.target.value})} placeholder="ESPN, BBC Sport, etc." />
+          </div>
+          <div>
+            <Label>Summary</Label>
+            <Textarea value={formData.summary} onChange={e => setFormData({...formData, summary: e.target.value})} placeholder="Brief summary..." rows={3} />
+          </div>
+          <div>
+            <Label>Image URL</Label>
+            <Input value={formData.image_url} onChange={e => setFormData({...formData, image_url: e.target.value})} placeholder="https://..." />
+          </div>
+          <div>
+            <Label>Published Date</Label>
+            <Input type="datetime-local" value={formData.published_at} onChange={e => setFormData({...formData, published_at: e.target.value})} />
+          </div>
+        </div>
+        <Button onClick={handleSave} className="w-full">Add News Article</Button>
       </DialogContent>
     </Dialog>
   );
