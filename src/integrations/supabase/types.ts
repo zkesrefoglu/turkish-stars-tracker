@@ -114,6 +114,7 @@ export type Database = {
           slug: string
           sport: string
           team: string
+          team_logo_url: string | null
           updated_at: string
         }
         Insert: {
@@ -129,6 +130,7 @@ export type Database = {
           slug: string
           sport: string
           team: string
+          team_logo_url?: string | null
           updated_at?: string
         }
         Update: {
@@ -144,6 +146,7 @@ export type Database = {
           slug?: string
           sport?: string
           team?: string
+          team_logo_url?: string | null
           updated_at?: string
         }
         Relationships: []
