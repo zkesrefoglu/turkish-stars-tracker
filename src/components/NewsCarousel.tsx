@@ -1,8 +1,9 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Link } from "react-router-dom";
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from "@/components/ui/carousel";
+import { Carousel, CarouselContent, CarouselItem, CarouselApi } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import { BreakingNewsBadge } from "@/components/BreakingNewsBadge";
+import { Pause, Play } from "lucide-react";
 
 interface CarouselArticle {
   title: string;
@@ -41,8 +42,65 @@ const formatCategoryLabel = (category: string): string => {
   return category.toUpperCase();
 };
 
+const AUTOPLAY_DELAY = 9000;
+
 export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
-  const plugin = React.useRef(Autoplay({ delay: 9000, stopOnInteraction: true }));
+  const [api, setApi] = useState<CarouselApi>();
+  const [current, setCurrent] = useState(0);
+  const [isPaused, setIsPaused] = useState(false);
+  const [progress, setProgress] = useState(0);
+  
+  const plugin = React.useRef(
+    Autoplay({ delay: AUTOPLAY_DELAY, stopOnInteraction: false, stopOnMouseEnter: true })
+  );
+
+  // Update current slide index
+  useEffect(() => {
+    if (!api) return;
+
+    setCurrent(api.selectedScrollSnap());
+    
+    api.on("select", () => {
+      setCurrent(api.selectedScrollSnap());
+      setProgress(0); // Reset progress on slide change
+    });
+  }, [api]);
+
+  // Progress bar animation
+  useEffect(() => {
+    if (isPaused || !api) return;
+
+    const interval = setInterval(() => {
+      setProgress((prev) => {
+        if (prev >= 100) {
+          return 0;
+        }
+        return prev + (100 / (AUTOPLAY_DELAY / 50));
+      });
+    }, 50);
+
+    return () => clearInterval(interval);
+  }, [isPaused, api, current]);
+
+  const togglePause = useCallback(() => {
+    if (!plugin.current) return;
+    
+    if (isPaused) {
+      plugin.current.play();
+      setIsPaused(false);
+    } else {
+      plugin.current.stop();
+      setIsPaused(true);
+    }
+  }, [isPaused]);
+
+  const goToSlide = useCallback((index: number) => {
+    api?.scrollTo(index);
+    setProgress(0);
+  }, [api]);
+
+  const nextSlideIndex = (current + 1) % articles.length;
+  const nextArticle = articles[nextSlideIndex];
 
   return (
     <Carousel
@@ -51,6 +109,7 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
         loop: true,
       }}
       plugins={[plugin.current]}
+      setApi={setApi}
       className="w-full mb-16"
     >
       <CarouselContent>
@@ -111,9 +170,60 @@ export const NewsCarousel = ({ articles }: NewsCarouselProps) => {
         ))}
       </CarouselContent>
 
-      {/* Navigation Buttons - Smaller and positioned mid-height to avoid text */}
-      <CarouselPrevious className="left-2 md:left-4 top-1/3 w-8 h-8 md:w-10 md:h-10 bg-black/30 backdrop-blur-sm border-white/10 text-white hover:bg-white/90 hover:text-foreground transition-all opacity-60 hover:opacity-100" />
-      <CarouselNext className="right-2 md:right-4 top-1/3 w-8 h-8 md:w-10 md:h-10 bg-black/30 backdrop-blur-sm border-white/10 text-white hover:bg-white/90 hover:text-foreground transition-all opacity-60 hover:opacity-100" />
+      {/* Bottom Controls - Progress bar, pause button, dots, and next preview */}
+      <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 flex items-center gap-3 z-20">
+        {/* Pause/Play Button */}
+        <button
+          onClick={(e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            togglePause();
+          }}
+          className="w-8 h-8 flex items-center justify-center bg-black/40 backdrop-blur-sm rounded-full text-white hover:bg-black/60 transition-colors"
+          aria-label={isPaused ? "Play" : "Pause"}
+        >
+          {isPaused ? <Play className="w-4 h-4" /> : <Pause className="w-4 h-4" />}
+        </button>
+
+        {/* Progress Bar with Dots */}
+        <div className="flex items-center gap-2">
+          {articles.map((_, index) => (
+            <button
+              key={index}
+              onClick={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                goToSlide(index);
+              }}
+              className="relative h-1.5 rounded-full overflow-hidden bg-white/30 hover:bg-white/50 transition-colors"
+              style={{ width: index === current ? "48px" : "8px" }}
+              aria-label={`Go to slide ${index + 1}`}
+            >
+              {index === current && (
+                <div
+                  className="absolute inset-y-0 left-0 bg-white rounded-full transition-all"
+                  style={{ width: `${progress}%` }}
+                />
+              )}
+            </button>
+          ))}
+        </div>
+
+        {/* Next Article Preview */}
+        {articles.length > 1 && (
+          <button
+            onClick={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+              goToSlide(nextSlideIndex);
+            }}
+            className="hidden md:flex items-center gap-2 bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5 text-white hover:bg-black/60 transition-colors max-w-[200px]"
+          >
+            <span className="text-xs text-white/60 uppercase tracking-wide shrink-0">Next:</span>
+            <span className="text-xs font-medium truncate">{nextArticle?.title}</span>
+          </button>
+        )}
+      </div>
     </Carousel>
   );
 };
