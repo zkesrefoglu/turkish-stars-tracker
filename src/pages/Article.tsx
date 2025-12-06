@@ -273,7 +273,7 @@ const Article = () => {
           </div>
 
           {/* Floating Share Button - Olympics.com style */}
-          <div className="fixed right-4 md:right-8 top-1/3 z-50 flex flex-col items-center">
+          <div className="fixed right-0 md:right-2 top-1/3 z-50 flex flex-col items-center">
             <div className="bg-background border border-border rounded-full shadow-lg overflow-hidden flex flex-col items-center">
               {/* Share Icon Button */}
               <button
