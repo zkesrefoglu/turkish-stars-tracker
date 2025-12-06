@@ -72,7 +72,7 @@ export const LatestNewsStrip = ({ articles }: LatestNewsStripProps) => {
     <section className="py-12 bg-muted/30">
       <div className="container-custom">
         {/* Header */}
-        <div className="flex items-center justify-between mb-8">
+        <div className="mb-8">
           <div className="relative">
             {/* Ghost/watermark text */}
             <span className="absolute -top-2 left-0 text-6xl md:text-7xl font-headline font-black text-muted/20 select-none pointer-events-none tracking-tight">
@@ -82,13 +82,6 @@ export const LatestNewsStrip = ({ articles }: LatestNewsStripProps) => {
               LATEST NEWS
             </h2>
           </div>
-          <Link 
-            to="/section/agenda" 
-            className="flex items-center gap-1 text-sm font-medium text-primary hover:text-primary/80 transition-colors group"
-          >
-            All news
-            <ChevronRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
-          </Link>
         </div>
 
         {/* Scrollable container with navigation */}

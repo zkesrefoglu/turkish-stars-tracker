@@ -86,7 +86,7 @@ const Index = () => {
         .eq("published", true)
         .eq("is_carousel_featured", false)
         .order("created_at", { ascending: false })
-        .limit(6);
+        .limit(10);
 
       if (latestError) throw latestError;
 
