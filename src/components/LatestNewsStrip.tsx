@@ -139,10 +139,6 @@ export const LatestNewsStrip = ({ articles }: LatestNewsStripProps) => {
                         target.src = `https://picsum.photos/seed/${article.slug}/600/400`;
                       }}
                     />
-                    {/* Category badge */}
-                    <span className={`absolute top-3 left-3 ${getCategoryColor(article.category)} text-white text-[10px] font-semibold px-2 py-1 rounded uppercase tracking-wide`}>
-                      {article.category}
-                    </span>
                   </div>
 
                   {/* Content */}
