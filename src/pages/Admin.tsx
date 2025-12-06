@@ -18,6 +18,7 @@ import { Pencil, Trash2, Eye, EyeOff, Send, Search, Image } from "lucide-react";
 import { Switch } from "@/components/ui/switch";
 import { ArticlePreview } from "@/components/ArticlePreview";
 import { TagInput } from "@/components/TagInput";
+import { TagsManagement } from "@/components/TagsManagement";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -880,13 +881,14 @@ const Admin = () => {
         <Tabs defaultValue="news" className="w-full" onValueChange={(value) => {
           if (value === "manage") fetchArticles();
         }}>
-          <TabsList className="grid w-full grid-cols-8">
+          <TabsList className="grid w-full grid-cols-9">
             <TabsTrigger value="news" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Latest News</TabsTrigger>
             <TabsTrigger value="topic" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Editor's Pick</TabsTrigger>
             <TabsTrigger value="bulk" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Bulk Upload</TabsTrigger>
             <TabsTrigger value="converter" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">News Converter</TabsTrigger>
             <TabsTrigger value="imagefix" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Image Size Fix</TabsTrigger>
             <TabsTrigger value="manage" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Manage Articles</TabsTrigger>
+            <TabsTrigger value="tags" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Tags</TabsTrigger>
             <TabsTrigger value="newsletter" className="hover:bg-admin-red hover:text-white transition-all duration-300 data-[state=active]:bg-admin-red data-[state=active]:text-white">Newsletter</TabsTrigger>
             <button
               onClick={() => navigate("/watermark")}
@@ -1656,6 +1658,10 @@ const Admin = () => {
                 )}
               </CardContent>
             </Card>
+          </TabsContent>
+
+          <TabsContent value="tags" className="mt-8">
+            <TagsManagement />
           </TabsContent>
 
           <TabsContent value="newsletter" className="mt-8">
