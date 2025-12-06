@@ -992,7 +992,7 @@ const Admin = () => {
                       <Label htmlFor="news-image">Image URL (optional)</Label>
                       <Input
                         id="news-image"
-                        type="url"
+                        type="text"
                         value={newsImageUrl}
                         onChange={(e) => setNewsImageUrl(e.target.value)}
                       />
@@ -1364,7 +1364,7 @@ const Admin = () => {
                         <Label htmlFor="edit-image">Image URL (optional)</Label>
                         <Input
                           id="edit-image"
-                          type="url"
+                          type="text"
                           value={newsImageUrl}
                           onChange={(e) => setNewsImageUrl(e.target.value)}
                           placeholder="Enter image URL or upload a new image below"
