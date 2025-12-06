@@ -37,7 +37,6 @@ export const LatestNewsStrip = ({ articles }: LatestNewsStripProps) => {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(true);
-  const [isPaused, setIsPaused] = useState(false);
 
   const updateScrollButtons = () => {
     const container = scrollContainerRef.current;
@@ -48,25 +47,6 @@ export const LatestNewsStrip = ({ articles }: LatestNewsStripProps) => {
       );
     }
   };
-
-  // Auto-scroll effect
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    const autoScroll = setInterval(() => {
-      if (!isPaused && container) {
-        // If at the end, scroll back to start
-        if (container.scrollLeft >= container.scrollWidth - container.clientWidth - 10) {
-          container.scrollTo({ left: 0, behavior: "smooth" });
-        } else {
-          container.scrollBy({ left: 1, behavior: "auto" });
-        }
-      }
-    }, 30);
-
-    return () => clearInterval(autoScroll);
-  }, [isPaused]);
 
   useEffect(() => {
     const container = scrollContainerRef.current;
@@ -92,60 +72,60 @@ export const LatestNewsStrip = ({ articles }: LatestNewsStripProps) => {
     <section className="py-12 bg-muted/30">
       <div className="container-custom">
         {/* Scrollable container with navigation */}
-        <div 
-          className="relative group"
-          onMouseEnter={() => setIsPaused(true)}
-          onMouseLeave={() => setIsPaused(false)}
-        >
+        <div className="relative">
           {/* Left arrow */}
-          {canScrollLeft && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm shadow-lg hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity -translate-x-1/2"
-              onClick={() => scroll("left")}
-            >
-              <ChevronLeft className="w-5 h-5" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm shadow-lg hover:bg-background transition-opacity -translate-x-1/2 ${
+              canScrollLeft ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => scroll("left")}
+          >
+            <ChevronLeft className="w-5 h-5" />
+          </Button>
 
           {/* Right arrow */}
-          {canScrollRight && (
-            <Button
-              variant="ghost"
-              size="icon"
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm shadow-lg hover:bg-background opacity-0 group-hover:opacity-100 transition-opacity translate-x-1/2"
-              onClick={() => scroll("right")}
-            >
-              <ChevronRight className="w-5 h-5" />
-            </Button>
-          )}
+          <Button
+            variant="ghost"
+            size="icon"
+            className={`absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-background/90 backdrop-blur-sm shadow-lg hover:bg-background transition-opacity translate-x-1/2 ${
+              canScrollRight ? "opacity-100" : "opacity-0 pointer-events-none"
+            }`}
+            onClick={() => scroll("right")}
+          >
+            <ChevronRight className="w-5 h-5" />
+          </Button>
 
           {/* Cards container */}
           <div
             ref={scrollContainerRef}
-            className="flex gap-5 overflow-x-auto scrollbar-hide scroll-smooth snap-x snap-mandatory pb-2"
+            className="flex gap-5 overflow-x-auto scrollbar-hide snap-x snap-mandatory pb-2"
             style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
           >
-            {/* LATEST NEWS Title Card */}
+            {/* FRONTPAGE NEWS Title Card */}
             <div className="flex-none w-[280px] md:w-[300px] snap-start">
-              <div className="relative h-full min-h-[280px] bg-gradient-to-br from-primary via-primary/90 to-primary/70 rounded-lg overflow-hidden shadow-lg flex items-center justify-center">
-                {/* Decorative elements */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
-                <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
-                <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
-                
-                {/* Text */}
-                <div className="relative z-10 text-center px-6">
-                  <span className="block text-primary-foreground/60 text-sm font-ui uppercase tracking-[0.3em] mb-2">
-                    Breaking
-                  </span>
-                  <h2 className="font-headline text-3xl md:text-4xl font-black text-primary-foreground leading-tight tracking-tight">
-                    LATEST
-                    <br />
-                    NEWS
-                  </h2>
-                  <div className="mt-4 w-12 h-1 bg-primary-foreground/40 mx-auto rounded-full" />
+              <div className="bg-gradient-to-br from-destructive via-destructive/90 to-destructive/70 rounded-lg overflow-hidden shadow-lg flex flex-col">
+                {/* Red area matching image aspect ratio */}
+                <div className="aspect-[16/10] flex items-center justify-center relative">
+                  {/* Decorative elements */}
+                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_20%,rgba(255,255,255,0.1)_0%,transparent_50%)]" />
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+                  <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/5 rounded-full translate-y-1/2 -translate-x-1/2" />
+                  
+                  {/* Text */}
+                  <div className="relative z-10 text-center px-6">
+                    <h2 className="font-headline text-2xl md:text-3xl font-black text-white leading-tight tracking-tight uppercase">
+                      Frontpage
+                      <br />
+                      News
+                    </h2>
+                  </div>
+                </div>
+
+                {/* Bottom area matching card content height */}
+                <div className="p-4 bg-destructive/80">
+                  <div className="w-12 h-1 bg-white/40 rounded-full" />
                 </div>
               </div>
             </div>
