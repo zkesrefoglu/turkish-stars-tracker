@@ -5,6 +5,7 @@ import { LatestNewsStrip } from "@/components/LatestNewsStrip";
 import { HomeMatrixSection } from "@/components/HomeMatrixSection";
 import { DailyTopic } from "@/components/DailyTopic";
 import { Footer } from "@/components/Footer";
+import { TrendingTags } from "@/components/TrendingTags";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -231,6 +232,11 @@ const Index = () => {
         {latestNewsArticles.length > 0 && (
           <LatestNewsStrip articles={latestNewsArticles} />
         )}
+
+        {/* TRENDING TAGS */}
+        <div className="container-custom mt-8">
+          <TrendingTags />
+        </div>
 
         {/* MATRIX SECTION */}
         {matrixCategories.length > 0 && (
