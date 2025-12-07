@@ -72,6 +72,19 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Validate webhook secret for non-GET requests or require secret header
+  const webhookSecret = Deno.env.get("STATS_WEBHOOK_SECRET");
+  const providedSecret = req.headers.get("x-webhook-secret");
+  
+  // If secret is configured, validate it
+  if (webhookSecret && providedSecret !== webhookSecret) {
+    console.error("Unauthorized: Invalid or missing webhook secret");
+    return new Response(
+      JSON.stringify({ error: "Unauthorized" }),
+      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
+  }
+
   try {
     console.log('Fetch ticker data request received');
 
