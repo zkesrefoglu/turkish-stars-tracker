@@ -13,8 +13,10 @@ const TEAM_IDS: Record<string, number> = {
   'Real Madrid': 541,
   'Juventus': 496,
   'Brighton': 51,
+  'Brighton & Hove Albion': 51,
   'Eintracht Frankfurt': 169,
   'Lille': 79,
+  'Udinese': 494,
 };
 
 // Player name mappings for Turkish characters
