@@ -15,7 +15,7 @@ export const TurkishStarsHeader = () => {
             <img 
               src="/images/turkish-flag.jpg" 
               alt="Turkish Flag" 
-              className="w-10 h-7 object-cover rounded shadow-md transition-transform group-hover:scale-105"
+              className="w-12 h-8 md:w-14 md:h-10 object-cover rounded shadow-md transition-transform group-hover:scale-105"
             />
             <span className="font-headline font-bold text-xl md:text-2xl text-accent">
               Turkish Stars Tracker
