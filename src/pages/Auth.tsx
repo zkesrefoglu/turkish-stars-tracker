@@ -32,6 +32,8 @@ const Auth = () => {
   const [view, setView] = useState<AuthView>("signin");
   const [isInvitedUser, setIsInvitedUser] = useState(false);
 
+  const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+
   useEffect(() => {
     const handleHashToken = async () => {
       const hash = window.location.hash;
@@ -40,14 +42,31 @@ const Auth = () => {
       // Parse hash parameters
       const params = new URLSearchParams(hash.substring(1));
       const accessToken = params.get('access_token');
+      const refreshToken = params.get('refresh_token');
       const type = params.get('type');
 
-      if (accessToken) {
+      if (accessToken && refreshToken) {
+        // Set the session first so updateUser will work
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (sessionError) {
+          toast({
+            title: "Authentication Error",
+            description: "Could not verify your link. Please try again.",
+            variant: "destructive",
+          });
+          return;
+        }
+
         // Clear the hash from URL
         window.history.replaceState(null, '', window.location.pathname);
 
         if (type === 'recovery') {
           // Password reset flow - show set password form
+          setIsRecoveryMode(true);
           setView("set-password");
           setIsInvitedUser(false);
           toast({
@@ -59,6 +78,7 @@ const Auth = () => {
 
         if (type === 'invite') {
           // Invite flow - user needs to set password
+          setIsRecoveryMode(true);
           setView("set-password");
           setIsInvitedUser(true);
           toast({
@@ -68,32 +88,24 @@ const Auth = () => {
           return;
         }
 
-        // Regular magic link or other auth - try to get session
-        const { data, error } = await supabase.auth.getSession();
-        if (data.session) {
-          toast({
-            title: "Welcome!",
-            description: "You've been logged in successfully.",
-          });
-          navigate("/");
-          return;
-        }
-        if (error) {
-          toast({
-            title: "Authentication Error",
-            description: "Could not verify your link. Please try again.",
-            variant: "destructive",
-          });
-        }
+        // Regular magic link or other auth
+        toast({
+          title: "Welcome!",
+          description: "You've been logged in successfully.",
+        });
+        navigate("/");
       }
     };
 
     handleHashToken();
+  }, [navigate, toast]);
 
-    // Check if user is already logged in
+  // Separate effect for auth state changes - don't redirect during recovery
+  useEffect(() => {
+    // Check if user is already logged in (but not in recovery mode)
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      if (session && view !== "set-password") {
+      if (session && !isRecoveryMode && view === "signin") {
         navigate("/");
       }
     };
@@ -101,13 +113,17 @@ const Auth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session && view !== "set-password") {
+      // Don't redirect during password recovery/reset
+      if (isRecoveryMode || view === "set-password") {
+        return;
+      }
+      if (session && view === "signin") {
         navigate("/");
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, toast, view]);
+  }, [navigate, isRecoveryMode, view]);
 
   const validateInputs = (isSignUp: boolean): boolean => {
     const newErrors: { email?: string; password?: string } = {};
