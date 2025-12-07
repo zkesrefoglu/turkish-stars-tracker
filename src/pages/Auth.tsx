@@ -28,6 +28,32 @@ const Auth = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string }>({});
 
   useEffect(() => {
+    // Handle invite/magic link tokens from URL hash
+    const handleHashToken = async () => {
+      const hash = window.location.hash;
+      if (hash && hash.includes('access_token')) {
+        // The hash contains auth tokens, let Supabase handle it
+        const { data, error } = await supabase.auth.getSession();
+        if (data.session) {
+          toast({
+            title: "Welcome!",
+            description: "You've been logged in successfully.",
+          });
+          navigate("/");
+          return;
+        }
+        if (error) {
+          toast({
+            title: "Authentication Error",
+            description: "Could not verify your invite link. Please try again.",
+            variant: "destructive",
+          });
+        }
+      }
+    };
+
+    handleHashToken();
+
     // Check if user is already logged in
     const checkUser = async () => {
       const { data: { session } } = await supabase.auth.getSession();
@@ -45,7 +71,7 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate]);
+  }, [navigate, toast]);
 
   const validateInputs = (isSignUp: boolean): boolean => {
     const newErrors: { email?: string; password?: string } = {};
