@@ -12,7 +12,8 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video } from 'lucide-react';
+import HeroSettingsPanel from '@/components/admin/HeroSettingsPanel';
 
 interface Athlete {
   id: string;
@@ -357,7 +358,7 @@ export default function AdminTST() {
         </div>
 
         <Tabs defaultValue="athletes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-8 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-9 lg:w-auto lg:inline-grid">
             <TabsTrigger value="athletes">Athletes</TabsTrigger>
             <TabsTrigger value="updates">Daily Updates</TabsTrigger>
             <TabsTrigger value="live">Live Matches</TabsTrigger>
@@ -365,6 +366,10 @@ export default function AdminTST() {
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="stats">Season Stats</TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
+            <TabsTrigger value="hero">
+              <Video className="h-4 w-4 mr-1" />
+              Hero
+            </TabsTrigger>
             <TabsTrigger value="sync">Sync</TabsTrigger>
           </TabsList>
 
@@ -792,6 +797,11 @@ export default function AdminTST() {
                 </CardContent>
               </Card>
             </div>
+          </TabsContent>
+
+          {/* Hero Settings Tab */}
+          <TabsContent value="hero">
+            <HeroSettingsPanel />
           </TabsContent>
         </Tabs>
       </div>

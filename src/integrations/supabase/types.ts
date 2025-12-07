@@ -482,6 +482,57 @@ export type Database = {
         }
         Relationships: []
       }
+      hero_settings: {
+        Row: {
+          created_at: string
+          cta_href: string | null
+          cta_text: string | null
+          id: string
+          min_height_vh: number | null
+          overlay_opacity: number | null
+          poster_url: string | null
+          subtitle: string | null
+          title: string | null
+          updated_at: string
+          video_position_x: number | null
+          video_position_y: number | null
+          video_scale: number | null
+          video_url: string | null
+        }
+        Insert: {
+          created_at?: string
+          cta_href?: string | null
+          cta_text?: string | null
+          id?: string
+          min_height_vh?: number | null
+          overlay_opacity?: number | null
+          poster_url?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+          video_position_x?: number | null
+          video_position_y?: number | null
+          video_scale?: number | null
+          video_url?: string | null
+        }
+        Update: {
+          created_at?: string
+          cta_href?: string | null
+          cta_text?: string | null
+          id?: string
+          min_height_vh?: number | null
+          overlay_opacity?: number | null
+          poster_url?: string | null
+          subtitle?: string | null
+          title?: string | null
+          updated_at?: string
+          video_position_x?: number | null
+          video_position_y?: number | null
+          video_scale?: number | null
+          video_url?: string | null
+        }
+        Relationships: []
+      }
       news_articles: {
         Row: {
           author: string
