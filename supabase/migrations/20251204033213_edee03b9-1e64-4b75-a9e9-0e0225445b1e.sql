@@ -1,1 +1,0 @@
-ALTER TABLE athlete_profiles ADD COLUMN bio TEXT;
