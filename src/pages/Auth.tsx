@@ -113,6 +113,18 @@ const Auth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Handle PASSWORD_RECOVERY event from Supabase
+      if (event === 'PASSWORD_RECOVERY') {
+        setIsRecoveryMode(true);
+        setView("set-password");
+        setIsInvitedUser(false);
+        toast({
+          title: "Reset Your Password",
+          description: "Please enter your new password below.",
+        });
+        return;
+      }
+
       // Don't redirect during password recovery/reset
       if (isRecoveryMode || view === "set-password") {
         return;
@@ -123,7 +135,7 @@ const Auth = () => {
     });
 
     return () => subscription.unsubscribe();
-  }, [navigate, isRecoveryMode, view]);
+  }, [navigate, isRecoveryMode, view, toast]);
 
   const validateInputs = (isSignUp: boolean): boolean => {
     const newErrors: { email?: string; password?: string } = {};
