@@ -11,14 +11,14 @@ export const TurkishStarsHeader = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-3 group">
+          <Link to="/" className="flex items-center gap-4 group">
             <img 
-              src="/images/turkish-flag.jpg" 
-              alt="Turkish Flag" 
-              className="w-12 h-8 md:w-14 md:h-10 object-cover rounded shadow-md transition-transform group-hover:scale-105"
+              src="/images/turkish-stars-logo.png" 
+              alt="Turkish Stars" 
+              className="h-10 md:h-14 w-auto transition-transform group-hover:scale-105"
             />
-            <span className="font-headline font-bold text-2xl md:text-3xl text-accent">
-              Turkish Stars Tracker
+            <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui">
+              Bringing Turkish Stars Home — Digitally
             </span>
           </Link>
 
