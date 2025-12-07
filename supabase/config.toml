@@ -1,1 +1,25 @@
 project_id = "vdhbabgqozdemurgjusf"
+
+[functions.fetch-nba-stats]
+verify_jwt = false
+
+[functions.fetch-football-stats]
+verify_jwt = false
+
+[functions.fetch-hollinger-stats]
+verify_jwt = false
+
+[functions.fetch-ticker-data]
+verify_jwt = false
+
+[functions.send-newsletter-confirmation]
+verify_jwt = false
+
+[functions.send-daily-newsletter]
+verify_jwt = false
+
+[functions.send-weekly-newsletter]
+verify_jwt = false
+
+[functions.test-balldontlie]
+verify_jwt = false
