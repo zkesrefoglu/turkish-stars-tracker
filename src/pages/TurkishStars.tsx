@@ -226,7 +226,7 @@ const TurkishStars = () => {
                 <Card className="bg-card border-border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:border-accent/40">
                   <div className="flex items-stretch">
                     {/* Team Logo - Left Edge */}
-                    <div className="w-[100px] md:w-[140px] h-[240px] md:h-[270px] flex-shrink-0 flex items-center justify-center bg-white">
+                    <div className="w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 flex items-center justify-center bg-white">
                       {athlete.team_logo_url ? (
                         <img 
                           src={athlete.team_logo_url} 
@@ -312,7 +312,7 @@ const TurkishStars = () => {
                     </div>
 
                     {/* Player Photo - Right Edge */}
-                    <div className="relative w-[270px] md:w-[360px] h-[240px] md:h-[270px] flex-shrink-0 overflow-hidden bg-white border-l border-border/20">
+                    <div className="relative w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 overflow-hidden bg-white border-l border-border/20">
                       {athlete.photo_url ? (
                         <img 
                           src={athlete.photo_url} 
