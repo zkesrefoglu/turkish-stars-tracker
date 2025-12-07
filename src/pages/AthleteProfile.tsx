@@ -500,13 +500,17 @@ const AthleteProfilePage = () => {
               <div className={`flex items-center gap-4 ${athlete.bio ? 'mt-4 pt-4 border-t border-border' : ''}`}>
                 {athlete.instagram && (
                   <a 
-                    href={`https://instagram.com/${athlete.instagram.replace('@', '')}`}
+                    href={athlete.instagram.startsWith('http') ? athlete.instagram : `https://instagram.com/${athlete.instagram.replace('@', '')}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
                   >
                     <Instagram className="w-5 h-5" />
-                    <span className="text-sm">{athlete.instagram}</span>
+                    <span className="text-sm">
+                      {athlete.instagram.includes('instagram.com/') 
+                        ? '@' + athlete.instagram.split('instagram.com/')[1].replace(/\/$/, '')
+                        : athlete.instagram.startsWith('@') ? athlete.instagram : `@${athlete.instagram}`}
+                    </span>
                   </a>
                 )}
                 {athlete.official_link && (
