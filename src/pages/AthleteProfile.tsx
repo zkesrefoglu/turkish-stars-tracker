@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
+import { TurkishStarsFooter } from "@/components/TurkishStarsFooter";
 import { FormGraphic } from "@/components/FormGraphic";
 import { RatingTrendChart } from "@/components/RatingTrendChart";
 import { supabase } from "@/integrations/supabase/client";
@@ -225,11 +225,11 @@ const AthleteProfilePage = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <TurkishStarsHeader />
         <main className="container-custom py-8">
           <div className="text-center py-16 text-muted-foreground">Loading...</div>
         </main>
-        <Footer />
+        <TurkishStarsFooter />
       </div>
     );
   }
@@ -237,9 +237,9 @@ const AthleteProfilePage = () => {
   if (!athlete) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <TurkishStarsHeader />
         <main className="container-custom py-8">
-          <Link to="/section/sports/turkish-stars" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
+          <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Turkish Stars
           </Link>
@@ -248,18 +248,18 @@ const AthleteProfilePage = () => {
             <p className="text-muted-foreground">The athlete you're looking for doesn't exist.</p>
           </div>
         </main>
-        <Footer />
+        <TurkishStarsFooter />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <TurkishStarsHeader />
       
       <main className="container-custom py-6">
         {/* BACK LINK */}
-        <Link to="/section/sports/turkish-stars" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
+        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back to Turkish Stars
         </Link>
@@ -871,7 +871,7 @@ const AthleteProfilePage = () => {
         </Tabs>
       </main>
 
-      <Footer />
+      <TurkishStarsFooter />
     </div>
   );
 };

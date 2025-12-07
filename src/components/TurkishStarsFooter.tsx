@@ -4,27 +4,15 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import logoImage from "@/assets/logo.png";
 import { Youtube } from "lucide-react";
 
-export const Footer = () => {
+export const TurkishStarsFooter = () => {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [user, setUser] = useState<any>(null);
   const [isAdmin, setIsAdmin] = useState(false);
   const { toast } = useToast();
-
-  const sections = [
-    { name: "Agenda", path: "/section/agenda" },
-    { name: "Economy", path: "/section/economy" },
-    { name: "Defense", path: "/section/defense" },
-    { name: "Life", path: "/section/life" },
-    { name: "Türkiye", path: "/section/turkiye" },
-    { name: "World", path: "/section/world" },
-    { name: "Xtra", path: "/section/xtra" },
-    { name: "Editorial", path: "/section/editorial" },
-  ];
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -79,7 +67,6 @@ export const Footer = () => {
     setIsSubmitting(true);
 
     try {
-      // First, save email to database
       const { error: dbError } = await supabase.from("newsletter_subscriptions").insert([{ email }]);
 
       if (dbError) {
@@ -94,7 +81,6 @@ export const Footer = () => {
         return;
       }
 
-      // Then send welcome email
       const { error: emailError } = await supabase.functions.invoke("send-newsletter-confirmation", {
         body: { email },
       });
@@ -108,7 +94,7 @@ export const Footer = () => {
       } else {
         toast({
           title: "Welcome! 🎉",
-          description: "Check your email for a welcome message from Bosphorus News",
+          description: "Check your email for a welcome message from Turkish Stars Tracker",
         });
       }
 
@@ -130,9 +116,18 @@ export const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 mb-8">
           {/* Logo and About */}
           <div>
-            <img src={logoImage} alt="Bosphorus News" className="h-12 mb-4" />
+            <div className="flex items-center gap-3 mb-4">
+              <img 
+                src="/images/turkish-flag.jpg" 
+                alt="Turkish Flag" 
+                className="w-10 h-7 object-cover rounded shadow-md"
+              />
+              <span className="font-headline font-bold text-xl text-accent">
+                Turkish Stars Tracker
+              </span>
+            </div>
             <p className="text-sm text-muted-foreground">
-              Your trusted source for news and analysis from Turkey and beyond.
+              Track Turkish athletes competing in top European football leagues and the NBA.
             </p>
           </div>
 
@@ -151,28 +146,17 @@ export const Footer = () => {
                 <Button type="submit" size="sm" className="flex-1" disabled={isSubmitting}>
                   {isSubmitting ? "Subscribing..." : "Subscribe"}
                 </Button>
-                <a href="mailto:info@bosphorusnews.com" className="flex-1">
+                <a href="mailto:info@turkishstarstracker.com" className="flex-1">
                   <Button type="button" variant="outline" size="sm" className="w-full">
                     Contact
                   </Button>
                 </a>
               </div>
-              {/* TEMPORARILY HIDDEN - Uncomment when payment account is finalized
-              <Link to="/coffee" className="mt-2.5" onClick={() => window.scrollTo(0, 0)}>
-                <Button 
-                  type="button" 
-                  size="sm" 
-                  className="w-full bg-gray-200 hover:bg-[#F54927] text-gray-900 hover:text-white transition-colors"
-                >
-                  Buy Me a Cup
-                </Button>
-              </Link>
-              */}
             </form>
           </div>
         </div>
 
-        {/* Social & Contact - Single Line */}
+        {/* Social & Copyright */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-6 gap-4 md:gap-6">
           {/* Social Icons */}
           <div className="flex gap-4">
@@ -180,7 +164,7 @@ export const Footer = () => {
               href="https://x.com/BosphorusNN"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-[#F54927] transition-all duration-300 hover:scale-110"
+              className="text-muted-foreground hover:text-accent transition-all duration-300 hover:scale-110"
               aria-label="Twitter"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -191,7 +175,7 @@ export const Footer = () => {
               href="https://bsky.app/profile/bosphorusnn.bsky.social"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-[#F54927] transition-all duration-300 hover:scale-110"
+              className="text-muted-foreground hover:text-accent transition-all duration-300 hover:scale-110"
               aria-label="Bluesky"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -202,7 +186,7 @@ export const Footer = () => {
               href="https://www.instagram.com/bosphorusnn/"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-[#F54927] transition-all duration-300 hover:scale-110"
+              className="text-muted-foreground hover:text-accent transition-all duration-300 hover:scale-110"
               aria-label="Instagram"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -217,7 +201,7 @@ export const Footer = () => {
               href="https://www.tiktok.com/@bosphorusnn"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-[#F54927] transition-all duration-300 hover:scale-110"
+              className="text-muted-foreground hover:text-accent transition-all duration-300 hover:scale-110"
               aria-label="TikTok"
             >
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -228,7 +212,7 @@ export const Footer = () => {
               href="https://www.youtube.com/channel/UCNNSvQIhr88-Ig0wmzk3MfQ"
               target="_blank"
               rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-[#F54927] transition-all duration-300 hover:scale-110"
+              className="text-muted-foreground hover:text-accent transition-all duration-300 hover:scale-110"
               aria-label="YouTube"
             >
               <Youtube className="w-5 h-5" />
@@ -236,33 +220,27 @@ export const Footer = () => {
           </div>
 
           {/* Copyright */}
-          <div className="text-sm text-muted-foreground">© 2025 Bosphorus News. All rights reserved.</div>
+          <div className="text-sm text-muted-foreground">© 2025 Turkish Stars Tracker. All rights reserved.</div>
         </div>
 
-        {/* Navigation Links & Auth Buttons */}
+        {/* Navigation & Auth */}
         <div className="flex flex-col md:flex-row justify-between items-center pt-6 border-t border-border gap-4">
-          {/* Navigation Links - Center on mobile, left on desktop */}
           <div className="text-xs text-muted-foreground flex flex-wrap justify-center md:justify-start gap-x-2">
-            <Link to="/" className="hover:text-[#F54927] transition-colors">
+            <Link to="/" className="hover:text-accent transition-colors">
               HOME
             </Link>
-            <span>-</span>
-            {sections.map((section, index) => (
-              <span key={section.path} className="flex items-center gap-x-2">
-                <Link to={section.path} className="hover:text-[#F54927] transition-colors">
-                  {section.name}
-                </Link>
-                {index < sections.length - 1 && <span>|</span>}
-              </span>
-            ))}
+            <span>|</span>
+            <Link to="/admin/tst" className="hover:text-accent transition-colors">
+              ADMIN
+            </Link>
           </div>
 
-          {/* Auth Buttons - Right Aligned */}
+          {/* Auth Buttons */}
           <div className="flex items-center gap-2">
             {user ? (
               <>
                 {isAdmin && (
-                  <Button variant="outline" size="sm" onClick={() => navigate("/admin")}>
+                  <Button variant="outline" size="sm" onClick={() => navigate("/admin/tst")}>
                     Admin
                   </Button>
                 )}

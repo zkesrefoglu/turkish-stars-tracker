@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Header } from "@/components/Header";
-import { Footer } from "@/components/Footer";
+import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
+import { TurkishStarsFooter } from "@/components/TurkishStarsFooter";
 import { LiveMatchTracker } from "@/components/LiveMatchTracker";
 import { FormGraphic } from "@/components/FormGraphic";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, ExternalLink, User } from "lucide-react";
+import { AlertTriangle, TrendingUp, User, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isWithinInterval, addHours } from "date-fns";
@@ -172,24 +172,20 @@ const TurkishStars = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
-        <Header />
+        <TurkishStarsHeader />
         <main className="container-custom py-8">
           <div className="text-center py-16 text-muted-foreground">Loading...</div>
         </main>
-        <Footer />
+        <TurkishStarsFooter />
       </div>
     );
   }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
-      <Header />
+      <TurkishStarsHeader />
       
       <main className="container-custom py-6">
-        <Link to="/section/sports" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
-          <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Sports
-        </Link>
 
         {/* HEADER */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -224,7 +220,7 @@ const TurkishStars = () => {
             return (
               <Link
                 key={athlete.id}
-                to={`/section/sports/turkish-stars/${athlete.slug}`}
+                to={`/athlete/${athlete.slug}`}
                 className="group block"
               >
                 <Card className="bg-card border-border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:border-accent/40">
@@ -463,7 +459,7 @@ const TurkishStars = () => {
         </div>
       </main>
 
-      <Footer />
+      <TurkishStarsFooter />
     </div>
   );
 };
