@@ -4,7 +4,7 @@ const TestHeroVideo = () => {
   return (
     <div className="min-h-screen bg-background">
       <HeroVideo
-        mp4Src="https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4"
+        mp4Src="/videos/eff56f640ac04ddd80dd79eba9c2818a.mp4"
         posterSrc="/images/turkish-flag.jpg"
         title="Turkish Stars Tracker"
         subtitle="Follow your favorite Turkish athletes around the world"
