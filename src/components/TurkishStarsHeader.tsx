@@ -17,7 +17,7 @@ export const TurkishStarsHeader = () => {
               alt="Turkish Flag" 
               className="w-12 h-8 md:w-14 md:h-10 object-cover rounded shadow-md transition-transform group-hover:scale-105"
             />
-            <span className="font-headline font-bold text-xl md:text-2xl text-accent">
+            <span className="font-headline font-bold text-2xl md:text-3xl text-accent">
               Turkish Stars Tracker
             </span>
           </Link>
