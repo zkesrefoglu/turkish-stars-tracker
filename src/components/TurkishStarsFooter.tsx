@@ -116,14 +116,14 @@ export const TurkishStarsFooter = () => {
         <div className="grid grid-cols-1 md:grid-cols-[1fr_auto] gap-8 mb-8">
           {/* Logo and About */}
           <div>
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-4 mb-4">
               <img 
-                src="/images/turkish-flag.jpg" 
-                alt="Turkish Flag" 
-                className="w-10 h-7 object-cover rounded shadow-md"
+                src="/images/turkish-stars-logo.png" 
+                alt="Turkish Stars" 
+                className="h-12 w-auto"
               />
-              <span className="font-headline font-bold text-xl text-accent">
-                Turkish Stars Tracker
+              <span className="text-sm text-muted-foreground font-ui">
+                Bringing Turkish Stars Home — Digitally
               </span>
             </div>
             <p className="text-sm text-muted-foreground">
