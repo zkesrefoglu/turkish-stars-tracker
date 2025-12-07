@@ -11,7 +11,10 @@ interface HeroVideoProps {
   ctaText?: string;
   ctaHref?: string;
   overlayOpacity?: number;
-  aspectRatio?: string;
+  videoScale?: number;
+  videoPositionX?: number;
+  videoPositionY?: number;
+  minHeightVh?: number;
 }
 
 const HeroVideo: React.FC<HeroVideoProps> = ({
@@ -23,7 +26,10 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
   ctaText = "Explore",
   ctaHref = "#",
   overlayOpacity = 0.4,
-  aspectRatio = "16/9",
+  videoScale = 1.0,
+  videoPositionX = 50,
+  videoPositionY = 50,
+  minHeightVh = 80,
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [isPaused, setIsPaused] = useState(false);
@@ -43,7 +49,8 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
 
   return (
     <section 
-      className="relative w-full min-h-[80vh] overflow-hidden flex items-center justify-center bg-black"
+      className="relative w-full overflow-hidden flex items-center justify-center bg-black"
+      style={{ minHeight: `${minHeightVh}vh` }}
     >
       {/* Background Video */}
       <video
@@ -54,6 +61,10 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
         playsInline
         poster={posterSrc}
         className="absolute inset-0 w-full h-full object-cover z-[1]"
+        style={{
+          transform: `scale(${videoScale})`,
+          objectPosition: `${videoPositionX}% ${videoPositionY}%`,
+        }}
         aria-hidden="true"
       >
         {webmSrc && <source src={webmSrc} type="video/webm" />}
