@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { Header } from "@/components/Header";
+import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -96,7 +96,7 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <Header />
+      <TurkishStarsHeader />
       <div className="container mx-auto px-4 py-16 max-w-md">
         <Tabs defaultValue="signin" className="w-full">
           <TabsList className="grid w-full grid-cols-2">

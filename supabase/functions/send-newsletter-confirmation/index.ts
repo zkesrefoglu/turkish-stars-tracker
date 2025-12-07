@@ -40,14 +40,14 @@ serve(async (req) => {
                 <table width="600" cellpadding="0" cellspacing="0" style="background-color: #ffffff; margin: 0 auto; padding: 40px;">
                   <tr>
                     <td>
-                      <h1 style="color: #1a1a1a; font-size: 32px; font-weight: bold; margin: 0 0 20px 0;">Welcome to Bosphorus News!</h1>
+                      <h1 style="color: #E30A17; font-size: 32px; font-weight: bold; margin: 0 0 20px 0;">🇹🇷 Welcome to Turkish Stars Tracker!</h1>
                       
                       <p style="color: #333; font-size: 16px; line-height: 26px; margin: 16px 0;">
-                        Thank you for subscribing to our newsletter. We're thrilled to have you join our community of informed readers.
+                        Thank you for subscribing to our newsletter. We're thrilled to have you join our community of Turkish sports fans!
                       </p>
 
-                      <div style="background-color: #f0f7ff; border-left: 4px solid #2563eb; padding: 16px 20px; margin: 32px 0; border-radius: 4px;">
-                        <p style="color: #1e40af; font-size: 16px; line-height: 24px; margin: 0;">
+                      <div style="background-color: #fef2f2; border-left: 4px solid #E30A17; padding: 16px 20px; margin: 32px 0; border-radius: 4px;">
+                        <p style="color: #991b1b; font-size: 16px; line-height: 24px; margin: 0;">
                           🎉 You're now subscribed with: <strong>${email}</strong>
                         </p>
                       </div>
@@ -57,34 +57,34 @@ serve(async (req) => {
                       </p>
                       
                       <div style="margin: 16px 0;">
-                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">📰 Daily curated news from around the world</p>
-                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">💼 Business insights and market updates</p>
-                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">⚽ Sports highlights and breaking news</p>
-                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">💻 Technology trends and innovations</p>
-                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">🌍 Exclusive Xtra content and special features</p>
+                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">⚽ Live match updates for Turkish footballers in Europe</p>
+                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">🏀 NBA stats and highlights for Turkish basketball players</p>
+                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">📊 Season stats and performance tracking</p>
+                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">📰 Transfer rumors and breaking news</p>
+                        <p style="color: #333; font-size: 16px; line-height: 28px; margin: 8px 0;">🗓️ Upcoming match schedules</p>
                       </div>
 
                       <hr style="border: none; border-top: 1px solid #e6ebf1; margin: 32px 0;">
 
                       <div style="text-align: center; margin: 32px 0;">
                         <p style="color: #333; font-size: 16px; line-height: 26px; margin: 16px 0;">
-                          Start exploring our latest stories now:
+                          Start tracking your favorite Turkish athletes now:
                         </p>
-                        <a href="https://bosphorusnews.com" 
-                           style="display: inline-block; background-color: #2563eb; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px; border-radius: 8px; margin-top: 16px;">
-                          Visit Bosphorus News
+                        <a href="https://turkishstarstracker.com" 
+                           style="display: inline-block; background-color: #E30A17; color: #fff; font-size: 16px; font-weight: bold; text-decoration: none; padding: 14px 32px; border-radius: 8px; margin-top: 16px;">
+                          Visit Turkish Stars Tracker
                         </a>
                       </div>
 
                       <hr style="border: none; border-top: 1px solid #e6ebf1; margin: 32px 0;">
 
                       <p style="color: #8898aa; font-size: 14px; line-height: 22px; margin: 24px 0;">
-                        Stay informed, stay ahead. We deliver the news that matters most to you, right to your inbox.
+                        Stay updated on Turkish athletes making their mark in top leagues around the world!
                       </p>
 
                       <p style="color: #8898aa; font-size: 12px; line-height: 20px; margin-top: 32px; text-align: center;">
-                        © 2025 Bosphorus News. All rights reserved.<br>
-                        <a href="https://bosphorusnews.com" style="color: #2563eb; text-decoration: underline;">bosphorusnews.com</a>
+                        © 2025 Turkish Stars Tracker. All rights reserved.<br>
+                        <a href="https://turkishstarstracker.com" style="color: #E30A17; text-decoration: underline;">turkishstarstracker.com</a>
                       </p>
 
                       <p style="color: #ababab; font-size: 12px; line-height: 18px; margin-top: 16px; text-align: center;">
@@ -102,9 +102,9 @@ serve(async (req) => {
 
     // Send the email using Resend
     const { data, error } = await resend.emails.send({
-      from: "Bosphorus News <newsletter@bosphorusnews.com>",
+      from: "Turkish Stars Tracker <newsletter@turkishstarstracker.com>",
       to: [email],
-      subject: "Welcome to Bosphorus News - Your Daily News Source",
+      subject: "Welcome to Turkish Stars Tracker - Track Your Favorite Athletes",
       html,
     });
 
