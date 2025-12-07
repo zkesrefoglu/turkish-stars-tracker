@@ -312,7 +312,7 @@ const TurkishStars = () => {
                     </div>
 
                     {/* Player Photo - Right Edge */}
-                    <div className="relative w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 overflow-hidden bg-white border-l border-border/20">
+                    <div className="relative w-[180px] md:w-[240px] h-[160px] md:h-[180px] flex-shrink-0 overflow-hidden bg-white border-l border-border/20">
                       {athlete.photo_url ? (
                         <img 
                           src={athlete.photo_url} 
