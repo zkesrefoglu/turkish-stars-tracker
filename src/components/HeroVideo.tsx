@@ -43,8 +43,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
 
   return (
     <section 
-      className="relative w-full overflow-hidden flex items-center justify-center bg-background"
-      style={{ aspectRatio }}
+      className="relative w-full overflow-hidden flex items-center justify-center bg-black"
     >
       {/* Background Video */}
       <video
@@ -54,7 +53,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
         loop
         playsInline
         poster={posterSrc}
-        className="absolute inset-0 w-full h-full object-cover z-[1]"
+        className="w-full h-auto z-[1]"
         aria-hidden="true"
       >
         {webmSrc && <source src={webmSrc} type="video/webm" />}
@@ -77,13 +76,14 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
       />
 
       {/* Content */}
-      <div className="relative z-[3] text-center text-white p-8 max-w-[900px]">
-        <h1 className="font-headline text-[clamp(2.5rem,8vw,5rem)] font-normal tracking-tight leading-[1.1] mb-6 drop-shadow-2xl">
-          {title}
-        </h1>
-        <p className="font-body text-[clamp(1rem,2.5vw,1.25rem)] font-light tracking-widest uppercase opacity-90 mb-10">
-          {subtitle}
-        </p>
+      <div className="absolute inset-0 z-[3] flex flex-col items-center justify-center text-center text-white p-8">
+        <div className="max-w-[900px]">
+          <h1 className="font-headline text-[clamp(2.5rem,8vw,5rem)] font-normal tracking-tight leading-[1.1] mb-6 drop-shadow-2xl">
+            {title}
+          </h1>
+          <p className="font-body text-[clamp(1rem,2.5vw,1.25rem)] font-light tracking-widest uppercase opacity-90 mb-10">
+            {subtitle}
+          </p>
         {isExternalLink ? (
           <a 
             href={ctaHref}
@@ -103,6 +103,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
             <span className="transition-transform duration-300 group-hover:translate-x-1">→</span>
           </Link>
         )}
+        </div>
       </div>
 
       {/* Pause/Play Button for Accessibility */}
