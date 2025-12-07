@@ -82,6 +82,29 @@ async function fetchRocketsGames(apiKey: string): Promise<Map<string, any>> {
   return gameMap;
 }
 
+async function fetchUpcomingRocketsGames(apiKey: string): Promise<any[]> {
+  // Houston Rockets team ID is 11
+  const rocketsTeamId = 11;
+  const today = new Date();
+  const startDate = today.toISOString().split('T')[0];
+  
+  // Fetch games for next 30 days
+  const endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+  
+  const data = await fetchWithAuth(
+    `${BALLDONTLIE_BASE_URL}/games?team_ids[]=${rocketsTeamId}&start_date=${startDate}&end_date=${endDate}&per_page=100`,
+    apiKey
+  );
+  
+  // Filter to only future games (status not 'Final')
+  const upcomingGames = (data.data || []).filter((game: any) => 
+    game.status !== 'Final' && game.status !== 'In Progress'
+  );
+  
+  console.log(`Fetched ${upcomingGames.length} upcoming Rockets games`);
+  return upcomingGames;
+}
+
 // Fetch player injury status (ALL-STAR tier)
 async function fetchPlayerInjuries(playerId: number, apiKey: string): Promise<any | null> {
   try {
@@ -320,6 +343,49 @@ Deno.serve(async (req) => {
       console.log('Injury fetch failed (may need higher tier):', injuryError);
     }
 
+    // Fetch and sync upcoming matches
+    let upcomingMatchesCount = 0;
+    try {
+      const upcomingGames = await fetchUpcomingRocketsGames(apiKey);
+      
+      // Delete existing upcoming matches for this athlete first
+      await supabase
+        .from('athlete_upcoming_matches')
+        .delete()
+        .eq('athlete_id', athlete.id);
+      
+      // Insert new upcoming matches
+      for (const game of upcomingGames) {
+        const isHome = game.home_team?.id === 11; // Rockets team ID
+        const opponent = isHome ? game.visitor_team?.full_name : game.home_team?.full_name;
+        
+        if (!opponent) continue;
+        
+        // Parse the game date/time
+        const matchDate = new Date(game.date);
+        
+        const { error: matchError } = await supabase
+          .from('athlete_upcoming_matches')
+          .insert({
+            athlete_id: athlete.id,
+            opponent: opponent,
+            competition: 'NBA',
+            home_away: isHome ? 'home' : 'away',
+            match_date: matchDate.toISOString(),
+          });
+        
+        if (!matchError) {
+          upcomingMatchesCount++;
+        } else {
+          console.error(`Error inserting upcoming match:`, matchError);
+        }
+      }
+      
+      console.log(`Synced ${upcomingMatchesCount} upcoming matches`);
+    } catch (upcomingError) {
+      console.error('Error fetching upcoming matches:', upcomingError);
+    }
+
     console.log('NBA stats fetch completed');
 
     return new Response(JSON.stringify({
@@ -328,6 +394,7 @@ Deno.serve(async (req) => {
       athlete: athlete.name,
       player_id: playerId,
       games_processed: playerStats.length,
+      upcoming_matches: upcomingMatchesCount,
       season_averages: seasonAverages ? {
         ppg: seasonAverages.pts,
         rpg: seasonAverages.reb,
