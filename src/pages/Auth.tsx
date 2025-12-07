@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
+import type { Session } from "@supabase/supabase-js";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,8 +32,8 @@ const Auth = () => {
   const [errors, setErrors] = useState<{ email?: string; password?: string; confirmPassword?: string }>({});
   const [view, setView] = useState<AuthView>("signin");
   const [isInvitedUser, setIsInvitedUser] = useState(false);
-
   const [isRecoveryMode, setIsRecoveryMode] = useState(false);
+  const [currentSession, setCurrentSession] = useState<Session | null>(null);
 
   useEffect(() => {
     const handleHashToken = async () => {
@@ -113,6 +114,9 @@ const Auth = () => {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      // Store session for password update operations
+      setCurrentSession(session);
+      
       // Handle PASSWORD_RECOVERY event from Supabase
       if (event === 'PASSWORD_RECOVERY') {
         setIsRecoveryMode(true);
@@ -287,21 +291,44 @@ const Auth = () => {
     setLoading(true);
 
     try {
+      // Verify we have a valid session before updating password
+      let session = currentSession;
+      if (!session) {
+        const { data } = await supabase.auth.getSession();
+        session = data.session;
+      }
+      
+      if (!session) {
+        toast({
+          title: "Session Expired",
+          description: "Your reset link has expired. Please request a new one.",
+          variant: "destructive",
+        });
+        setView("forgot-password");
+        setLoading(false);
+        return;
+      }
+
       const { error } = await supabase.auth.updateUser({
         password: password,
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Password update error:", error);
+        throw error;
+      }
 
       toast({
         title: "Password set successfully!",
         description: "You're now logged in.",
       });
+      setIsRecoveryMode(false);
       navigate("/");
     } catch (error: any) {
+      console.error("Password update failed:", error);
       toast({
         title: "Error",
-        description: "Could not set password. Please try again.",
+        description: error?.message || "Could not set password. Please try again.",
         variant: "destructive",
       });
     } finally {
