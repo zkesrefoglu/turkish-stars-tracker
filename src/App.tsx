@@ -8,8 +8,6 @@ import NotFound from "./pages/NotFound";
 import TurkishStars from "./pages/TurkishStars";
 import AthleteProfile from "./pages/AthleteProfile";
 import AdminTST from "./pages/AdminTST";
-import TestHeroVideo from "./pages/TestHeroVideo";
-
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -23,7 +21,6 @@ const App = () => (
           <Route path="/athlete/:slug" element={<AthleteProfile />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin/tst" element={<AdminTST />} />
-          <Route path="/test-hero" element={<TestHeroVideo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

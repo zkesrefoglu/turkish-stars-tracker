@@ -43,7 +43,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
 
   return (
     <section 
-      className="relative w-full overflow-hidden flex items-center justify-center bg-black"
+      className="relative w-full min-h-[80vh] overflow-hidden flex items-center justify-center bg-black"
     >
       {/* Background Video */}
       <video
@@ -53,7 +53,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
         loop
         playsInline
         poster={posterSrc}
-        className="w-full h-auto z-[1]"
+        className="absolute inset-0 w-full h-full object-cover z-[1]"
         aria-hidden="true"
       >
         {webmSrc && <source src={webmSrc} type="video/webm" />}
