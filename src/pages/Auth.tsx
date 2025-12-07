@@ -259,11 +259,21 @@ const Auth = () => {
       });
       setView("signin");
     } catch (error: any) {
-      toast({
-        title: "Error",
-        description: "Could not send reset email. Please try again.",
-        variant: "destructive",
-      });
+      // Handle rate limiting errors
+      const errorMessage = error?.message || "";
+      if (errorMessage.includes("rate") || errorMessage.includes("security") || errorMessage.includes("seconds")) {
+        toast({
+          title: "Too many requests",
+          description: "Please wait a few minutes before requesting another reset email.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Error",
+          description: "Could not send reset email. Please try again.",
+          variant: "destructive",
+        });
+      }
     } finally {
       setLoading(false);
     }
