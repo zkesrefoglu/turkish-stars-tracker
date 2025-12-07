@@ -225,25 +225,17 @@ const TurkishStars = () => {
               >
                 <Card className="bg-card border-border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:border-accent/40">
                   <div className="flex items-stretch">
-                    {/* Photo */}
-                    <div className="relative w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 overflow-hidden bg-white">
-                      {athlete.photo_url ? (
+                    {/* Team Logo - Left Edge */}
+                    <div className="w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 flex items-center justify-center bg-white">
+                      {athlete.team_logo_url ? (
                         <img 
-                          src={athlete.photo_url} 
-                          alt={athlete.name} 
-                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
+                          src={athlete.team_logo_url} 
+                          alt={`${athlete.team} logo`}
+                          className="w-24 h-24 md:w-32 md:h-32 object-contain transition-transform duration-300 group-hover:scale-110"
                         />
                       ) : (
-                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
-                          <User className="w-16 h-16 text-muted-foreground/50" />
-                        </div>
+                        <span className="text-5xl">{sportEmoji}</span>
                       )}
-                      {athlete.jersey_number && (
-                        <div className="absolute top-2 left-2 bg-accent text-accent-foreground text-sm font-bold w-8 h-8 rounded-lg flex items-center justify-center shadow-lg">
-                          {athlete.jersey_number}
-                        </div>
-                      )}
-                      <div className="absolute bottom-2 left-2 text-xl">{sportEmoji}</div>
                     </div>
 
                     {/* Data Fields */}
@@ -319,17 +311,25 @@ const TurkishStars = () => {
                       </div>
                     </div>
 
-                    {/* Team Logo - Right Edge */}
-                    <div className="w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 flex items-center justify-center bg-white border-l border-border/20">
-                      {athlete.team_logo_url ? (
+                    {/* Player Photo - Right Edge */}
+                    <div className="relative w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 overflow-hidden bg-white border-l border-border/20">
+                      {athlete.photo_url ? (
                         <img 
-                          src={athlete.team_logo_url} 
-                          alt={`${athlete.team} logo`}
-                          className="w-24 h-24 md:w-32 md:h-32 object-contain transition-transform duration-300 group-hover:scale-110"
+                          src={athlete.photo_url} 
+                          alt={athlete.name} 
+                          className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" 
                         />
                       ) : (
-                        <span className="text-5xl">{sportEmoji}</span>
+                        <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
+                          <User className="w-16 h-16 text-muted-foreground/50" />
+                        </div>
                       )}
+                      {athlete.jersey_number && (
+                        <div className="absolute top-2 right-2 bg-accent text-accent-foreground text-sm font-bold w-8 h-8 rounded-lg flex items-center justify-center shadow-lg">
+                          {athlete.jersey_number}
+                        </div>
+                      )}
+                      <div className="absolute bottom-2 right-2 text-xl">{sportEmoji}</div>
                     </div>
                   </div>
                 </Card>
