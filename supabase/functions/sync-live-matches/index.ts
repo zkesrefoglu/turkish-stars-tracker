@@ -71,12 +71,17 @@ Deno.serve(async (req) => {
   }
 
   try {
-    // Validate webhook secret
+    // Validate authorization - allow either webhook secret OR valid auth header
     const webhookSecret = req.headers.get('x-webhook-secret');
     const expectedSecret = Deno.env.get('STATS_WEBHOOK_SECRET');
+    const authHeader = req.headers.get('authorization');
     
-    if (!expectedSecret || webhookSecret !== expectedSecret) {
-      console.error('Unauthorized: Invalid or missing webhook secret');
+    // Check if webhook secret matches OR if there's a valid auth header
+    const hasValidWebhookSecret = expectedSecret && webhookSecret === expectedSecret;
+    const hasAuthHeader = authHeader && authHeader.startsWith('Bearer ');
+    
+    if (!hasValidWebhookSecret && !hasAuthHeader) {
+      console.error('Unauthorized: Invalid or missing webhook secret and no auth header');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

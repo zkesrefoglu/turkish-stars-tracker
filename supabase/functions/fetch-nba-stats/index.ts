@@ -135,12 +135,17 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate webhook secret
+  // Validate authorization - allow either webhook secret OR valid auth header
   const webhookSecret = Deno.env.get("STATS_WEBHOOK_SECRET");
   const providedSecret = req.headers.get("x-webhook-secret");
+  const authHeader = req.headers.get("authorization");
   
-  if (webhookSecret && providedSecret !== webhookSecret) {
-    console.error("Unauthorized: Invalid or missing webhook secret");
+  // Check if webhook secret matches OR if there's a valid auth header (from supabase.functions.invoke)
+  const hasValidWebhookSecret = webhookSecret && providedSecret === webhookSecret;
+  const hasAuthHeader = authHeader && authHeader.startsWith("Bearer ");
+  
+  if (!hasValidWebhookSecret && !hasAuthHeader) {
+    console.error("Unauthorized: Invalid or missing webhook secret and no auth header");
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
