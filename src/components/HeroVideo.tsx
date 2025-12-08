@@ -60,7 +60,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
         loop
         playsInline
         poster={posterSrc}
-        className="absolute inset-0 w-full h-full object-cover z-[1]"
+        className="absolute inset-0 w-full h-full object-contain z-[1]"
         style={{
           transform: `scale(${videoScale})`,
           objectPosition: `${videoPositionX}% ${videoPositionY}%`,
