@@ -7,17 +7,21 @@ const corsHeaders = {
 };
 
 const RAPIDAPI_KEY = Deno.env.get('RAPIDAPI_KEY');
-const RAPIDAPI_HOST = 'instagram120.p.rapidapi.com';
+// Using instagram-video-downloader13 API which has a free tier
+const RAPIDAPI_HOST = 'instagram-video-downloader13.p.rapidapi.com';
 
 // Helper to find video URL in various response structures
 const findVideoUrl = (data: any): string | null => {
+  // instagram-video-downloader13 returns video in different formats
   const paths = [
+    data?.video,
+    data?.videoUrl,
     data?.video_url,
+    data?.result?.video,
+    data?.data?.video,
+    data?.medias?.[0]?.url,
     data?.video_versions?.[0]?.url,
-    data?.media?.video_url,
     data?.graphql?.shortcode_media?.video_url,
-    data?.items?.[0]?.video_versions?.[0]?.url,
-    data?.data?.video_url,
   ];
   
   return paths.find(url => url && typeof url === 'string') || null;
@@ -26,12 +30,14 @@ const findVideoUrl = (data: any): string | null => {
 // Helper to find thumbnail in various response structures
 const findThumbnail = (data: any): string | null => {
   const paths = [
+    data?.thumbnail,
+    data?.thumb,
+    data?.cover,
+    data?.image,
     data?.thumbnail_url,
     data?.display_url,
-    data?.image_versions2?.candidates?.[0]?.url,
-    data?.graphql?.shortcode_media?.display_url,
-    data?.items?.[0]?.image_versions2?.candidates?.[0]?.url,
-    data?.data?.thumbnail_url,
+    data?.result?.thumbnail,
+    data?.data?.thumbnail,
   ];
   
   return paths.find(url => url && typeof url === 'string') || null;
@@ -115,28 +121,31 @@ serve(async (req) => {
         });
       }
 
-      const apiUrl = `https://${RAPIDAPI_HOST}/api/instagram/get?url=${encodeURIComponent(url)}`;
-      console.log('Fetching Instagram video:', apiUrl);
+      // Using the correct endpoint for instagram-video-downloader13
+      const apiUrl = `https://${RAPIDAPI_HOST}/`;
+      console.log('Fetching Instagram video for URL:', url);
 
       const response = await fetch(apiUrl, {
-        method: 'GET',
+        method: 'POST',
         headers: {
+          'Content-Type': 'application/json',
           'x-rapidapi-host': RAPIDAPI_HOST,
           'x-rapidapi-key': RAPIDAPI_KEY,
         },
+        body: JSON.stringify({ url }),
       });
 
       if (!response.ok) {
         const errorText = await response.text();
         console.error('API Error:', response.status, errorText);
-        return new Response(JSON.stringify({ error: `API error: ${response.status}` }), {
+        return new Response(JSON.stringify({ error: `API error: ${response.status} - ${errorText}` }), {
           status: response.status,
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         });
       }
 
       const data = await response.json();
-      console.log('Instagram API response received');
+      console.log('Instagram API response:', JSON.stringify(data));
 
       const videoUrl = findVideoUrl(data);
       const thumbnail = findThumbnail(data);
@@ -144,7 +153,7 @@ serve(async (req) => {
 
       if (!videoUrl) {
         return new Response(JSON.stringify({ 
-          error: 'Could not find video URL. This might be a photo post.',
+          error: 'Could not find video URL. This might be a photo post or the API response format changed.',
           debug: data 
         }), {
           status: 400,
