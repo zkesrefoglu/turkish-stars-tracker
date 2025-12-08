@@ -21,7 +21,7 @@ const defaultSettings: HeroSettings = {
   title: 'Turkish Stars Tracker',
   subtitle: 'Follow your favorite Turkish athletes around the world',
   cta_text: 'Explore Athletes',
-  cta_href: '/',
+  cta_href: '/athletes',
   overlay_opacity: 0.4,
   video_scale: 1.0,
   video_position_x: 50,
