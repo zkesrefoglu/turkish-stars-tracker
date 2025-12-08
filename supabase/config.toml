@@ -20,3 +20,6 @@ verify_jwt = false
 
 [functions.send-weekly-newsletter]
 verify_jwt = false
+
+[functions.sync-live-matches]
+verify_jwt = false
