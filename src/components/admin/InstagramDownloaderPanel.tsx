@@ -1,21 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { toast } from '@/hooks/use-toast';
-import { Loader2, Download, Trash2, ExternalLink, Search, Save, Instagram } from 'lucide-react';
-
-interface VideoData {
-  videoUrl: string;
-  thumbnail: string | null;
-  shortcode: string | null;
-  caption: string;
-  username: string;
-  likes: number;
-  views: number;
-}
+import { Loader2, Download, Trash2, Upload, Video, ExternalLink, Copy } from 'lucide-react';
 
 interface SavedVideo {
   id: string;
@@ -32,12 +24,15 @@ interface SavedVideo {
 }
 
 export default function InstagramDownloaderPanel() {
-  const [url, setUrl] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [videoData, setVideoData] = useState<VideoData | null>(null);
+  const [uploading, setUploading] = useState(false);
   const [savedVideos, setSavedVideos] = useState<SavedVideo[]>([]);
   const [loadingVideos, setLoadingVideos] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Form fields for metadata
+  const [instagramUrl, setInstagramUrl] = useState('');
+  const [username, setUsername] = useState('');
+  const [caption, setCaption] = useState('');
 
   useEffect(() => {
     loadSavedVideos();
@@ -58,65 +53,92 @@ export default function InstagramDownloaderPanel() {
     setLoadingVideos(false);
   };
 
-  const fetchVideoInfo = async () => {
-    if (!url.trim()) return;
+  const extractShortcode = (url: string): string | null => {
+    const patterns = [
+      /instagram\.com\/p\/([A-Za-z0-9_-]+)/,
+      /instagram\.com\/reel\/([A-Za-z0-9_-]+)/,
+      /instagram\.com\/reels\/([A-Za-z0-9_-]+)/,
+      /instagram\.com\/tv\/([A-Za-z0-9_-]+)/,
+    ];
     
-    setLoading(true);
-    setVideoData(null);
-
-    try {
-      const { data, error } = await supabase.functions.invoke('download-instagram', {
-        body: { action: 'fetch', url }
-      });
-
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error);
-
-      setVideoData(data.data);
-      toast({ title: 'Video Found', description: `@${data.data.username}` });
-    } catch (err: any) {
-      console.error('Fetch error:', err);
-      toast({ 
-        title: 'Error', 
-        description: err.message || 'Failed to fetch video', 
-        variant: 'destructive' 
-      });
-    } finally {
-      setLoading(false);
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
     }
+    return null;
   };
 
-  const saveVideo = async () => {
-    if (!videoData) return;
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    setSaving(true);
+    if (!file.type.startsWith('video/')) {
+      toast({ title: 'Error', description: 'Please select a video file', variant: 'destructive' });
+      return;
+    }
+
+    if (file.size > 100 * 1024 * 1024) { // 100MB limit
+      toast({ title: 'Error', description: 'Video must be under 100MB', variant: 'destructive' });
+      return;
+    }
+
+    setUploading(true);
     try {
-      const { data, error } = await supabase.functions.invoke('download-instagram', {
-        body: { 
-          action: 'save', 
-          videoData: {
-            ...videoData,
-            instagramUrl: url,
-          }
-        }
-      });
+      const shortcode = extractShortcode(instagramUrl) || `upload-${Date.now()}`;
+      const fileName = `${shortcode}.mp4`;
+      const storagePath = `videos/${fileName}`;
 
-      if (error) throw error;
-      if (!data.success) throw new Error(data.error);
+      // Upload to storage
+      const { error: uploadError } = await supabase.storage
+        .from('instagram-videos')
+        .upload(storagePath, file, {
+          contentType: 'video/mp4',
+          upsert: true,
+        });
 
-      toast({ title: 'Video Saved', description: 'Video has been saved to storage' });
-      setVideoData(null);
-      setUrl('');
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: publicUrlData } = supabase.storage
+        .from('instagram-videos')
+        .getPublicUrl(storagePath);
+
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+
+      // Save to database
+      const { error: dbError } = await supabase
+        .from('instagram_videos')
+        .insert({
+          instagram_url: instagramUrl || `manual-upload-${Date.now()}`,
+          shortcode,
+          video_url: publicUrlData.publicUrl,
+          storage_path: storagePath,
+          username: username || 'Unknown',
+          caption: caption || null,
+          created_by: user?.id,
+        });
+
+      if (dbError) throw dbError;
+
+      toast({ title: 'Video Saved', description: 'Video uploaded successfully' });
+      
+      // Reset form
+      setInstagramUrl('');
+      setUsername('');
+      setCaption('');
+      if (fileInputRef.current) fileInputRef.current.value = '';
+      
       loadSavedVideos();
     } catch (err: any) {
-      console.error('Save error:', err);
+      console.error('Upload error:', err);
       toast({ 
         title: 'Error', 
-        description: err.message || 'Failed to save video', 
+        description: err.message || 'Failed to upload video', 
         variant: 'destructive' 
       });
     } finally {
-      setSaving(false);
+      setUploading(false);
     }
   };
 
@@ -147,77 +169,80 @@ export default function InstagramDownloaderPanel() {
     return data.publicUrl;
   };
 
-  const formatNumber = (num: number) => {
-    if (num >= 1000000) return (num / 1000000).toFixed(1) + 'M';
-    if (num >= 1000) return (num / 1000).toFixed(1) + 'K';
-    return num.toString();
+  const copyUrl = (url: string) => {
+    navigator.clipboard.writeText(url);
+    toast({ title: 'Copied', description: 'URL copied to clipboard' });
   };
 
   return (
     <div className="space-y-6">
-      {/* Downloader Card */}
+      {/* Upload Card */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Instagram className="h-5 w-5" />
-            Instagram Video Downloader
+            <Video className="h-5 w-5" />
+            Video Upload
           </CardTitle>
+          <CardDescription>
+            Download videos from Instagram using browser extensions (like "Video DownloadHelper"), then upload them here.
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Paste Instagram reel/video URL..."
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              className="flex-1"
+          <div className="grid gap-4 md:grid-cols-2">
+            <div className="space-y-2">
+              <Label htmlFor="instagram-url">Instagram URL (optional)</Label>
+              <Input
+                id="instagram-url"
+                placeholder="https://instagram.com/reel/..."
+                value={instagramUrl}
+                onChange={(e) => setInstagramUrl(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="username">Username (optional)</Label>
+              <Input
+                id="username"
+                placeholder="@username"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+              />
+            </div>
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="caption">Caption (optional)</Label>
+            <Textarea
+              id="caption"
+              placeholder="Video caption or description..."
+              value={caption}
+              onChange={(e) => setCaption(e.target.value)}
+              rows={2}
             />
-            <Button onClick={fetchVideoInfo} disabled={loading || !url.trim()}>
-              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-              <span className="ml-2">Fetch</span>
-            </Button>
           </div>
 
-          {/* Preview */}
-          {videoData && (
-            <div className="border rounded-lg p-4 bg-muted/50">
-              <div className="flex gap-4">
-                {videoData.thumbnail && (
-                  <div className="relative flex-shrink-0">
-                    <img 
-                      src={videoData.thumbnail} 
-                      alt="Thumbnail" 
-                      className="w-24 h-24 object-cover rounded-lg"
-                    />
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/30 rounded-lg">
-                      <span className="text-white text-2xl">▶</span>
-                    </div>
-                  </div>
-                )}
-                <div className="flex-1 min-w-0">
-                  <p className="font-semibold">@{videoData.username}</p>
-                  {videoData.caption && (
-                    <p className="text-sm text-muted-foreground truncate">{videoData.caption}</p>
-                  )}
-                  <div className="flex gap-4 mt-2 text-sm text-muted-foreground">
-                    {videoData.views > 0 && <span>👁 {formatNumber(videoData.views)}</span>}
-                    {videoData.likes > 0 && <span>❤️ {formatNumber(videoData.likes)}</span>}
-                  </div>
-                </div>
-              </div>
-              <div className="flex gap-2 mt-4">
-                <Button onClick={saveVideo} disabled={saving} className="flex-1">
-                  {saving ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : <Save className="h-4 w-4 mr-2" />}
-                  Save to Storage
-                </Button>
-                <Button variant="outline" asChild>
-                  <a href={videoData.videoUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Preview
-                  </a>
-                </Button>
-              </div>
-            </div>
-          )}
+          <div className="flex items-center gap-4">
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="video/*"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="video-upload"
+            />
+            <Button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="w-full md:w-auto"
+            >
+              {uploading ? (
+                <Loader2 className="h-4 w-4 animate-spin mr-2" />
+              ) : (
+                <Upload className="h-4 w-4 mr-2" />
+              )}
+              {uploading ? 'Uploading...' : 'Upload Video'}
+            </Button>
+            <span className="text-sm text-muted-foreground">Max 100MB</span>
+          </div>
         </CardContent>
       </Card>
 
@@ -238,8 +263,7 @@ export default function InstagramDownloaderPanel() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Preview</TableHead>
-                  <TableHead>Username</TableHead>
-                  <TableHead>Stats</TableHead>
+                  <TableHead>Info</TableHead>
                   <TableHead>Date</TableHead>
                   <TableHead>Actions</TableHead>
                 </TableRow>
@@ -248,14 +272,15 @@ export default function InstagramDownloaderPanel() {
                 {savedVideos.map((video) => (
                   <TableRow key={video.id}>
                     <TableCell>
-                      {video.thumbnail_url ? (
-                        <img 
-                          src={video.thumbnail_url} 
-                          alt="Thumbnail" 
-                          className="w-16 h-16 object-cover rounded"
+                      {video.storage_path ? (
+                        <video 
+                          src={getPublicUrl(video.storage_path)} 
+                          className="w-24 h-16 object-cover rounded"
+                          muted
+                          preload="metadata"
                         />
                       ) : (
-                        <div className="w-16 h-16 bg-muted rounded flex items-center justify-center">
+                        <div className="w-24 h-16 bg-muted rounded flex items-center justify-center">
                           🎬
                         </div>
                       )}
@@ -268,12 +293,16 @@ export default function InstagramDownloaderPanel() {
                             {video.caption}
                           </p>
                         )}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm">
-                        {video.views > 0 && <p>👁 {formatNumber(video.views)}</p>}
-                        {video.likes > 0 && <p>❤️ {formatNumber(video.likes)}</p>}
+                        {video.instagram_url && !video.instagram_url.startsWith('manual') && (
+                          <a 
+                            href={video.instagram_url} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-xs text-primary hover:underline flex items-center gap-1"
+                          >
+                            <ExternalLink className="h-3 w-3" /> View on IG
+                          </a>
+                        )}
                       </div>
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">
@@ -282,11 +311,21 @@ export default function InstagramDownloaderPanel() {
                     <TableCell>
                       <div className="flex gap-2">
                         {video.storage_path && (
-                          <Button size="sm" variant="outline" asChild>
-                            <a href={getPublicUrl(video.storage_path)} target="_blank" rel="noopener noreferrer">
-                              <Download className="h-4 w-4" />
-                            </a>
-                          </Button>
+                          <>
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              onClick={() => copyUrl(getPublicUrl(video.storage_path!))}
+                              title="Copy URL"
+                            >
+                              <Copy className="h-4 w-4" />
+                            </Button>
+                            <Button size="sm" variant="outline" asChild>
+                              <a href={getPublicUrl(video.storage_path)} target="_blank" rel="noopener noreferrer">
+                                <Download className="h-4 w-4" />
+                              </a>
+                            </Button>
+                          </>
                         )}
                         <Button 
                           size="sm" 
