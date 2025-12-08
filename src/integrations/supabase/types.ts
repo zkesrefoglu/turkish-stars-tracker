@@ -533,6 +533,51 @@ export type Database = {
         }
         Relationships: []
       }
+      instagram_videos: {
+        Row: {
+          caption: string | null
+          created_by: string | null
+          downloaded_at: string
+          id: string
+          instagram_url: string
+          likes: number | null
+          shortcode: string | null
+          storage_path: string | null
+          thumbnail_url: string | null
+          username: string | null
+          video_url: string
+          views: number | null
+        }
+        Insert: {
+          caption?: string | null
+          created_by?: string | null
+          downloaded_at?: string
+          id?: string
+          instagram_url: string
+          likes?: number | null
+          shortcode?: string | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          username?: string | null
+          video_url: string
+          views?: number | null
+        }
+        Update: {
+          caption?: string | null
+          created_by?: string | null
+          downloaded_at?: string
+          id?: string
+          instagram_url?: string
+          likes?: number | null
+          shortcode?: string | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          username?: string | null
+          video_url?: string
+          views?: number | null
+        }
+        Relationships: []
+      }
       news_articles: {
         Row: {
           author: string
