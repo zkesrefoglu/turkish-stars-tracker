@@ -12,26 +12,24 @@ export const TurkishStarsHeader = () => {
         <div className="flex items-center justify-between h-24">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-4 group">
-            <img 
-              src="/images/turkish-stars-logo.png" 
-              alt="Turkish Stars" 
+            <img
+              src="/images/turkish-stars-logo.png"
+              alt="Turkish Stars"
               className="h-20 md:h-28 w-auto transition-transform group-hover:scale-105"
             />
             <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui">
-              Bringing Turkish Stars Home — Digitally
+              Bringing Turkish Stars Home — Digitally Follow your favorite Turkish athletes competing around the world.
+              Track their stats, upcoming matches, and latest news all in one place.
             </span>
           </Link>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
-            <Link 
-              to="/" 
-              className="text-sm font-medium text-foreground/80 hover:text-accent transition-colors"
-            >
+            <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-accent transition-colors">
               Home
             </Link>
-            <Link 
-              to="/admin/tst" 
+            <Link
+              to="/admin/tst"
               className="text-sm font-medium text-foreground/80 hover:text-accent transition-colors"
             >
               Admin
@@ -47,15 +45,15 @@ export const TurkishStarsHeader = () => {
             </SheetTrigger>
             <SheetContent side="right" className="w-[280px] bg-background">
               <div className="flex flex-col gap-4 mt-8">
-                <Link 
-                  to="/" 
+                <Link
+                  to="/"
                   className="text-lg font-medium text-foreground hover:text-accent transition-colors py-2"
                   onClick={() => setIsOpen(false)}
                 >
                   Home
                 </Link>
-                <Link 
-                  to="/admin/tst" 
+                <Link
+                  to="/admin/tst"
                   className="text-lg font-medium text-foreground hover:text-accent transition-colors py-2"
                   onClick={() => setIsOpen(false)}
                 >
