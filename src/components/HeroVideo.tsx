@@ -50,6 +50,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
   return (
     <section 
       className="relative w-full overflow-hidden bg-black"
+      style={{ aspectRatio: '16/9' }}
     >
       {/* Background Video */}
       <video
@@ -59,7 +60,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
         loop
         playsInline
         poster={posterSrc}
-        className="w-full h-auto z-[1]"
+        className="absolute inset-0 w-full h-full object-cover z-[1]"
         aria-hidden="true"
       >
         {webmSrc && <source src={webmSrc} type="video/webm" />}
