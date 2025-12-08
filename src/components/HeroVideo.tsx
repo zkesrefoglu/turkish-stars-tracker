@@ -49,8 +49,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
 
   return (
     <section 
-      className="relative w-full overflow-hidden flex items-center justify-center bg-black"
-      style={{ minHeight: `${minHeightVh}vh` }}
+      className="relative w-full overflow-hidden bg-black"
     >
       {/* Background Video */}
       <video
@@ -60,11 +59,7 @@ const HeroVideo: React.FC<HeroVideoProps> = ({
         loop
         playsInline
         poster={posterSrc}
-        className="absolute inset-0 w-full h-full object-contain z-[1]"
-        style={{
-          transform: `scale(${videoScale})`,
-          objectPosition: `${videoPositionX}% ${videoPositionY}%`,
-        }}
+        className="w-full h-auto z-[1]"
         aria-hidden="true"
       >
         {webmSrc && <source src={webmSrc} type="video/webm" />}
