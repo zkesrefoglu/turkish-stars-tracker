@@ -9,13 +9,13 @@ export const TurkishStarsHeader = () => {
   return (
     <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-4">
-        <div className="flex items-center justify-between h-16">
+        <div className="flex items-center justify-between h-24">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-4 group">
             <img 
               src="/images/turkish-stars-logo.png" 
               alt="Turkish Stars" 
-              className="h-10 md:h-14 w-auto transition-transform group-hover:scale-105"
+              className="h-20 md:h-28 w-auto transition-transform group-hover:scale-105"
             />
             <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui">
               Bringing Turkish Stars Home — Digitally
