@@ -2,7 +2,7 @@ import HeroVideo from '@/components/HeroVideo';
 import { useHeroSettings } from '@/hooks/useHeroSettings';
 import { Loader2 } from 'lucide-react';
 
-const TestHeroVideo = () => {
+const TurkishStarsIndex = () => {
   const { settings, loading } = useHeroSettings();
 
   if (loading) {
@@ -44,4 +44,4 @@ const TestHeroVideo = () => {
   );
 };
 
-export default TestHeroVideo;
+export default TurkishStarsIndex;

@@ -6,6 +6,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 import TurkishStars from "./pages/TurkishStars";
+import TurkishStarsIndex from "./pages/TurkishStarsIndex";
 import AthleteProfile from "./pages/AthleteProfile";
 import AdminTST from "./pages/AdminTST";
 import TestHeroVideo from "./pages/TestHeroVideo";
@@ -19,7 +20,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<TurkishStars />} />
+          <Route path="/" element={<TurkishStarsIndex />} />
+          <Route path="/athletes" element={<TurkishStars />} />
           <Route path="/athlete/:slug" element={<AthleteProfile />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin/tst" element={<AdminTST />} />
