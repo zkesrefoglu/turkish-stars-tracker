@@ -221,7 +221,7 @@ const TurkishStars = () => {
                         <img 
                           src={athlete.photo_url} 
                           alt={athlete.name}
-                          className="w-full h-full object-cover object-top transition-transform duration-300 group-hover:scale-110"
+                          className="w-full h-full object-cover object-[center_20%] transition-transform duration-300 group-hover:scale-110"
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-secondary to-muted">
