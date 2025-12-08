@@ -29,6 +29,16 @@ const TestHeroVideo = () => {
         minHeightVh={settings.min_height_vh}
       />
       
+      {/* Content below the hero to test scroll */}
+      <div className="container mx-auto py-16 px-4">
+        <h2 className="text-3xl font-headline text-foreground mb-4">
+          Welcome to Turkish Stars Tracker
+        </h2>
+        <p className="text-muted-foreground max-w-2xl">
+          Follow your favorite Turkish athletes competing around the world. 
+          Track their stats, upcoming matches, and latest news all in one place.
+        </p>
+      </div>
     </div>
   );
 };

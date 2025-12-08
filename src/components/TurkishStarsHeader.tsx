@@ -17,8 +17,8 @@ export const TurkishStarsHeader = () => {
               alt="Turkish Stars" 
               className="h-20 md:h-28 w-auto transition-transform group-hover:scale-105"
             />
-            <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui max-w-xs lg:max-w-md">
-              Follow your favorite Turkish athletes competing around the world. Track their stats, upcoming matches, and latest news all in one place.
+            <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui">
+              Bringing Turkish Stars Home — Digitally
             </span>
           </Link>
 

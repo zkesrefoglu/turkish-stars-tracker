@@ -19,11 +19,11 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<TestHeroVideo />} />
-          <Route path="/athletes" element={<TurkishStars />} />
+          <Route path="/" element={<TurkishStars />} />
           <Route path="/athlete/:slug" element={<AthleteProfile />} />
           <Route path="/auth" element={<Auth />} />
           <Route path="/admin/tst" element={<AdminTST />} />
+          <Route path="/test-hero" element={<TestHeroVideo />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
