@@ -136,6 +136,65 @@ export type Database = {
           },
         ]
       }
+      athlete_injury_history: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          days_missed: number | null
+          description: string | null
+          end_date: string | null
+          games_missed: number | null
+          id: string
+          injury_type: string
+          injury_zone: string | null
+          is_current: boolean | null
+          severity: string | null
+          source_url: string | null
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          days_missed?: number | null
+          description?: string | null
+          end_date?: string | null
+          games_missed?: number | null
+          id?: string
+          injury_type: string
+          injury_zone?: string | null
+          is_current?: boolean | null
+          severity?: string | null
+          source_url?: string | null
+          start_date: string
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          days_missed?: number | null
+          description?: string | null
+          end_date?: string | null
+          games_missed?: number | null
+          id?: string
+          injury_type?: string
+          injury_zone?: string | null
+          is_current?: boolean | null
+          severity?: string | null
+          source_url?: string | null
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_injury_history_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_live_matches: {
         Row: {
           athlete_id: string
@@ -188,6 +247,50 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "athlete_live_matches_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      athlete_market_values: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          currency: string | null
+          id: string
+          market_value: number
+          recorded_date: string
+          source: string | null
+          value_change: number | null
+          value_change_percentage: number | null
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          market_value: number
+          recorded_date: string
+          source?: string | null
+          value_change?: number | null
+          value_change_percentage?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          currency?: string | null
+          id?: string
+          market_value?: number
+          recorded_date?: string
+          source?: string | null
+          value_change?: number | null
+          value_change_percentage?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_market_values_athlete_id_fkey"
             columns: ["athlete_id"]
             isOneToOne: false
             referencedRelation: "athlete_profiles"
@@ -248,21 +351,30 @@ export type Database = {
           api_football_id: number | null
           balldontlie_id: number | null
           bio: string | null
+          contract_until: string | null
           created_at: string
+          current_market_value: number | null
+          date_of_birth: string | null
           fotmob_id: number | null
+          height_cm: number | null
           id: string
           instagram: string | null
           jersey_number: number | null
           league: string
+          market_value_currency: string | null
           name: string
           national_photo_url: string | null
+          nationality: string | null
           official_link: string | null
           photo_url: string | null
           position: string
+          preferred_foot: string | null
           slug: string
           sport: string
           team: string
           team_logo_url: string | null
+          transfermarkt_id: number | null
+          transfermarkt_slug: string | null
           updated_at: string
         }
         Insert: {
@@ -270,21 +382,30 @@ export type Database = {
           api_football_id?: number | null
           balldontlie_id?: number | null
           bio?: string | null
+          contract_until?: string | null
           created_at?: string
+          current_market_value?: number | null
+          date_of_birth?: string | null
           fotmob_id?: number | null
+          height_cm?: number | null
           id?: string
           instagram?: string | null
           jersey_number?: number | null
           league: string
+          market_value_currency?: string | null
           name: string
           national_photo_url?: string | null
+          nationality?: string | null
           official_link?: string | null
           photo_url?: string | null
           position: string
+          preferred_foot?: string | null
           slug: string
           sport: string
           team: string
           team_logo_url?: string | null
+          transfermarkt_id?: number | null
+          transfermarkt_slug?: string | null
           updated_at?: string
         }
         Update: {
@@ -292,21 +413,30 @@ export type Database = {
           api_football_id?: number | null
           balldontlie_id?: number | null
           bio?: string | null
+          contract_until?: string | null
           created_at?: string
+          current_market_value?: number | null
+          date_of_birth?: string | null
           fotmob_id?: number | null
+          height_cm?: number | null
           id?: string
           instagram?: string | null
           jersey_number?: number | null
           league?: string
+          market_value_currency?: string | null
           name?: string
           national_photo_url?: string | null
+          nationality?: string | null
           official_link?: string | null
           photo_url?: string | null
           position?: string
+          preferred_foot?: string | null
           slug?: string
           sport?: string
           team?: string
           team_logo_url?: string | null
+          transfermarkt_id?: number | null
+          transfermarkt_slug?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -358,14 +488,85 @@ export type Database = {
           },
         ]
       }
+      athlete_transfer_history: {
+        Row: {
+          athlete_id: string
+          contract_years: number | null
+          created_at: string
+          fee_currency: string | null
+          from_club: string
+          from_club_logo_url: string | null
+          id: string
+          market_value_at_transfer: number | null
+          notes: string | null
+          source_url: string | null
+          to_club: string
+          to_club_logo_url: string | null
+          transfer_date: string
+          transfer_fee: number | null
+          transfer_type: string | null
+          updated_at: string
+        }
+        Insert: {
+          athlete_id: string
+          contract_years?: number | null
+          created_at?: string
+          fee_currency?: string | null
+          from_club: string
+          from_club_logo_url?: string | null
+          id?: string
+          market_value_at_transfer?: number | null
+          notes?: string | null
+          source_url?: string | null
+          to_club: string
+          to_club_logo_url?: string | null
+          transfer_date: string
+          transfer_fee?: number | null
+          transfer_type?: string | null
+          updated_at?: string
+        }
+        Update: {
+          athlete_id?: string
+          contract_years?: number | null
+          created_at?: string
+          fee_currency?: string | null
+          from_club?: string
+          from_club_logo_url?: string | null
+          id?: string
+          market_value_at_transfer?: number | null
+          notes?: string | null
+          source_url?: string | null
+          to_club?: string
+          to_club_logo_url?: string | null
+          transfer_date?: string
+          transfer_fee?: number | null
+          transfer_type?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_transfer_history_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_transfer_rumors: {
         Row: {
           athlete_id: string
+          contract_offer_years: number | null
           created_at: string
+          fee_currency: string | null
           headline: string
           id: string
+          interested_club: string | null
+          interested_club_logo_url: string | null
+          probability_percentage: number | null
           reliability: string | null
           rumor_date: string
+          rumored_fee: number | null
           source: string | null
           source_url: string | null
           status: string | null
@@ -374,11 +575,17 @@ export type Database = {
         }
         Insert: {
           athlete_id: string
+          contract_offer_years?: number | null
           created_at?: string
+          fee_currency?: string | null
           headline: string
           id?: string
+          interested_club?: string | null
+          interested_club_logo_url?: string | null
+          probability_percentage?: number | null
           reliability?: string | null
           rumor_date?: string
+          rumored_fee?: number | null
           source?: string | null
           source_url?: string | null
           status?: string | null
@@ -387,11 +594,17 @@ export type Database = {
         }
         Update: {
           athlete_id?: string
+          contract_offer_years?: number | null
           created_at?: string
+          fee_currency?: string | null
           headline?: string
           id?: string
+          interested_club?: string | null
+          interested_club_logo_url?: string | null
+          probability_percentage?: number | null
           reliability?: string | null
           rumor_date?: string
+          rumored_fee?: number | null
           source?: string | null
           source_url?: string | null
           status?: string | null
