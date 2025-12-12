@@ -4,8 +4,11 @@ import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
 import { TurkishStarsFooter } from "@/components/TurkishStarsFooter";
 import { FormGraphic } from "@/components/FormGraphic";
 import { RatingTrendChart } from "@/components/RatingTrendChart";
+import { MarketValueChart } from "@/components/MarketValueChart";
+import { TransferHistoryTimeline } from "@/components/TransferHistoryTimeline";
+import { InjuryHistoryList } from "@/components/InjuryHistoryList";
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper } from "lucide-react";
+import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -26,6 +29,8 @@ interface AthleteProfile {
   bio: string | null;
   instagram: string | null;
   official_link: string | null;
+  current_market_value: number | null;
+  market_value_currency: string | null;
 }
 
 interface SeasonStats {
@@ -96,6 +101,42 @@ interface AthleteNews {
   created_at: string;
 }
 
+interface TransferHistory {
+  id: string;
+  athlete_id: string;
+  transfer_date: string;
+  from_club: string;
+  to_club: string;
+  transfer_fee: number | null;
+  transfer_type: string | null;
+  from_club_logo_url: string | null;
+  to_club_logo_url: string | null;
+}
+
+interface InjuryHistory {
+  id: string;
+  athlete_id: string;
+  injury_type: string;
+  injury_zone: string | null;
+  start_date: string;
+  end_date: string | null;
+  days_missed: number | null;
+  games_missed: number | null;
+  is_current: boolean | null;
+  severity: string | null;
+  description: string | null;
+}
+
+interface MarketValue {
+  id: string;
+  athlete_id: string;
+  market_value: number;
+  recorded_date: string;
+  currency: string | null;
+  value_change: number | null;
+  value_change_percentage: number | null;
+}
+
 const AthleteProfilePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [athlete, setAthlete] = useState<AthleteProfile | null>(null);
@@ -104,6 +145,9 @@ const AthleteProfilePage = () => {
   const [transferRumors, setTransferRumors] = useState<TransferRumor[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
   const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
+  const [transferHistory, setTransferHistory] = useState<TransferHistory[]>([]);
+  const [injuryHistory, setInjuryHistory] = useState<InjuryHistory[]>([]);
+  const [marketValues, setMarketValues] = useState<MarketValue[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
 
@@ -127,12 +171,15 @@ const AthleteProfilePage = () => {
         setAthlete(athleteData);
 
         // Fetch related data
-        const [statsRes, updatesRes, rumorsRes, matchesRes, newsRes] = await Promise.all([
+        const [statsRes, updatesRes, rumorsRes, matchesRes, newsRes, transferHistoryRes, injuryHistoryRes, marketValuesRes] = await Promise.all([
           supabase.from("athlete_season_stats").select("*").eq("athlete_id", athleteData.id).order("season", { ascending: false }),
           supabase.from("athlete_daily_updates").select("*").eq("athlete_id", athleteData.id).order("date", { ascending: false }),
           supabase.from("athlete_transfer_rumors").select("*").eq("athlete_id", athleteData.id).order("rumor_date", { ascending: false }),
           supabase.from("athlete_upcoming_matches").select("*").eq("athlete_id", athleteData.id).gte("match_date", new Date().toISOString()).order("match_date"),
           supabase.from("athlete_news").select("*").eq("athlete_id", athleteData.id).order("published_at", { ascending: false }).limit(20),
+          supabase.from("athlete_transfer_history").select("*").eq("athlete_id", athleteData.id).order("transfer_date", { ascending: false }),
+          supabase.from("athlete_injury_history").select("*").eq("athlete_id", athleteData.id).order("start_date", { ascending: false }),
+          supabase.from("athlete_market_values").select("*").eq("athlete_id", athleteData.id).order("recorded_date", { ascending: false }),
         ]);
 
         if (statsRes.data) setSeasonStats(statsRes.data);
@@ -140,6 +187,9 @@ const AthleteProfilePage = () => {
         if (rumorsRes.data) setTransferRumors(rumorsRes.data);
         if (matchesRes.data) setUpcomingMatches(matchesRes.data);
         if (newsRes.data) setAthleteNews(newsRes.data);
+        if (transferHistoryRes.data) setTransferHistory(transferHistoryRes.data);
+        if (injuryHistoryRes.data) setInjuryHistory(injuryHistoryRes.data);
+        if (marketValuesRes.data) setMarketValues(marketValuesRes.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -220,7 +270,7 @@ const AthleteProfilePage = () => {
   const isGoalkeeper = athlete?.position?.toLowerCase().includes('goalkeeper') || athlete?.position?.toLowerCase().includes('gk');
   
   const matchHistory = dailyUpdates.filter(u => u.played);
-  const injuryHistory = dailyUpdates.filter(u => u.injury_status && u.injury_status !== "healthy");
+  const dailyInjuryUpdates = dailyUpdates.filter(u => u.injury_status && u.injury_status !== "healthy");
 
   if (loading) {
     return (
@@ -554,12 +604,27 @@ const AthleteProfilePage = () => {
 
         {/* TABBED CONTENT */}
         <Tabs defaultValue="stats" className="w-full">
-          <TabsList className="w-full justify-start mb-6 bg-secondary overflow-x-auto">
+          <TabsList className="w-full justify-start mb-6 bg-secondary overflow-x-auto flex-wrap">
             <TabsTrigger value="stats" className="flex-1 sm:flex-none">Season Stats</TabsTrigger>
             <TabsTrigger value="history" className="flex-1 sm:flex-none">Match History</TabsTrigger>
             <TabsTrigger value="news" className="flex-1 sm:flex-none">Latest News</TabsTrigger>
-            <TabsTrigger value="injuries" className="flex-1 sm:flex-none">Injury History</TabsTrigger>
-            <TabsTrigger value="transfers" className="flex-1 sm:flex-none">Transfer News</TabsTrigger>
+            {athlete.sport === "football" && (
+              <>
+                <TabsTrigger value="market-value" className="flex-1 sm:flex-none">
+                  <DollarSign className="w-4 h-4 mr-1" />
+                  Market Value
+                </TabsTrigger>
+                <TabsTrigger value="transfer-history" className="flex-1 sm:flex-none">
+                  <History className="w-4 h-4 mr-1" />
+                  Transfers
+                </TabsTrigger>
+                <TabsTrigger value="injury-history" className="flex-1 sm:flex-none">
+                  <HeartPulse className="w-4 h-4 mr-1" />
+                  Injuries
+                </TabsTrigger>
+              </>
+            )}
+            <TabsTrigger value="transfers" className="flex-1 sm:flex-none">Transfer Rumors</TabsTrigger>
           </TabsList>
 
           {/* TAB 1: Season Stats */}
@@ -807,32 +872,46 @@ const AthleteProfilePage = () => {
             )}
           </TabsContent>
 
-          {/* TAB 4: Injury History */}
-          <TabsContent value="injuries">
-            {injuryHistory.length > 0 ? (
-              <div className="space-y-2">
-                {injuryHistory.map((update) => (
-                  <Card key={update.id} className="p-4 bg-card border-border flex items-center gap-4">
-                    <div className="text-sm text-muted-foreground w-24">
-                      {format(new Date(update.date), "MMM d, yyyy")}
-                    </div>
-                    <Badge className={`${getInjuryColor(update.injury_status)} border capitalize`}>
-                      {update.injury_status}
-                    </Badge>
-                    {update.injury_details && (
-                      <span className="text-foreground">{update.injury_details}</span>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <Card className="p-8 text-center bg-card border-border">
-                <p className="text-muted-foreground">No injury history recorded.</p>
-              </Card>
-            )}
+          {/* Market Value Tab (Football only) */}
+          <TabsContent value="market-value">
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <DollarSign className="w-5 h-5" />
+                Market Value History
+              </h3>
+              {marketValues.length > 0 ? (
+                <MarketValueChart marketValues={marketValues} />
+              ) : (
+                <div className="text-center py-8 text-muted-foreground">
+                  No market value data available.
+                </div>
+              )}
+            </Card>
           </TabsContent>
 
-          {/* TAB 4: Transfer News */}
+          {/* Transfer History Tab (Football only) */}
+          <TabsContent value="transfer-history">
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <History className="w-5 h-5" />
+                Transfer History
+              </h3>
+              <TransferHistoryTimeline transfers={transferHistory} />
+            </Card>
+          </TabsContent>
+
+          {/* Injury History Tab (Football only) */}
+          <TabsContent value="injury-history">
+            <Card className="p-6 bg-card border-border">
+              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center gap-2">
+                <HeartPulse className="w-5 h-5" />
+                Injury History
+              </h3>
+              <InjuryHistoryList injuries={injuryHistory} />
+            </Card>
+          </TabsContent>
+
+          {/* Transfer Rumors Tab */}
           <TabsContent value="transfers">
             {transferRumors.length > 0 ? (
               <div className="space-y-4">
@@ -868,7 +947,7 @@ const AthleteProfilePage = () => {
               </div>
             ) : (
               <Card className="p-8 text-center bg-card border-border">
-                <p className="text-muted-foreground">No transfer news available.</p>
+                <p className="text-muted-foreground">No transfer rumors available.</p>
               </Card>
             )}
           </TabsContent>
