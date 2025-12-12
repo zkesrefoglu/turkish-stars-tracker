@@ -136,8 +136,8 @@ async function scrapeWithFirecrawl(apiKey: string, url: string): Promise<string 
       body: JSON.stringify({
         url,
         formats: ['markdown'],
-        onlyMainContent: true,
-        waitFor: 3000,
+        onlyMainContent: false, // Get full page content for tables
+        waitFor: 5000,
       }),
     });
 
@@ -148,7 +148,14 @@ async function scrapeWithFirecrawl(apiKey: string, url: string): Promise<string 
       return null;
     }
 
-    return data.data?.markdown || data.markdown || null;
+    const markdown = data.data?.markdown || data.markdown || null;
+    
+    // Log first 500 chars of markdown for debugging
+    if (markdown) {
+      console.log(`Markdown preview (first 500 chars): ${markdown.substring(0, 500)}`);
+    }
+    
+    return markdown;
   } catch (error) {
     console.error('Scrape error:', error);
     return null;
@@ -172,7 +179,6 @@ async function scrapeTransferHistory(
     console.log(`Parsed ${transfers.length} transfers for ${athlete.name}`);
     
     if (transfers.length > 0) {
-      // Upsert transfers (using transfer_date + athlete_id as unique identifier)
       for (const transfer of transfers) {
         const { error } = await supabase
           .from('athlete_transfer_history')
@@ -215,7 +221,7 @@ async function scrapeInjuryHistory(
         const { error } = await supabase
           .from('athlete_injury_history')
           .upsert(injury, { 
-            onConflict: 'athlete_id,injury_type,start_date',
+            onConflict: 'athlete_id,start_date,injury_type',
             ignoreDuplicates: true 
           });
         
@@ -249,7 +255,6 @@ async function scrapeMarketValueHistory(
     console.log(`Parsed ${marketValues.length} market values for ${athlete.name}`);
     
     if (marketValues.length > 0) {
-      // Get existing market values to calculate changes
       const { data: existingValues } = await supabase
         .from('athlete_market_values')
         .select('recorded_date, market_value')
@@ -257,7 +262,6 @@ async function scrapeMarketValueHistory(
         .order('recorded_date', { ascending: false });
 
       for (const mv of marketValues) {
-        // Calculate value change if we have previous data
         if (existingValues && existingValues.length > 0) {
           const prevValue = existingValues.find((v: any) => 
             new Date(v.recorded_date) < new Date(mv.recorded_date)
@@ -280,7 +284,6 @@ async function scrapeMarketValueHistory(
         }
       }
 
-      // Update current market value in athlete_profiles
       const latestValue = marketValues.sort((a, b) => 
         new Date(b.recorded_date).getTime() - new Date(a.recorded_date).getTime()
       )[0];
@@ -302,109 +305,203 @@ async function scrapeMarketValueHistory(
 
 function parseTransferHistory(markdown: string, athleteId: string): any[] {
   const transfers: any[] = [];
-  
-  // Look for transfer table patterns in markdown
-  // Transfermarkt typically shows: Season | Date | Left | Joined | MV | Fee
   const lines = markdown.split('\n');
   
+  console.log(`Parsing transfers from ${lines.length} lines of markdown`);
+  
+  // Method 1: Look for table rows with transfer data
+  // Transfermarkt tables often have patterns like: | Season | Date | Left | Joined | MV | Fee |
+  // Or markdown tables: | 24/25 | Jul 1, 2024 | Club A | Club B | €10m | €15m |
+  
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
+    const line = lines[i].trim();
     
-    // Look for date patterns like "Jan 1, 2024" or "01.01.2024"
-    const dateMatch = line.match(/(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})|([A-Z][a-z]{2}\s+\d{1,2},?\s+\d{4})/);
-    if (!dateMatch) continue;
+    // Skip empty lines and headers
+    if (!line || line.startsWith('#') || line === '---' || line === '|---|') continue;
     
-    // Look for fee patterns like "€50m" or "€50.00m" or "Free transfer" or "Loan"
-    const feeMatch = line.match(/€([\d,.]+)\s*(m|k)?|free\s*transfer|loan/i);
-    
-    // Look for club names (typically capitalized words)
-    const clubMatches = line.match(/([A-Z][a-zA-Z\s&.]+(?:FC|CF|SC|AC|AS|SS|CD|UD|SD|Real|United|City|Athletic|Sporting)?)/g);
-    
-    if (clubMatches && clubMatches.length >= 2) {
-      let transferDate = dateMatch[0];
-      // Normalize date format
-      try {
-        const parsedDate = new Date(transferDate.replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3-$2-$1'));
-        if (!isNaN(parsedDate.getTime())) {
-          transferDate = parsedDate.toISOString().split('T')[0];
-        }
-      } catch (e) {
-        // Keep original date string if parsing fails
-      }
-
-      let transferFee: number | null = null;
-      let transferType = 'transfer';
+    // Look for table row patterns with pipe separators
+    if (line.includes('|')) {
+      const cells = line.split('|').map(c => c.trim()).filter(c => c);
       
-      if (feeMatch) {
-        if (/free\s*transfer/i.test(feeMatch[0])) {
-          transferFee = 0;
-          transferType = 'free';
-        } else if (/loan/i.test(feeMatch[0])) {
-          transferType = 'loan';
-        } else {
-          const amount = parseFloat(feeMatch[1]?.replace(/,/g, '') || '0');
-          const multiplier = feeMatch[2]?.toLowerCase() === 'm' ? 1000000 : 
-                            feeMatch[2]?.toLowerCase() === 'k' ? 1000 : 1;
-          transferFee = amount * multiplier;
+      // Need at least 4 cells for a valid transfer row
+      if (cells.length >= 4) {
+        // Try to find date, clubs, and fee in cells
+        let transferDate: string | null = null;
+        let fromClub: string | null = null;
+        let toClub: string | null = null;
+        let fee: number | null = null;
+        let transferType = 'transfer';
+        
+        for (const cell of cells) {
+          // Date patterns
+          if (!transferDate) {
+            const dateMatch = cell.match(/(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4})|([A-Z][a-z]{2}\s+\d{1,2},?\s+\d{4})|(\d{4})/);
+            if (dateMatch) {
+              transferDate = normalizeDate(dateMatch[0]);
+            }
+          }
+          
+          // Fee patterns - €50m, €50.00m, €500k, free, loan
+          if (cell.match(/€|free|loan|end of loan/i)) {
+            const feeMatch = cell.match(/€\s*([\d,.]+)\s*(m|mio|k)?/i);
+            if (feeMatch) {
+              const amount = parseFloat(feeMatch[1].replace(/,/g, '.'));
+              const unit = feeMatch[2]?.toLowerCase();
+              if (unit === 'm' || unit === 'mio') {
+                fee = amount * 1000000;
+              } else if (unit === 'k') {
+                fee = amount * 1000;
+              } else {
+                fee = amount >= 1000 ? amount : amount * 1000000; // Assume millions if no unit
+              }
+            } else if (cell.match(/free/i)) {
+              fee = 0;
+              transferType = 'free';
+            } else if (cell.match(/loan|end of loan/i)) {
+              transferType = 'loan';
+            }
+          }
+          
+          // Club names - look for cells with team-like names (not dates, not fees)
+          if (!cell.match(/€|\d{4}|free|loan|---|^\d+$/i) && cell.length > 2) {
+            if (!fromClub) {
+              fromClub = cell;
+            } else if (!toClub && cell !== fromClub) {
+              toClub = cell;
+            }
+          }
+        }
+        
+        // If we found valid data, add the transfer
+        if (transferDate && fromClub && toClub) {
+          transfers.push({
+            athlete_id: athleteId,
+            transfer_date: transferDate,
+            from_club: fromClub.substring(0, 100),
+            to_club: toClub.substring(0, 100),
+            transfer_fee: fee,
+            transfer_type: transferType,
+            source_url: 'https://www.transfermarkt.com',
+          });
         }
       }
-
-      transfers.push({
-        athlete_id: athleteId,
-        transfer_date: transferDate,
-        from_club: clubMatches[0].trim(),
-        to_club: clubMatches[1].trim(),
-        transfer_fee: transferFee,
-        transfer_type: transferType,
-        source_url: `https://www.transfermarkt.com`,
-      });
+    }
+    
+    // Method 2: Look for inline transfer mentions
+    // Pattern: "joined X from Y" or "moved to X" or "signed by X"
+    const joinMatch = line.match(/(?:joined|signed by|moved to)\s+([A-Za-z\s&.]+?)(?:\s+from\s+([A-Za-z\s&.]+))?(?:\s+(?:for|fee:?)\s*€?([\d,.]+)\s*(m|k)?)?/i);
+    if (joinMatch) {
+      const toClub = joinMatch[1]?.trim();
+      const fromClub = joinMatch[2]?.trim() || 'Unknown';
+      
+      let fee: number | null = null;
+      if (joinMatch[3]) {
+        const amount = parseFloat(joinMatch[3].replace(/,/g, '.'));
+        const unit = joinMatch[4]?.toLowerCase();
+        fee = unit === 'm' ? amount * 1000000 : unit === 'k' ? amount * 1000 : amount;
+      }
+      
+      // Look for date in same line or nearby
+      const dateMatch = line.match(/(\d{1,2}[\/\.-]\d{1,2}[\/\.-]\d{2,4})|([A-Z][a-z]{2}\s+\d{1,2},?\s+\d{4})/);
+      if (dateMatch && toClub) {
+        transfers.push({
+          athlete_id: athleteId,
+          transfer_date: normalizeDate(dateMatch[0]),
+          from_club: fromClub.substring(0, 100),
+          to_club: toClub.substring(0, 100),
+          transfer_fee: fee,
+          transfer_type: 'transfer',
+          source_url: 'https://www.transfermarkt.com',
+        });
+      }
     }
   }
-
-  return transfers;
+  
+  // Remove duplicates based on date and clubs
+  const seen = new Set<string>();
+  return transfers.filter(t => {
+    const key = `${t.transfer_date}-${t.from_club}-${t.to_club}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function parseInjuryHistory(markdown: string, athleteId: string): any[] {
   const injuries: any[] = [];
   const lines = markdown.split('\n');
   
+  console.log(`Parsing injuries from ${lines.length} lines of markdown`);
+  
+  // Injury keywords with zones
+  const injuryKeywords: { [key: string]: { type: string; zone: string } } = {
+    'muscle': { type: 'Muscle injury', zone: 'General' },
+    'muscular': { type: 'Muscle injury', zone: 'General' },
+    'knee': { type: 'Knee injury', zone: 'Lower Body' },
+    'ankle': { type: 'Ankle injury', zone: 'Lower Body' },
+    'hamstring': { type: 'Hamstring injury', zone: 'Lower Body' },
+    'groin': { type: 'Groin injury', zone: 'Lower Body' },
+    'back': { type: 'Back injury', zone: 'Upper Body' },
+    'shoulder': { type: 'Shoulder injury', zone: 'Upper Body' },
+    'calf': { type: 'Calf injury', zone: 'Lower Body' },
+    'thigh': { type: 'Thigh injury', zone: 'Lower Body' },
+    'foot': { type: 'Foot injury', zone: 'Lower Body' },
+    'hip': { type: 'Hip injury', zone: 'Lower Body' },
+    'achilles': { type: 'Achilles tendon injury', zone: 'Lower Body' },
+    'ligament': { type: 'Ligament injury', zone: 'General' },
+    'cruciate': { type: 'Cruciate ligament injury', zone: 'Lower Body' },
+    'meniscus': { type: 'Meniscus injury', zone: 'Lower Body' },
+    'fracture': { type: 'Fracture', zone: 'General' },
+    'bruise': { type: 'Bruise', zone: 'General' },
+    'strain': { type: 'Strain', zone: 'General' },
+    'sprain': { type: 'Sprain', zone: 'General' },
+    'tear': { type: 'Muscle tear', zone: 'General' },
+    'illness': { type: 'Illness', zone: 'General' },
+    'flu': { type: 'Flu', zone: 'General' },
+    'covid': { type: 'COVID-19', zone: 'General' },
+    'corona': { type: 'COVID-19', zone: 'General' },
+    'infection': { type: 'Infection', zone: 'General' },
+    'adductor': { type: 'Adductor problems', zone: 'Lower Body' },
+    'knock': { type: 'Knock', zone: 'General' },
+    'concussion': { type: 'Concussion', zone: 'Head' },
+  };
+  
   for (let i = 0; i < lines.length; i++) {
-    const line = lines[i];
-    
-    // Look for injury type patterns
-    const injuryTypes = [
-      'muscle', 'knee', 'ankle', 'hamstring', 'groin', 'back', 'shoulder',
-      'calf', 'thigh', 'foot', 'hip', 'achilles', 'ligament', 'cruciate',
-      'meniscus', 'fracture', 'bruise', 'strain', 'sprain', 'tear',
-      'illness', 'flu', 'covid', 'corona', 'infection'
-    ];
+    const line = lines[i].trim();
+    if (!line) continue;
     
     const lowerLine = line.toLowerCase();
-    let injuryType: string | null = null;
-    let injuryZone: string | null = null;
     
-    for (const type of injuryTypes) {
-      if (lowerLine.includes(type)) {
-        injuryType = type.charAt(0).toUpperCase() + type.slice(1);
-        // Try to determine zone
-        if (['knee', 'ankle', 'hamstring', 'calf', 'thigh', 'foot', 'achilles', 'groin', 'hip'].includes(type)) {
-          injuryZone = 'Lower Body';
-        } else if (['shoulder', 'back'].includes(type)) {
-          injuryZone = 'Upper Body';
-        } else if (['muscle', 'ligament', 'cruciate', 'meniscus'].includes(type)) {
-          injuryZone = 'General';
-        }
+    // Check for injury keywords
+    let foundInjury: { type: string; zone: string } | null = null;
+    for (const [keyword, info] of Object.entries(injuryKeywords)) {
+      if (lowerLine.includes(keyword)) {
+        foundInjury = info;
         break;
       }
     }
     
-    if (!injuryType) continue;
+    if (!foundInjury) continue;
     
-    // Look for date patterns
-    const dateMatch = line.match(/(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})|([A-Z][a-z]{2}\s+\d{1,2},?\s+\d{4})/);
-    if (!dateMatch) continue;
+    // Look for dates - multiple formats
+    const datePatterns = [
+      /(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})/,  // DD/MM/YYYY or DD.MM.YYYY
+      /([A-Z][a-z]{2})\s+(\d{1,2}),?\s+(\d{4})/,   // Jan 1, 2024
+      /(\d{4})-(\d{2})-(\d{2})/,                    // YYYY-MM-DD
+    ];
     
-    // Look for duration patterns like "14 days" or "2 weeks" or "1 month"
+    let startDate: string | null = null;
+    for (const pattern of datePatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        startDate = normalizeDate(match[0]);
+        break;
+      }
+    }
+    
+    if (!startDate) continue;
+    
+    // Look for duration
     const durationMatch = line.match(/(\d+)\s*(days?|weeks?|months?)/i);
     let daysMissed: number | null = null;
     if (durationMatch) {
@@ -419,72 +516,171 @@ function parseInjuryHistory(markdown: string, athleteId: string): any[] {
       }
     }
     
-    // Look for games missed
-    const gamesMatch = line.match(/(\d+)\s*games?\s*missed/i);
+    // Look for games missed - also check table cells
+    const gamesMatch = line.match(/(\d+)\s*(?:games?|matches?)/i);
     const gamesMissed = gamesMatch ? parseInt(gamesMatch[1]) : null;
-
-    let startDate = dateMatch[0];
-    try {
-      const parsedDate = new Date(startDate.replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3-$2-$1'));
-      if (!isNaN(parsedDate.getTime())) {
-        startDate = parsedDate.toISOString().split('T')[0];
-      }
-    } catch (e) {}
 
     injuries.push({
       athlete_id: athleteId,
-      injury_type: injuryType,
-      injury_zone: injuryZone,
+      injury_type: foundInjury.type,
+      injury_zone: foundInjury.zone,
       start_date: startDate,
       days_missed: daysMissed,
       games_missed: gamesMissed,
       is_current: false,
-      source_url: `https://www.transfermarkt.com`,
+      source_url: 'https://www.transfermarkt.com',
     });
   }
-
-  return injuries;
+  
+  // Remove duplicates
+  const seen = new Set<string>();
+  return injuries.filter(inj => {
+    const key = `${inj.start_date}-${inj.injury_type}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function parseMarketValueHistory(markdown: string, athleteId: string): any[] {
   const marketValues: any[] = [];
-  
-  // Look for market value patterns like "€50.00m" with dates
-  const valuePattern = /€([\d,.]+)\s*(m|k)?/gi;
-  const datePattern = /([A-Z][a-z]{2}\s+\d{1,2},?\s+\d{4})|(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})/g;
-  
   const lines = markdown.split('\n');
   
+  console.log(`Parsing market values from ${lines.length} lines of markdown`);
+  
+  // Market value patterns - multiple formats
+  // €50.00m, €50m, €50 Mio, €500k, €500,000
+  const valuePatterns = [
+    /€\s*([\d,.]+)\s*(m|mio\.?|million)/i,
+    /€\s*([\d,.]+)\s*k/i,
+    /€\s*([\d,.]+)/,
+    /([\d,.]+)\s*(m|mio\.?|million)?\s*€/i,
+  ];
+  
   for (const line of lines) {
-    const valueMatch = line.match(/€([\d,.]+)\s*(m|k)?/i);
-    const dateMatch = line.match(/([A-Z][a-z]{2}\s+\d{1,2},?\s+\d{4})|(\d{1,2}[\.\/]\d{1,2}[\.\/]\d{2,4})/);
+    if (!line.trim()) continue;
     
-    if (valueMatch && dateMatch) {
-      const amount = parseFloat(valueMatch[1].replace(/,/g, ''));
-      const multiplier = valueMatch[2]?.toLowerCase() === 'm' ? 1000000 : 
-                        valueMatch[2]?.toLowerCase() === 'k' ? 1000 : 1;
-      const marketValue = amount * multiplier;
-      
-      let recordedDate = dateMatch[0];
-      try {
-        const parsedDate = new Date(recordedDate.replace(/(\d{2})\.(\d{2})\.(\d{4})/, '$3-$2-$1'));
-        if (!isNaN(parsedDate.getTime())) {
-          recordedDate = parsedDate.toISOString().split('T')[0];
+    // Check for market value
+    let marketValue: number | null = null;
+    
+    for (const pattern of valuePatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        const amount = parseFloat(match[1].replace(/,/g, '.'));
+        const unit = match[2]?.toLowerCase();
+        
+        if (unit && (unit.startsWith('m') || unit === 'million')) {
+          marketValue = amount * 1000000;
+        } else if (unit === 'k') {
+          marketValue = amount * 1000;
+        } else if (amount > 10000) {
+          // Already in full value
+          marketValue = amount;
+        } else {
+          // Assume millions for small numbers with € symbol
+          marketValue = amount * 1000000;
         }
-      } catch (e) {}
-
-      // Avoid duplicates
-      if (!marketValues.some(mv => mv.recorded_date === recordedDate)) {
-        marketValues.push({
-          athlete_id: athleteId,
-          market_value: marketValue,
-          recorded_date: recordedDate,
-          currency: 'EUR',
-          source: 'transfermarkt',
-        });
+        break;
       }
     }
+    
+    if (!marketValue || marketValue < 100000) continue; // Skip unrealistic values
+    
+    // Look for date
+    const datePatterns = [
+      /(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})/,
+      /([A-Z][a-z]{2})\s+(\d{1,2}),?\s+(\d{4})/,
+      /(\d{4})-(\d{2})-(\d{2})/,
+      /([A-Z][a-z]+)\s+(\d{4})/,  // "January 2024"
+    ];
+    
+    let recordedDate: string | null = null;
+    for (const pattern of datePatterns) {
+      const match = line.match(pattern);
+      if (match) {
+        recordedDate = normalizeDate(match[0]);
+        break;
+      }
+    }
+    
+    if (!recordedDate) continue;
+    
+    // Check for duplicates
+    if (!marketValues.some(mv => mv.recorded_date === recordedDate)) {
+      marketValues.push({
+        athlete_id: athleteId,
+        market_value: marketValue,
+        recorded_date: recordedDate,
+        currency: 'EUR',
+        source: 'transfermarkt',
+      });
+    }
   }
-
+  
   return marketValues;
+}
+
+function normalizeDate(dateStr: string): string {
+  // Try to parse and normalize various date formats to YYYY-MM-DD
+  const str = dateStr.trim();
+  
+  // DD/MM/YYYY or DD.MM.YYYY or DD-MM-YYYY
+  const dmyMatch = str.match(/(\d{1,2})[\/\.-](\d{1,2})[\/\.-](\d{2,4})/);
+  if (dmyMatch) {
+    let day = dmyMatch[1].padStart(2, '0');
+    let month = dmyMatch[2].padStart(2, '0');
+    let year = dmyMatch[3];
+    if (year.length === 2) {
+      year = parseInt(year) > 50 ? `19${year}` : `20${year}`;
+    }
+    // If day > 12, assume DD/MM format, otherwise could be either
+    if (parseInt(day) > 12) {
+      return `${year}-${month}-${day}`;
+    }
+    // European format: DD.MM.YYYY
+    return `${year}-${month}-${day}`;
+  }
+  
+  // YYYY-MM-DD (already correct)
+  const ymdMatch = str.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (ymdMatch) {
+    return str;
+  }
+  
+  // Month Day, Year (Jan 1, 2024)
+  const monthDayYear = str.match(/([A-Z][a-z]{2,})\s+(\d{1,2}),?\s+(\d{4})/);
+  if (monthDayYear) {
+    const months: { [key: string]: string } = {
+      'jan': '01', 'feb': '02', 'mar': '03', 'apr': '04',
+      'may': '05', 'jun': '06', 'jul': '07', 'aug': '08',
+      'sep': '09', 'oct': '10', 'nov': '11', 'dec': '12',
+      'january': '01', 'february': '02', 'march': '03', 'april': '04',
+      'june': '06', 'july': '07', 'august': '08', 'september': '09',
+      'october': '10', 'november': '11', 'december': '12'
+    };
+    const monthNum = months[monthDayYear[1].toLowerCase()] || '01';
+    const day = monthDayYear[2].padStart(2, '0');
+    return `${monthDayYear[3]}-${monthNum}-${day}`;
+  }
+  
+  // Month Year (January 2024)
+  const monthYear = str.match(/([A-Z][a-z]+)\s+(\d{4})/);
+  if (monthYear) {
+    const months: { [key: string]: string } = {
+      'january': '01', 'february': '02', 'march': '03', 'april': '04',
+      'may': '05', 'june': '06', 'july': '07', 'august': '08',
+      'september': '09', 'october': '10', 'november': '11', 'december': '12'
+    };
+    const monthNum = months[monthYear[1].toLowerCase()] || '01';
+    return `${monthYear[2]}-${monthNum}-01`;
+  }
+  
+  // Just year
+  const yearOnly = str.match(/^(\d{4})$/);
+  if (yearOnly) {
+    return `${yearOnly[1]}-01-01`;
+  }
+  
+  // Return as-is if we can't parse (will likely fail validation later)
+  return str;
 }
