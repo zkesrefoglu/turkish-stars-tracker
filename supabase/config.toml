@@ -15,9 +15,6 @@ verify_jwt = false
 [functions.fetch-transfermarkt-data]
 verify_jwt = false
 
-[functions.fetch-fotmob-data]
-verify_jwt = false
-
 [functions.send-newsletter-confirmation]
 verify_jwt = false
 

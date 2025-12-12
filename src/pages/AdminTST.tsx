@@ -120,7 +120,7 @@ export default function AdminTST() {
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
-  const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; transfermarkt: string; fotmob: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', fotmob: 'idle', all: 'idle' });
+  const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; transfermarkt: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' });
 
   useEffect(() => {
     checkAdminStatus();
@@ -270,13 +270,13 @@ export default function AdminTST() {
 
       loadAllData();
       
-      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', fotmob: 'idle', all: 'idle' }), 3000);
+      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' }), 3000);
     } catch (error: any) {
       console.error('Sync all error:', error);
-      setSyncStatus({ football: 'error', nba: 'error', hollinger: 'error', transfermarkt: 'error', fotmob: 'error', all: 'error' });
+      setSyncStatus({ football: 'error', nba: 'error', hollinger: 'error', transfermarkt: 'error', all: 'error' });
       toast({ title: 'Refresh Failed', description: error.message, variant: 'destructive' });
       
-      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', fotmob: 'idle', all: 'idle' }), 3000);
+      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' }), 3000);
     }
   };
 
@@ -351,33 +351,6 @@ export default function AdminTST() {
     }
   };
 
-  const triggerFotMobSync = async () => {
-    setSyncStatus(prev => ({ ...prev, fotmob: 'syncing' }));
-    
-    try {
-      const { data, error } = await supabase.functions.invoke('fetch-fotmob-data');
-      
-      if (error) throw error;
-      
-      if (data?.success) {
-        setSyncStatus(prev => ({ ...prev, fotmob: 'success' }));
-        toast({ 
-          title: 'FotMob Sync Complete', 
-          description: `Processed ${data.summary?.athletesProcessed || 0} athletes: ${data.summary?.totalSeasonStats || 0} season stats, ${data.summary?.totalMatchUpdates || 0} match updates, ${data.summary?.totalInjuries || 0} injuries` 
-        });
-      } else {
-        throw new Error(data?.error || 'Unknown error');
-      }
-      
-      loadAllData();
-      setTimeout(() => setSyncStatus(prev => ({ ...prev, fotmob: 'idle' })), 3000);
-    } catch (error: any) {
-      console.error('FotMob sync error:', error);
-      setSyncStatus(prev => ({ ...prev, fotmob: 'error' }));
-      toast({ title: 'FotMob Sync Failed', description: error.message, variant: 'destructive' });
-      setTimeout(() => setSyncStatus(prev => ({ ...prev, fotmob: 'idle' })), 3000);
-    }
-  };
 
   if (loading) {
     return (
@@ -841,27 +814,6 @@ export default function AdminTST() {
                 </CardContent>
               </Card>
 
-              <Card>
-                <CardHeader>
-                  <CardTitle>FotMob Data Sync</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <p className="text-sm text-muted-foreground">
-                    Fetches season stats, recent match ratings, and injury history from FotMob for all football athletes
-                  </p>
-                  <Button 
-                    onClick={triggerFotMobSync} 
-                    disabled={syncStatus.fotmob === 'syncing'}
-                    className="w-full"
-                  >
-                    {syncStatus.fotmob === 'syncing' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
-                    {syncStatus.fotmob === 'success' && <CheckCircle className="h-4 w-4 mr-2 text-green-500" />}
-                    {syncStatus.fotmob === 'error' && <XCircle className="h-4 w-4 mr-2 text-red-500" />}
-                    {syncStatus.fotmob === 'idle' && <RefreshCw className="h-4 w-4 mr-2" />}
-                    Sync FotMob Data
-                  </Button>
-                </CardContent>
-              </Card>
 
               <Card>
                 <CardHeader>
