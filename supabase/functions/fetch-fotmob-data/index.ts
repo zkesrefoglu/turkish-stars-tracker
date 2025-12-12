@@ -69,11 +69,21 @@ async function fetchFotMobPlayer(fotmobId: number): Promise<FotMobPlayerData | n
   try {
     console.log(`Fetching FotMob data for player ID: ${fotmobId}`);
     
+    // FotMob requires specific headers to not block the request
     const response = await fetch(`${FOTMOB_BASE}/playerData?id=${fotmobId}`, {
       headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-        'Accept': 'application/json',
+        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+        'Accept': 'application/json, text/plain, */*',
         'Accept-Language': 'en-US,en;q=0.9',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Origin': 'https://www.fotmob.com',
+        'Referer': 'https://www.fotmob.com/',
+        'Sec-Ch-Ua': '"Not_A Brand";v="8", "Chromium";v="120", "Google Chrome";v="120"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"macOS"',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-origin',
       },
     });
     
@@ -83,7 +93,15 @@ async function fetchFotMobPlayer(fotmobId: number): Promise<FotMobPlayerData | n
     }
     
     const data = await response.json();
-    console.log(`Successfully fetched FotMob data for ${data.name || fotmobId}`);
+    
+    // Check if we got valid data
+    if (!data || !data.name) {
+      console.error(`FotMob returned empty/invalid data for player ${fotmobId}`);
+      console.log('Response data:', JSON.stringify(data).substring(0, 500));
+      return null;
+    }
+    
+    console.log(`Successfully fetched FotMob data for ${data.name}`);
     return data;
   } catch (error) {
     console.error(`Error fetching FotMob player ${fotmobId}:`, error);
