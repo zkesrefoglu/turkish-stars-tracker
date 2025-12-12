@@ -120,7 +120,7 @@ export default function AdminTST() {
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
-  const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', all: 'idle' });
+  const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; transfermarkt: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' });
 
   useEffect(() => {
     checkAdminStatus();
@@ -270,13 +270,13 @@ export default function AdminTST() {
 
       loadAllData();
       
-      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', all: 'idle' }), 3000);
+      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' }), 3000);
     } catch (error: any) {
       console.error('Sync all error:', error);
-      setSyncStatus({ football: 'error', nba: 'error', hollinger: 'error', all: 'error' });
+      setSyncStatus({ football: 'error', nba: 'error', hollinger: 'error', transfermarkt: 'error', all: 'error' });
       toast({ title: 'Refresh Failed', description: error.message, variant: 'destructive' });
       
-      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', all: 'idle' }), 3000);
+      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' }), 3000);
     }
   };
 
@@ -320,6 +320,34 @@ export default function AdminTST() {
       setSyncStatus(prev => ({ ...prev, hollinger: 'error' }));
       toast({ title: 'Hollinger Sync Failed', description: error.message, variant: 'destructive' });
       setTimeout(() => setSyncStatus(prev => ({ ...prev, hollinger: 'idle' })), 3000);
+    }
+  };
+
+  const triggerTransfermarktSync = async () => {
+    setSyncStatus(prev => ({ ...prev, transfermarkt: 'syncing' }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-transfermarkt-data');
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        setSyncStatus(prev => ({ ...prev, transfermarkt: 'success' }));
+        toast({ 
+          title: 'Transfermarkt Sync Complete', 
+          description: `Processed ${data.summary?.athletesProcessed || 0} athletes: ${data.summary?.totalTransfers || 0} transfers, ${data.summary?.totalInjuries || 0} injuries, ${data.summary?.totalMarketValues || 0} market values` 
+        });
+      } else {
+        throw new Error(data?.error || 'Unknown error');
+      }
+      
+      loadAllData();
+      setTimeout(() => setSyncStatus(prev => ({ ...prev, transfermarkt: 'idle' })), 3000);
+    } catch (error: any) {
+      console.error('Transfermarkt sync error:', error);
+      setSyncStatus(prev => ({ ...prev, transfermarkt: 'error' }));
+      toast({ title: 'Transfermarkt Sync Failed', description: error.message, variant: 'destructive' });
+      setTimeout(() => setSyncStatus(prev => ({ ...prev, transfermarkt: 'idle' })), 3000);
     }
   };
 
@@ -759,6 +787,28 @@ export default function AdminTST() {
                     {syncStatus.hollinger === 'error' && <XCircle className="h-4 w-4 mr-2 text-red-500" />}
                     {syncStatus.hollinger === 'idle' && <RefreshCw className="h-4 w-4 mr-2" />}
                     Fetch Hollinger Stats
+                  </Button>
+                </CardContent>
+              </Card>
+
+              <Card>
+                <CardHeader>
+                  <CardTitle>Transfermarkt Data Sync</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Scrapes transfer history, injuries, and market values from Transfermarkt for all football athletes
+                  </p>
+                  <Button 
+                    onClick={triggerTransfermarktSync} 
+                    disabled={syncStatus.transfermarkt === 'syncing'}
+                    className="w-full"
+                  >
+                    {syncStatus.transfermarkt === 'syncing' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {syncStatus.transfermarkt === 'success' && <CheckCircle className="h-4 w-4 mr-2 text-green-500" />}
+                    {syncStatus.transfermarkt === 'error' && <XCircle className="h-4 w-4 mr-2 text-red-500" />}
+                    {syncStatus.transfermarkt === 'idle' && <RefreshCw className="h-4 w-4 mr-2" />}
+                    Sync Transfermarkt Data
                   </Button>
                 </CardContent>
               </Card>
