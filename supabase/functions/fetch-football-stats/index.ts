@@ -302,11 +302,18 @@ Deno.serve(async (req) => {
   const authHeader = req.headers.get("authorization");
   
   // Check if webhook secret matches OR if there's a valid auth header (from supabase.functions.invoke)
+  // SECURITY: Reject if webhook secret is not configured AND no auth header provided
   const hasValidWebhookSecret = webhookSecret && providedSecret === webhookSecret;
   const hasAuthHeader = authHeader && authHeader.startsWith("Bearer ");
   
   if (!hasValidWebhookSecret && !hasAuthHeader) {
-    console.error("Unauthorized: Invalid or missing webhook secret and no auth header");
+    // If webhook secret is provided but doesn't match, or if no auth at all
+    const reason = providedSecret && !webhookSecret 
+      ? "STATS_WEBHOOK_SECRET not configured"
+      : providedSecret && providedSecret !== webhookSecret
+        ? "Invalid webhook secret"
+        : "Missing authentication";
+    console.error(`Unauthorized: ${reason}`);
     return new Response(
       JSON.stringify({ error: "Unauthorized" }),
       { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
