@@ -5,6 +5,9 @@ import { Input } from "./ui/input";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Youtube } from "lucide-react";
+import { z } from "zod";
+
+const emailSchema = z.string().email({ message: "Please enter a valid email address" });
 
 export const TurkishStarsFooter = () => {
   const navigate = useNavigate();
@@ -59,6 +62,17 @@ export const TurkishStarsFooter = () => {
       toast({
         title: "Error",
         description: "Please enter your email address",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate email format using zod
+    const validation = emailSchema.safeParse(email.trim());
+    if (!validation.success) {
+      toast({
+        title: "Invalid email",
+        description: validation.error.errors[0]?.message || "Please enter a valid email address",
         variant: "destructive",
       });
       return;
