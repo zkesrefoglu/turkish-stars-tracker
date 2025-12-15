@@ -213,23 +213,27 @@ export default function AthleteVideosPanel({ athletes }: AthleteVideosPanelProps
     });
   };
 
-  const VideoFormContent = ({ isEdit = false }: { isEdit?: boolean }) => (
+  const renderFormContent = (isEdit: boolean) => (
     <div className="space-y-4 py-4">
       <div>
-        <Label>Title *</Label>
+        <Label htmlFor={isEdit ? "edit-title" : "add-title"}>Title *</Label>
         <Input
+          id={isEdit ? "edit-title" : "add-title"}
           value={formData.title}
-          onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+          onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
           placeholder="Enter video title"
+          autoComplete="off"
         />
       </div>
       
       <div>
-        <Label>Video URL *</Label>
+        <Label htmlFor={isEdit ? "edit-video-url" : "add-video-url"}>Video URL *</Label>
         <Input
+          id={isEdit ? "edit-video-url" : "add-video-url"}
           value={formData.video_url}
-          onChange={(e) => setFormData({ ...formData, video_url: e.target.value })}
+          onChange={(e) => setFormData(prev => ({ ...prev, video_url: e.target.value }))}
           placeholder="https://..."
+          autoComplete="off"
         />
         <div className="mt-2">
           <Label className="cursor-pointer">
@@ -249,11 +253,13 @@ export default function AthleteVideosPanel({ athletes }: AthleteVideosPanelProps
       </div>
       
       <div>
-        <Label>Thumbnail URL</Label>
+        <Label htmlFor={isEdit ? "edit-thumbnail-url" : "add-thumbnail-url"}>Thumbnail URL</Label>
         <Input
+          id={isEdit ? "edit-thumbnail-url" : "add-thumbnail-url"}
           value={formData.thumbnail_url}
-          onChange={(e) => setFormData({ ...formData, thumbnail_url: e.target.value })}
+          onChange={(e) => setFormData(prev => ({ ...prev, thumbnail_url: e.target.value }))}
           placeholder="https://..."
+          autoComplete="off"
         />
         <div className="mt-2">
           <Label className="cursor-pointer">
@@ -321,11 +327,11 @@ export default function AthleteVideosPanel({ athletes }: AthleteVideosPanelProps
                   Add Video
                 </Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent aria-describedby={undefined}>
                 <DialogHeader>
                   <DialogTitle>Add Highlight Video</DialogTitle>
                 </DialogHeader>
-                <VideoFormContent />
+                {renderFormContent(false)}
               </DialogContent>
             </Dialog>
           )}
@@ -417,11 +423,11 @@ export default function AthleteVideosPanel({ athletes }: AthleteVideosPanelProps
 
         {/* Edit Dialog */}
         <Dialog open={!!editingVideo} onOpenChange={(open) => !open && setEditingVideo(null)}>
-          <DialogContent>
+          <DialogContent aria-describedby={undefined}>
             <DialogHeader>
               <DialogTitle>Edit Video</DialogTitle>
             </DialogHeader>
-            <VideoFormContent isEdit />
+            {renderFormContent(true)}
           </DialogContent>
         </Dialog>
       </CardContent>
