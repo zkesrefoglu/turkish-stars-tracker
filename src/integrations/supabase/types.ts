@@ -712,6 +712,53 @@ export type Database = {
           },
         ]
       }
+      athlete_videos: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean | null
+          storage_path: string | null
+          thumbnail_url: string | null
+          title: string
+          updated_at: string
+          video_url: string
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          title: string
+          updated_at?: string
+          video_url: string
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          title?: string
+          updated_at?: string
+          video_url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_videos_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       daily_topics: {
         Row: {
           author: string
@@ -976,6 +1023,33 @@ export type Database = {
           id?: string
           platform?: string
           user_id?: string | null
+        }
+        Relationships: []
+      }
+      sync_logs: {
+        Row: {
+          created_at: string
+          details: Json | null
+          id: string
+          status: string
+          sync_type: string
+          synced_at: string
+        }
+        Insert: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          status?: string
+          sync_type: string
+          synced_at?: string
+        }
+        Update: {
+          created_at?: string
+          details?: Json | null
+          id?: string
+          status?: string
+          sync_type?: string
+          synced_at?: string
         }
         Relationships: []
       }

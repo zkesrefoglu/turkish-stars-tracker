@@ -9,6 +9,7 @@ import { MarketValueChart } from "@/components/MarketValueChart";
 import { TransferHistoryTimeline } from "@/components/TransferHistoryTimeline";
 import { InjuryHistoryList } from "@/components/InjuryHistoryList";
 import { EfficiencyRankingsTable } from "@/components/EfficiencyRankingsTable";
+import { AthleteVideoCarousel } from "@/components/AthleteVideoCarousel";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -307,9 +308,9 @@ const AthleteProfilePage = () => {
       <div className="min-h-screen bg-background">
         <TurkishStarsHeader />
         <main className="container-custom py-8">
-          <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
+          <Link to="/athletes" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
             <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Turkish Stars
+            Back to Athletes
           </Link>
           <div className="text-center py-16">
             <h1 className="text-2xl font-bold text-foreground mb-2">Athlete Not Found</h1>
@@ -327,9 +328,9 @@ const AthleteProfilePage = () => {
       
       <main className="container-custom py-6">
         {/* BACK LINK */}
-        <Link to="/" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
+        <Link to="/athletes" className="inline-flex items-center text-sm text-muted-foreground hover:text-accent mb-6 transition-colors">
           <ArrowLeft className="w-4 h-4 mr-2" />
-          Back to Turkish Stars
+          Back to Athletes
         </Link>
 
         {/* HERO SECTION WITH ACTION PHOTO BACKGROUND */}
@@ -603,6 +604,9 @@ const AthleteProfilePage = () => {
             )}
           </Card>
         )}
+
+        {/* ATHLETE VIDEO CAROUSEL */}
+        <AthleteVideoCarousel athleteId={athlete.id} />
 
         {/* UPCOMING MATCHES */}
         {upcomingMatches.length > 0 && (
