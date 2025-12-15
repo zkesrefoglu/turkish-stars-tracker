@@ -44,13 +44,13 @@ interface ChartDataPoint {
   fullDate: string;
 }
 
-export const NBAGameStatsChart = ({ matches, maxGames = 12 }: NBAGameStatsChartProps) => {
+export const NBAGameStatsChart = ({ matches, maxGames = 20 }: NBAGameStatsChartProps) => {
   const { chartData, averages } = useMemo(() => {
-    // Filter to only played games with stats
+    // Filter to only played games with stats, sort by date ascending
     const playedGames = matches
       .filter((m) => m.played && m.stats && typeof m.stats.points === "number")
-      .slice(0, maxGames)
-      .reverse(); // Oldest first for left-to-right chronology
+      .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
+      .slice(-maxGames); // Take the most recent maxGames
 
     const data: ChartDataPoint[] = playedGames.map((game, index) => ({
       game: `G${index + 1}`,
@@ -162,7 +162,15 @@ export const NBAGameStatsChart = ({ matches, maxGames = 12 }: NBAGameStatsChartP
             />
             <Tooltip content={<CustomTooltip />} />
             
-            {/* Average reference lines */}
+            {/* Jokic benchmark line at 30 PTS */}
+            <ReferenceLine
+              y={30}
+              stroke="hsl(43 80% 40%)"
+              strokeWidth={2}
+              label={{ value: "Jokic", position: "right", fill: "hsl(43 80% 40%)", fontSize: 11 }}
+            />
+            
+            {/* Average reference line */}
             <ReferenceLine
               y={averages.PTS}
               stroke="hsl(var(--chart-1))"
