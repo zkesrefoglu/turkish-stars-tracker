@@ -101,7 +101,18 @@ export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
 
   return (
     <div className="relative py-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">Highlights</h3>
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+          <Play className="w-5 h-5 text-accent" />
+          Highlights
+        </h2>
+        {canScrollNext && (
+          <div className="flex items-center gap-1 text-sm text-muted-foreground animate-pulse">
+            <span className="hidden sm:inline">Swipe for more</span>
+            <ChevronRight className="w-4 h-4" />
+          </div>
+        )}
+      </div>
       
       <div className="relative group">
         {/* Navigation Arrows */}
