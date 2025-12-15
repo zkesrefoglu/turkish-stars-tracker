@@ -1,38 +1,61 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Menu, X } from "lucide-react";
+import { Menu, X, Star } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 export const TurkishStarsHeader = () => {
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
+
+  useEffect(() => {
+    // Trigger animations after mount
+    const timer = setTimeout(() => setIsLoaded(true), 100);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <header className="sticky top-0 z-50 bg-background/95 backdrop-blur-sm border-b border-border">
+    <header className="sticky top-0 z-50 bg-gradient-to-br from-background to-muted/30 backdrop-blur-sm border-b border-border">
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-24">
-          {/* Logo */}
+          {/* Left Section: Logo + Tagline */}
           <Link to="/" className="flex items-center gap-4 group">
-            <img
-              src="/images/turkish-stars-logo.png"
-              alt="Turkish Stars"
-              className="h-20 md:h-28 w-auto transition-transform group-hover:scale-105"
-            />
-            <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui">
-              <p>Bringing Turkish Stars Home — Digitally</p>
-              <p>Follow your favorite Turkish athletes competing around the world.</p>
-              <p>Track their stats, upcoming matches, and latest news all in one place.</p>
-            </span>
+            {/* Animated Star */}
+            <div className="relative">
+              <Star 
+                className={`absolute -top-1 -right-1 w-4 h-4 text-accent fill-accent transition-all duration-700 ${
+                  isLoaded ? 'opacity-100 rotate-0 scale-100' : 'opacity-0 rotate-180 scale-50'
+                }`}
+              />
+              <img
+                src="/images/turkish-stars-logo.png"
+                alt="Turkish Stars"
+                className="h-16 md:h-20 w-auto transition-transform group-hover:scale-105"
+              />
+            </div>
+            
+            {/* Tagline Box */}
+            <div className="hidden sm:block bg-muted/50 rounded-lg px-4 py-2.5 border border-border/50">
+              <p className="text-base font-bold text-foreground tracking-tight">
+                Bringing Turkish Stars Home — Digitally
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Track stats, matches, and news for your favorite Turkish athletes worldwide.
+              </p>
+            </div>
           </Link>
 
-          {/* Desktop Navigation */}
-          <nav className="hidden md:flex items-center gap-6">
-            <Link to="/" className="text-sm font-medium text-foreground/80 hover:text-accent transition-colors">
+          {/* Vertical Divider */}
+          <div className="hidden md:block h-12 w-px bg-border/60 mx-6" />
+
+          {/* Right Section: Desktop Navigation */}
+          <nav className="hidden md:flex items-center gap-8">
+            <Link to="/" className="nav-link-animated text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">
               Home
             </Link>
-            <Link
-              to="/admin/tst"
-              className="text-sm font-medium text-foreground/80 hover:text-accent transition-colors"
-            >
+            <Link to="/athletes" className="nav-link-animated text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">
+              Athletes
+            </Link>
+            <Link to="/admin/tst" className="nav-link-animated text-sm font-medium text-foreground/70 hover:text-foreground transition-colors">
               Admin
             </Link>
           </nav>
@@ -54,6 +77,13 @@ export const TurkishStarsHeader = () => {
                   Home
                 </Link>
                 <Link
+                  to="/athletes"
+                  className="text-lg font-medium text-foreground hover:text-accent transition-colors py-2"
+                  onClick={() => setIsOpen(false)}
+                >
+                  Athletes
+                </Link>
+                <Link
                   to="/admin/tst"
                   className="text-lg font-medium text-foreground hover:text-accent transition-colors py-2"
                   onClick={() => setIsOpen(false)}
@@ -65,6 +95,13 @@ export const TurkishStarsHeader = () => {
           </Sheet>
         </div>
       </div>
+      
+      {/* Animated Accent Bar */}
+      <div 
+        className={`h-1 bg-accent transition-all duration-700 ease-out ${
+          isLoaded ? 'w-full' : 'w-0'
+        }`}
+      />
     </header>
   );
 };
