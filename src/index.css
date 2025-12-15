@@ -68,6 +68,13 @@
     /* Transitions */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     --transition-spring: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Chart Colors - Data Visualization */
+    --chart-1: 4 90% 58%;
+    --chart-2: 142 71% 45%;
+    --chart-3: 217 91% 60%;
+    --chart-4: 43 96% 56%;
+    --chart-5: 280 85% 65%;
   }
 
   .dark {
@@ -99,6 +106,13 @@
     --border: 222 30% 20%;
     --input: 222 30% 20%;
     --ring: 222 90% 55%;
+
+    /* Chart Colors - Bright for dark mode */
+    --chart-1: 4 90% 65%;
+    --chart-2: 142 71% 55%;
+    --chart-3: 217 91% 70%;
+    --chart-4: 43 96% 60%;
+    --chart-5: 280 85% 70%;
   }
 }
 
