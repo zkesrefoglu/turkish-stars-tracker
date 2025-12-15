@@ -12,9 +12,10 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video, Instagram } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video, Instagram, TrendingUp } from 'lucide-react';
 import HeroSettingsPanel from '@/components/admin/HeroSettingsPanel';
 import InstagramDownloaderPanel from '@/components/admin/InstagramDownloaderPanel';
+import EfficiencyRankingsPanel from '@/components/admin/EfficiencyRankingsPanel';
 
 interface Athlete {
   id: string;
@@ -388,13 +389,17 @@ export default function AdminTST() {
         </div>
 
         <Tabs defaultValue="athletes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-10 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-11 lg:w-auto lg:inline-grid">
             <TabsTrigger value="athletes">Athletes</TabsTrigger>
             <TabsTrigger value="updates">Daily Updates</TabsTrigger>
             <TabsTrigger value="live">Live Matches</TabsTrigger>
             <TabsTrigger value="rumors">Rumors</TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="stats">Season Stats</TabsTrigger>
+            <TabsTrigger value="efficiency">
+              <TrendingUp className="h-4 w-4 mr-1" />
+              Efficiency
+            </TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
             <TabsTrigger value="hero">
               <Video className="h-4 w-4 mr-1" />
@@ -721,6 +726,11 @@ export default function AdminTST() {
                 </Table>
               </CardContent>
             </Card>
+          </TabsContent>
+
+          {/* Efficiency Rankings Tab */}
+          <TabsContent value="efficiency">
+            <EfficiencyRankingsPanel athletes={athletes} />
           </TabsContent>
 
           {/* Sync Tab */}

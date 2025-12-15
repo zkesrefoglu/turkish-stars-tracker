@@ -136,6 +136,59 @@ export type Database = {
           },
         ]
       }
+      athlete_efficiency_rankings: {
+        Row: {
+          athlete_id: string
+          created_at: string
+          efficiency_index: number | null
+          id: string
+          is_featured_athlete: boolean | null
+          month: string
+          per: number | null
+          player_name: string
+          team: string
+          ts_pct: number | null
+          updated_at: string
+          ws: number | null
+        }
+        Insert: {
+          athlete_id: string
+          created_at?: string
+          efficiency_index?: number | null
+          id?: string
+          is_featured_athlete?: boolean | null
+          month: string
+          per?: number | null
+          player_name: string
+          team: string
+          ts_pct?: number | null
+          updated_at?: string
+          ws?: number | null
+        }
+        Update: {
+          athlete_id?: string
+          created_at?: string
+          efficiency_index?: number | null
+          id?: string
+          is_featured_athlete?: boolean | null
+          month?: string
+          per?: number | null
+          player_name?: string
+          team?: string
+          ts_pct?: number | null
+          updated_at?: string
+          ws?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_efficiency_rankings_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_injury_history: {
         Row: {
           athlete_id: string
