@@ -117,9 +117,13 @@ export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
                       className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-b from-muted to-muted-foreground/20 flex items-center justify-center">
-                      <Play className="w-8 h-8 text-muted-foreground" />
-                    </div>
+                    <video
+                      src={video.video_url}
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+                      preload="metadata"
+                      muted
+                      playsInline
+                    />
                   )}
                   
                   {/* Overlay gradient */}
