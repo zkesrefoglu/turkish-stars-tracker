@@ -48,11 +48,6 @@ export const TurkishStarsHeader = ({ transparent = false }: TurkishStarsHeaderPr
               alt="Turkish Stars"
               className="h-20 md:h-28 w-auto transition-transform group-hover:scale-105"
             />
-            <span className="hidden sm:block text-sm md:text-base text-muted-foreground font-ui">
-              <p>Bringing Turkish Stars Home — Digitally</p>
-              <p>Follow your favorite Turkish athletes competing around the world.</p>
-              <p>Track their stats, upcoming matches, and latest news all in one place.</p>
-            </span>
           </Link>
 
           {/* Desktop Navigation */}

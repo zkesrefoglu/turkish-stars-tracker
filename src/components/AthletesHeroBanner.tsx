@@ -36,26 +36,30 @@ export const AthletesHeroBanner = () => {
       <div className="container-custom relative z-10 py-10 md:py-14">
         <div className="flex flex-col items-center text-center">
           {/* Stars row */}
-          <div className="flex items-center gap-2 mb-3 animate-fade-in-up">
+          <div className="flex items-center gap-2 mb-4 animate-fade-in-up">
             <Star className="w-4 h-4 md:w-5 md:h-5 text-background fill-background" />
             <Star className="w-5 h-5 md:w-6 md:h-6 text-background fill-background" />
             <Star className="w-4 h-4 md:w-5 md:h-5 text-background fill-background" />
           </div>
           
-          {/* Main title */}
-          <h1 
-            className="text-3xl md:text-5xl lg:text-6xl font-headline font-bold text-background tracking-tight mb-2 animate-fade-in-up"
+          {/* Tagline content */}
+          <p 
+            className="text-background/90 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up mb-2"
             style={{ animationDelay: '0.1s' }}
           >
-            TURKISH STARS
-          </h1>
-          
-          {/* Subtitle */}
+            Bringing Turkish Stars Home — Digitally
+          </p>
           <p 
-            className="text-background/80 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up"
+            className="text-background/80 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up mb-1"
             style={{ animationDelay: '0.2s' }}
           >
-            Track Your Favorite Athletes
+            Follow your favorite Turkish athletes competing around the world.
+          </p>
+          <p 
+            className="text-background/80 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up"
+            style={{ animationDelay: '0.3s' }}
+          >
+            Track their stats, upcoming matches, and latest news all in one place.
           </p>
           
           {/* Decorative line */}
