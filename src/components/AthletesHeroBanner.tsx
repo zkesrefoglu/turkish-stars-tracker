@@ -33,40 +33,28 @@ export const AthletesHeroBanner = () => {
       </div>
 
       {/* Main content */}
-      <div className="container-custom relative z-10 py-10 md:py-14">
-        <div className="flex flex-col items-center text-center">
+      <div className="container-custom relative z-10 py-8 md:py-10">
+        <div className="flex flex-col items-center justify-center text-center">
           {/* Stars row */}
-          <div className="flex items-center gap-2 mb-4 animate-fade-in-up">
+          <div className="flex items-center gap-2 mb-3 animate-fade-in-up">
             <Star className="w-4 h-4 md:w-5 md:h-5 text-background fill-background" />
             <Star className="w-5 h-5 md:w-6 md:h-6 text-background fill-background" />
             <Star className="w-4 h-4 md:w-5 md:h-5 text-background fill-background" />
           </div>
           
-          {/* Tagline content */}
+          {/* Description lines */}
           <p 
-            className="text-background/90 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up mb-2"
+            className="text-background/90 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up mb-1"
             style={{ animationDelay: '0.1s' }}
-          >
-            Bringing Turkish Stars Home — Digitally
-          </p>
-          <p 
-            className="text-background/80 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up mb-1"
-            style={{ animationDelay: '0.2s' }}
           >
             Follow your favorite Turkish athletes competing around the world.
           </p>
           <p 
             className="text-background/80 text-sm md:text-base font-ui uppercase tracking-[0.2em] animate-fade-in-up"
-            style={{ animationDelay: '0.3s' }}
+            style={{ animationDelay: '0.2s' }}
           >
             Track their stats, upcoming matches, and latest news all in one place.
           </p>
-          
-          {/* Decorative line */}
-          <div 
-            className="mt-4 w-24 md:w-32 h-0.5 bg-background/40 rounded-full animate-fade-in-up"
-            style={{ animationDelay: '0.3s' }}
-          />
         </div>
       </div>
 
