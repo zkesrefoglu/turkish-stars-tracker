@@ -4,6 +4,7 @@ import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
 import { TurkishStarsFooter } from "@/components/TurkishStarsFooter";
 import { FormGraphic } from "@/components/FormGraphic";
 import { RatingTrendChart } from "@/components/RatingTrendChart";
+import { NBAGameStatsChart } from "@/components/NBAGameStatsChart";
 import { MarketValueChart } from "@/components/MarketValueChart";
 import { TransferHistoryTimeline } from "@/components/TransferHistoryTimeline";
 import { InjuryHistoryList } from "@/components/InjuryHistoryList";
@@ -537,6 +538,13 @@ const AthleteProfilePage = () => {
             </div>
           </Card>
         </div>
+
+        {/* NBA Game Stats Chart (Basketball only) */}
+        {athlete.sport === "basketball" && matchHistory.length >= 2 && (
+          <div className="mb-8">
+            <NBAGameStatsChart matches={matchHistory} maxGames={12} />
+          </div>
+        )}
 
         {/* BIO SECTION */}
         {(athlete.bio || athlete.instagram || athlete.official_link) && (
