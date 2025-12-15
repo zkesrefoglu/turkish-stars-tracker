@@ -88,6 +88,28 @@ export default {
         sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
       },
       keyframes: {
+        "ken-burns": {
+          "0%": { transform: "scale(1)" },
+          "100%": { transform: "scale(1.1)" },
+        },
+        "fade-in-up": {
+          "0%": { 
+            opacity: "0", 
+            transform: "translateY(30px)" 
+          },
+          "100%": { 
+            opacity: "1", 
+            transform: "translateY(0)" 
+          },
+        },
+        "glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 20px rgba(var(--accent-rgb), 0.3)" 
+          },
+          "50%": { 
+            boxShadow: "0 0 40px rgba(var(--accent-rgb), 0.6)" 
+          },
+        },
         "accordion-down": {
           from: {
             height: "0",
@@ -146,6 +168,9 @@ export default {
         },
       },
       animation: {
+        "ken-burns": "ken-burns 20s ease-out forwards",
+        "fade-in-up": "fade-in-up 0.8s ease-out forwards",
+        "glow": "glow 2s ease-in-out infinite",
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
