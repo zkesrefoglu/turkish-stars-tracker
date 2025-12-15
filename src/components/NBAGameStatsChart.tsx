@@ -42,6 +42,7 @@ interface ChartDataPoint {
   REB: number;
   AST: number;
   fullDate: string;
+  isDoubleDouble: boolean;
 }
 
 export const NBAGameStatsChart = ({ matches, maxGames = 20 }: NBAGameStatsChartProps) => {
@@ -52,15 +53,22 @@ export const NBAGameStatsChart = ({ matches, maxGames = 20 }: NBAGameStatsChartP
       .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime())
       .slice(-maxGames); // Take the most recent maxGames
 
-    const data: ChartDataPoint[] = playedGames.map((game, index) => ({
-      game: `G${index + 1}`,
-      date: format(new Date(game.date), "M/d"),
-      opponent: game.opponent || "Unknown",
-      fullDate: format(new Date(game.date), "MMM d, yyyy"),
-      PTS: game.stats?.points || 0,
-      REB: game.stats?.rebounds || 0,
-      AST: game.stats?.assists || 0,
-    }));
+    const data: ChartDataPoint[] = playedGames.map((game, index) => {
+      const pts = game.stats?.points || 0;
+      const reb = game.stats?.rebounds || 0;
+      const ast = game.stats?.assists || 0;
+      const doubleDigits = [pts >= 10, reb >= 10, ast >= 10].filter(Boolean).length;
+      return {
+        game: `G${index + 1}`,
+        date: format(new Date(game.date), "M/d"),
+        opponent: game.opponent || "Unknown",
+        fullDate: format(new Date(game.date), "MMM d, yyyy"),
+        PTS: pts,
+        REB: reb,
+        AST: ast,
+        isDoubleDouble: doubleDigits >= 2,
+      };
+    });
 
     // Calculate averages
     const totalPts = data.reduce((sum, g) => sum + g.PTS, 0);
@@ -87,9 +95,16 @@ export const NBAGameStatsChart = ({ matches, maxGames = 20 }: NBAGameStatsChartP
       const data = payload[0].payload as ChartDataPoint;
       return (
         <div className="bg-card border border-border rounded-lg p-3 shadow-lg">
-          <p className="font-semibold text-foreground text-sm mb-1">
-            vs {data.opponent}
-          </p>
+          <div className="flex items-center gap-2 mb-1">
+            <p className="font-semibold text-foreground text-sm">
+              vs {data.opponent}
+            </p>
+            {data.isDoubleDouble && (
+              <span className="text-[10px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-400 px-1.5 py-0.5 rounded">
+                DD
+              </span>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground mb-2">{data.fullDate}</p>
           <div className="space-y-1">
             <p className="text-sm">
@@ -167,6 +182,7 @@ export const NBAGameStatsChart = ({ matches, maxGames = 20 }: NBAGameStatsChartP
               y={30}
               stroke="hsl(43 80% 40%)"
               strokeWidth={2}
+              strokeDasharray="6 4"
               label={{ value: "Jokic", position: "right", fill: "hsl(43 80% 40%)", fontSize: 11 }}
             />
             
@@ -183,7 +199,18 @@ export const NBAGameStatsChart = ({ matches, maxGames = 20 }: NBAGameStatsChartP
               dataKey="PTS"
               stroke="hsl(var(--chart-1))"
               strokeWidth={2.5}
-              dot={{ fill: "hsl(var(--chart-1))", strokeWidth: 0, r: 3 }}
+              dot={(props: any) => {
+                const { cx, cy, payload } = props;
+                if (payload.isDoubleDouble) {
+                  return (
+                    <g key={`pts-${payload.game}`}>
+                      <circle cx={cx} cy={cy} r={6} fill="hsl(43 80% 50%)" stroke="hsl(43 80% 30%)" strokeWidth={1.5} />
+                      <circle cx={cx} cy={cy} r={3} fill="hsl(var(--chart-1))" />
+                    </g>
+                  );
+                }
+                return <circle key={`pts-${payload.game}`} cx={cx} cy={cy} r={3} fill="hsl(var(--chart-1))" />;
+              }}
               activeDot={{ r: 5, fill: "hsl(var(--chart-1))" }}
             />
             <Line
