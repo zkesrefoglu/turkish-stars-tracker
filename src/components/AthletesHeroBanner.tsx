@@ -33,8 +33,8 @@ export const AthletesHeroBanner = () => {
       </div>
 
       {/* Main content */}
-      <div className="container-custom relative z-10 py-8 md:py-10">
-        <div className="flex flex-col items-center justify-center text-center">
+      <div className="container-custom relative z-10 min-h-[88px] py-4 md:py-6 flex items-center justify-center">
+        <div className="flex flex-col items-center text-center">
           {/* Stars row */}
           <div className="flex items-center gap-2 mb-3 animate-fade-in-up">
             <Star className="w-4 h-4 md:w-5 md:h-5 text-background fill-background" />
