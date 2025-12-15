@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
 import { TurkishStarsFooter } from "@/components/TurkishStarsFooter";
-import { AthletesHeroBanner } from "@/components/AthletesHeroBanner";
 import { LiveMatchTracker } from "@/components/LiveMatchTracker";
 import { FormGraphic } from "@/components/FormGraphic";
 import { supabase } from "@/integrations/supabase/client";
@@ -185,7 +184,6 @@ const TurkishStars = () => {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <TurkishStarsHeader />
-      <AthletesHeroBanner />
       
       <main className="container-custom py-6">
 

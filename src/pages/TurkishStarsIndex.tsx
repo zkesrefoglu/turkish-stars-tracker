@@ -23,6 +23,10 @@ const TurkishStarsIndex = () => {
         ctaText={settings.cta_text}
         ctaHref={settings.cta_href}
         overlayOpacity={settings.overlay_opacity}
+        videoScale={settings.video_scale}
+        videoPositionX={settings.video_position_x}
+        videoPositionY={settings.video_position_y}
+        minHeightVh={settings.min_height_vh}
       />
       
       {/* Content below the hero to test scroll 
