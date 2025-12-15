@@ -106,7 +106,7 @@ export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
             {videos.map((video) => (
               <div
                 key={video.id}
-                className="flex-shrink-0 w-[140px] md:w-[160px] cursor-pointer group/card"
+                className="flex-shrink-0 w-[280px] md:w-[320px] cursor-pointer group/card"
                 onClick={() => setSelectedVideo(video)}
               >
                 <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-muted">
