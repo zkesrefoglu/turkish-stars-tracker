@@ -8,6 +8,7 @@ import { NBAGameStatsChart } from "@/components/NBAGameStatsChart";
 import { MarketValueChart } from "@/components/MarketValueChart";
 import { TransferHistoryTimeline } from "@/components/TransferHistoryTimeline";
 import { InjuryHistoryList } from "@/components/InjuryHistoryList";
+import { EfficiencyRankingsTable } from "@/components/EfficiencyRankingsTable";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -138,6 +139,19 @@ interface MarketValue {
   value_change_percentage: number | null;
 }
 
+interface EfficiencyRanking {
+  id: string;
+  athlete_id: string;
+  month: string;
+  player_name: string;
+  team: string;
+  per: number | null;
+  ts_pct: number | null;
+  ws: number | null;
+  efficiency_index: number | null;
+  is_featured_athlete: boolean;
+}
+
 const AthleteProfilePage = () => {
   const { slug } = useParams<{ slug: string }>();
   const [athlete, setAthlete] = useState<AthleteProfile | null>(null);
@@ -149,6 +163,7 @@ const AthleteProfilePage = () => {
   const [transferHistory, setTransferHistory] = useState<TransferHistory[]>([]);
   const [injuryHistory, setInjuryHistory] = useState<InjuryHistory[]>([]);
   const [marketValues, setMarketValues] = useState<MarketValue[]>([]);
+  const [efficiencyRankings, setEfficiencyRankings] = useState<EfficiencyRanking[]>([]);
   const [loading, setLoading] = useState(true);
   const [expandedMatch, setExpandedMatch] = useState<string | null>(null);
 
@@ -172,7 +187,7 @@ const AthleteProfilePage = () => {
         setAthlete(athleteData);
 
         // Fetch related data
-        const [statsRes, updatesRes, rumorsRes, matchesRes, newsRes, transferHistoryRes, injuryHistoryRes, marketValuesRes] = await Promise.all([
+        const [statsRes, updatesRes, rumorsRes, matchesRes, newsRes, transferHistoryRes, injuryHistoryRes, marketValuesRes, efficiencyRes] = await Promise.all([
           supabase.from("athlete_season_stats").select("*").eq("athlete_id", athleteData.id).order("season", { ascending: false }),
           supabase.from("athlete_daily_updates").select("*").eq("athlete_id", athleteData.id).order("date", { ascending: false }),
           supabase.from("athlete_transfer_rumors").select("*").eq("athlete_id", athleteData.id).order("rumor_date", { ascending: false }),
@@ -181,6 +196,7 @@ const AthleteProfilePage = () => {
           supabase.from("athlete_transfer_history").select("*").eq("athlete_id", athleteData.id).order("transfer_date", { ascending: false }),
           supabase.from("athlete_injury_history").select("*").eq("athlete_id", athleteData.id).order("start_date", { ascending: false }),
           supabase.from("athlete_market_values").select("*").eq("athlete_id", athleteData.id).order("recorded_date", { ascending: false }),
+          supabase.from("athlete_efficiency_rankings").select("*").eq("athlete_id", athleteData.id).order("month", { ascending: false }),
         ]);
 
         if (statsRes.data) setSeasonStats(statsRes.data);
@@ -191,6 +207,7 @@ const AthleteProfilePage = () => {
         if (transferHistoryRes.data) setTransferHistory(transferHistoryRes.data);
         if (injuryHistoryRes.data) setInjuryHistory(injuryHistoryRes.data);
         if (marketValuesRes.data) setMarketValues(marketValuesRes.data);
+        if (efficiencyRes.data) setEfficiencyRankings(efficiencyRes.data);
       } catch (error) {
         console.error("Error fetching data:", error);
       } finally {
@@ -718,6 +735,11 @@ const AthleteProfilePage = () => {
               <Card className="p-8 text-center bg-card border-border">
                 <p className="text-muted-foreground">No season stats available yet.</p>
               </Card>
+            )}
+            
+            {/* Efficiency Rankings Table for Basketball */}
+            {athlete.sport === "basketball" && efficiencyRankings.length > 0 && (
+              <EfficiencyRankingsTable rankings={efficiencyRankings} athleteName={athlete.name} />
             )}
           </TabsContent>
 
