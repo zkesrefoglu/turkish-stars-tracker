@@ -42,12 +42,15 @@ export const TurkishStarsHeader = ({ transparent = false }: TurkishStarsHeaderPr
       <div className="container mx-auto px-6">
         <div className="flex items-center justify-between h-20 md:h-24">
           {/* Logo */}
-          <Link to="/" className="flex items-center gap-4 group">
+          <Link to="/" className="flex items-center gap-3 group">
             <img
               src="/images/turkish-stars-logo.png"
               alt="Turkish Stars"
               className="h-20 md:h-28 w-auto transition-transform group-hover:scale-105"
             />
+            <span className="hidden lg:block text-xs font-ui uppercase tracking-[0.15em] text-muted-foreground">
+              Bringing Turkish Stars Home — Digitally
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
