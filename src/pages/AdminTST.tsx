@@ -12,10 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video, Instagram, TrendingUp } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video, Instagram, TrendingUp, Film } from 'lucide-react';
 import HeroSettingsPanel from '@/components/admin/HeroSettingsPanel';
 import InstagramDownloaderPanel from '@/components/admin/InstagramDownloaderPanel';
 import EfficiencyRankingsPanel from '@/components/admin/EfficiencyRankingsPanel';
+import AthleteVideosPanel from '@/components/admin/AthleteVideosPanel';
+import { useSyncLogs } from '@/hooks/useSyncLogs';
 
 interface Athlete {
   id: string;
@@ -122,6 +124,7 @@ export default function AdminTST() {
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
   const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; transfermarkt: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' });
+  const { getLastSyncedText, logSync, refetch: refetchSyncLogs } = useSyncLogs();
 
   useEffect(() => {
     checkAdminStatus();
@@ -224,6 +227,7 @@ export default function AdminTST() {
       
       setSyncStatus(prev => ({ ...prev, [type]: 'success' }));
       toast({ title: 'Sync Complete', description: `${type === 'football' ? 'Football' : 'NBA'} stats updated successfully` });
+      await logSync(type, 'success', data);
       loadAllData();
       
       setTimeout(() => setSyncStatus(prev => ({ ...prev, [type]: 'idle' })), 3000);
@@ -231,6 +235,7 @@ export default function AdminTST() {
       console.error('Sync error:', error);
       setSyncStatus(prev => ({ ...prev, [type]: 'error' }));
       toast({ title: 'Sync Failed', description: error.message, variant: 'destructive' });
+      await logSync(type, 'error', { error: error.message });
       
       setTimeout(() => setSyncStatus(prev => ({ ...prev, [type]: 'idle' })), 3000);
     }
@@ -310,6 +315,7 @@ export default function AdminTST() {
           title: 'Hollinger Sync Complete', 
           description: `PER Rank: #${data.data?.rank} | PER: ${data.data?.per}` 
         });
+        await logSync('hollinger', 'success', data);
       } else {
         throw new Error(data?.error || 'Unknown error');
       }
@@ -320,6 +326,7 @@ export default function AdminTST() {
       console.error('Hollinger sync error:', error);
       setSyncStatus(prev => ({ ...prev, hollinger: 'error' }));
       toast({ title: 'Hollinger Sync Failed', description: error.message, variant: 'destructive' });
+      await logSync('hollinger', 'error', { error: error.message });
       setTimeout(() => setSyncStatus(prev => ({ ...prev, hollinger: 'idle' })), 3000);
     }
   };
@@ -338,6 +345,7 @@ export default function AdminTST() {
           title: 'Transfermarkt Sync Complete', 
           description: `Processed ${data.summary?.athletesProcessed || 0} athletes: ${data.summary?.totalTransfers || 0} transfers, ${data.summary?.totalInjuries || 0} injuries, ${data.summary?.totalMarketValues || 0} market values` 
         });
+        await logSync('transfermarkt', 'success', data);
       } else {
         throw new Error(data?.error || 'Unknown error');
       }
@@ -348,6 +356,7 @@ export default function AdminTST() {
       console.error('Transfermarkt sync error:', error);
       setSyncStatus(prev => ({ ...prev, transfermarkt: 'error' }));
       toast({ title: 'Transfermarkt Sync Failed', description: error.message, variant: 'destructive' });
+      await logSync('transfermarkt', 'error', { error: error.message });
       setTimeout(() => setSyncStatus(prev => ({ ...prev, transfermarkt: 'idle' })), 3000);
     }
   };
@@ -389,7 +398,7 @@ export default function AdminTST() {
         </div>
 
         <Tabs defaultValue="athletes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-11 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-12 lg:w-auto lg:inline-grid">
             <TabsTrigger value="athletes">Athletes</TabsTrigger>
             <TabsTrigger value="updates">Daily Updates</TabsTrigger>
             <TabsTrigger value="live">Live Matches</TabsTrigger>
@@ -399,6 +408,10 @@ export default function AdminTST() {
             <TabsTrigger value="efficiency">
               <TrendingUp className="h-4 w-4 mr-1" />
               Efficiency
+            </TabsTrigger>
+            <TabsTrigger value="videos">
+              <Film className="h-4 w-4 mr-1" />
+              Videos
             </TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
             <TabsTrigger value="hero">
@@ -733,6 +746,11 @@ export default function AdminTST() {
             <EfficiencyRankingsPanel athletes={athletes} />
           </TabsContent>
 
+          {/* Videos Tab */}
+          <TabsContent value="videos">
+            <AthleteVideosPanel athletes={athletes} />
+          </TabsContent>
+
           {/* Sync Tab */}
           <TabsContent value="sync">
             <div className="grid gap-6 md:grid-cols-2">
@@ -744,6 +762,7 @@ export default function AdminTST() {
                   <p className="text-sm text-muted-foreground">
                     Fetches stats from API-Football for: Arda Guler, Kenan Yildiz, Ferdi Kadioglu, Can Uzun, Berke Ozer
                   </p>
+                  <p className="text-xs text-accent">{getLastSyncedText('football')}</p>
                   <Button 
                     onClick={() => triggerSync('football')} 
                     disabled={syncStatus.football === 'syncing'}
@@ -766,6 +785,7 @@ export default function AdminTST() {
                   <p className="text-sm text-muted-foreground">
                     Fetches stats from Balldontlie API for: Alperen Şengün
                   </p>
+                  <p className="text-xs text-accent">{getLastSyncedText('nba')}</p>
                   <Button 
                     onClick={() => triggerSync('nba')} 
                     disabled={syncStatus.nba === 'syncing'}
@@ -788,6 +808,7 @@ export default function AdminTST() {
                   <p className="text-sm text-muted-foreground">
                     Fetches PER ranking from ESPN Hollinger stats for: Alperen Şengün
                   </p>
+                  <p className="text-xs text-accent">{getLastSyncedText('hollinger')}</p>
                   <Button 
                     onClick={triggerHollingerSync} 
                     disabled={syncStatus.hollinger === 'syncing'}
@@ -810,6 +831,7 @@ export default function AdminTST() {
                   <p className="text-sm text-muted-foreground">
                     Scrapes transfer history, injuries, and market values from Transfermarkt for all football athletes
                   </p>
+                  <p className="text-xs text-accent">{getLastSyncedText('transfermarkt')}</p>
                   <Button 
                     onClick={triggerTransfermarktSync} 
                     disabled={syncStatus.transfermarkt === 'syncing'}
