@@ -1,8 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { ChevronLeft, ChevronRight, Play, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent } from "@/components/ui/dialog";
 import useEmblaCarousel from "embla-carousel-react";
 
 interface AthleteVideo {
@@ -19,9 +18,10 @@ interface AthleteVideoCarouselProps {
 
 export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
   const [videos, setVideos] = useState<AthleteVideo[]>([]);
-  const [selectedVideo, setSelectedVideo] = useState<AthleteVideo | null>(null);
+  const [playingVideoId, setPlayingVideoId] = useState<string | null>(null);
   const [canScrollPrev, setCanScrollPrev] = useState(false);
   const [canScrollNext, setCanScrollNext] = useState(false);
+  const videoRefs = useRef<Map<string, HTMLVideoElement>>(new Map());
   
   const [emblaRef, emblaApi] = useEmblaCarousel({
     align: "start",
@@ -68,6 +68,33 @@ export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
     emblaApi?.scrollNext();
   }, [emblaApi]);
 
+  const handleVideoClick = (video: AthleteVideo) => {
+    const videoEl = videoRefs.current.get(video.id);
+    
+    if (playingVideoId === video.id) {
+      // Pause current video
+      videoEl?.pause();
+      setPlayingVideoId(null);
+    } else {
+      // Pause any other playing video
+      if (playingVideoId) {
+        const prevVideoEl = videoRefs.current.get(playingVideoId);
+        prevVideoEl?.pause();
+      }
+      // Play this video
+      videoEl?.play();
+      setPlayingVideoId(video.id);
+    }
+  };
+
+  const setVideoRef = (id: string, el: HTMLVideoElement | null) => {
+    if (el) {
+      videoRefs.current.set(id, el);
+    } else {
+      videoRefs.current.delete(id);
+    }
+  };
+
   if (videos.length === 0) {
     return null;
   }
@@ -103,76 +130,55 @@ export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
         {/* Carousel */}
         <div ref={emblaRef} className="overflow-hidden">
           <div className="flex gap-3">
-            {videos.map((video) => (
-              <div
-                key={video.id}
-                className="flex-shrink-0 w-[280px] md:w-[320px] cursor-pointer group/card"
-                onClick={() => setSelectedVideo(video)}
-              >
-                <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-muted">
-                  {video.thumbnail_url ? (
-                    <img
-                      src={video.thumbnail_url}
-                      alt={video.title}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
-                    />
-                  ) : (
+            {videos.map((video) => {
+              const isPlaying = playingVideoId === video.id;
+              
+              return (
+                <div
+                  key={video.id}
+                  className="flex-shrink-0 w-[280px] md:w-[320px] cursor-pointer group/card"
+                  onClick={() => handleVideoClick(video)}
+                >
+                  <div className="relative aspect-[9/16] rounded-xl overflow-hidden bg-muted">
                     <video
+                      ref={(el) => setVideoRef(video.id, el)}
                       src={video.video_url}
-                      className="w-full h-full object-cover transition-transform duration-300 group-hover/card:scale-105"
+                      poster={video.thumbnail_url || undefined}
+                      className="w-full h-full object-cover"
                       preload="metadata"
-                      muted
+                      muted={false}
                       playsInline
+                      controls={isPlaying}
+                      onEnded={() => setPlayingVideoId(null)}
                     />
-                  )}
-                  
-                  {/* Overlay gradient */}
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                  
-                  {/* Play button overlay */}
-                  <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover/card:opacity-100 transition-opacity">
-                    <div className="w-12 h-12 rounded-full bg-white/90 flex items-center justify-center">
-                      <Play className="w-5 h-5 text-black fill-black ml-0.5" />
-                    </div>
-                  </div>
-                  
-                  {/* Title */}
-                  <div className="absolute bottom-0 left-0 right-0 p-3">
-                    <p className="text-white text-sm font-medium line-clamp-2 leading-tight">
-                      {video.title}
-                    </p>
+                    
+                    {/* Overlay gradient - hide when playing */}
+                    {!isPlaying && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent pointer-events-none" />
+                        
+                        {/* Play button overlay */}
+                        <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          <div className="w-14 h-14 rounded-full bg-white/90 flex items-center justify-center transition-transform group-hover/card:scale-110">
+                            <Play className="w-6 h-6 text-black fill-black ml-0.5" />
+                          </div>
+                        </div>
+                        
+                        {/* Title */}
+                        <div className="absolute bottom-0 left-0 right-0 p-3 pointer-events-none">
+                          <p className="text-white text-sm font-medium line-clamp-2 leading-tight">
+                            {video.title}
+                          </p>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       </div>
-
-      {/* Video Modal */}
-      <Dialog open={!!selectedVideo} onOpenChange={() => setSelectedVideo(null)}>
-        <DialogContent className="max-w-3xl p-0 bg-black border-none overflow-hidden">
-          <Button
-            variant="ghost"
-            size="icon"
-            className="absolute top-2 right-2 z-50 text-white hover:bg-white/20"
-            onClick={() => setSelectedVideo(null)}
-          >
-            <X className="h-5 w-5" />
-          </Button>
-          
-          {selectedVideo && (
-            <div className="relative aspect-video">
-              <video
-                src={selectedVideo.video_url}
-                controls
-                autoPlay
-                className="w-full h-full"
-              />
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
     </div>
   );
 }
