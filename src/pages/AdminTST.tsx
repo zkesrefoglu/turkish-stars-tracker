@@ -18,6 +18,7 @@ import InstagramDownloaderPanel from '@/components/admin/InstagramDownloaderPane
 import EfficiencyRankingsPanel from '@/components/admin/EfficiencyRankingsPanel';
 import AthleteVideosPanel from '@/components/admin/AthleteVideosPanel';
 import { useSyncLogs } from '@/hooks/useSyncLogs';
+import { safeParseJSON } from '@/lib/jsonUtils';
 
 interface Athlete {
   id: string;
@@ -1012,10 +1013,17 @@ function DailyUpdateDialog({ athletes, onSave }: { athletes: Athlete[]; onSave: 
   });
 
   const handleSave = async () => {
+    // Validate JSON before submission
+    const { data: validStats, error: jsonError } = safeParseJSON(formData.stats);
+    if (jsonError) {
+      toast({ title: 'Invalid JSON', description: jsonError, variant: 'destructive' });
+      return;
+    }
+
     try {
       const { error } = await supabase.from('athlete_daily_updates').insert({
         ...formData,
-        stats: JSON.parse(formData.stats || '{}'),
+        stats: validStats,
       });
       if (error) throw error;
       toast({ title: 'Added', description: 'Daily update added' });
@@ -1127,10 +1135,17 @@ function LiveMatchDialog({ athletes, onSave }: { athletes: Athlete[]; onSave: ()
   });
 
   const handleSave = async () => {
+    // Validate JSON before submission
+    const { data: validStats, error: jsonError } = safeParseJSON(formData.athlete_stats);
+    if (jsonError) {
+      toast({ title: 'Invalid JSON', description: jsonError, variant: 'destructive' });
+      return;
+    }
+
     try {
       const { error } = await supabase.from('athlete_live_matches').insert({
         ...formData,
-        athlete_stats: JSON.parse(formData.athlete_stats || '{}'),
+        athlete_stats: validStats,
       });
       if (error) throw error;
       toast({ title: 'Added', description: 'Live match created' });
@@ -1219,10 +1234,17 @@ function LiveMatchEditDialog({ match, onSave }: { match: LiveMatch; onSave: () =
   });
 
   const handleSave = async () => {
+    // Validate JSON before submission
+    const { data: validStats, error: jsonError } = safeParseJSON(formData.athlete_stats);
+    if (jsonError) {
+      toast({ title: 'Invalid JSON', description: jsonError, variant: 'destructive' });
+      return;
+    }
+
     try {
       const { error } = await supabase.from('athlete_live_matches').update({
         ...formData,
-        athlete_stats: JSON.parse(formData.athlete_stats || '{}'),
+        athlete_stats: validStats,
       }).eq('id', match.id);
       if (error) throw error;
       toast({ title: 'Updated', description: 'Live match updated' });
