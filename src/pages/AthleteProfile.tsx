@@ -10,6 +10,7 @@ import { TransferHistoryTimeline } from "@/components/TransferHistoryTimeline";
 import { InjuryHistoryList } from "@/components/InjuryHistoryList";
 import { EfficiencyRankingsTable } from "@/components/EfficiencyRankingsTable";
 import { AthleteVideoCarousel } from "@/components/AthleteVideoCarousel";
+import AthleteNewsCarousel from "@/components/AthleteNewsCarousel";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -604,6 +605,9 @@ const AthleteProfilePage = () => {
             )}
           </Card>
         )}
+
+        {/* LATEST NEWS CAROUSEL */}
+        <AthleteNewsCarousel news={athleteNews} />
 
         {/* ATHLETE VIDEO CAROUSEL */}
         <AthleteVideoCarousel athleteId={athlete.id} />
