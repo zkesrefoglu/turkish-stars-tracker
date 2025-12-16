@@ -124,7 +124,7 @@ export default function AdminTST() {
   const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [athleteNews, setAthleteNews] = useState<AthleteNews[]>([]);
-  const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; transfermarkt: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' });
+  const [syncStatus, setSyncStatus] = useState<{ football: string; nba: string; hollinger: string; transfermarkt: string; news: string; all: string }>({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', news: 'idle', all: 'idle' });
   const { getLastSyncedText, logSync, refetch: refetchSyncLogs } = useSyncLogs();
 
   useEffect(() => {
@@ -277,13 +277,13 @@ export default function AdminTST() {
 
       loadAllData();
       
-      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' }), 3000);
+      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', news: 'idle', all: 'idle' }), 3000);
     } catch (error: any) {
       console.error('Sync all error:', error);
-      setSyncStatus({ football: 'error', nba: 'error', hollinger: 'error', transfermarkt: 'error', all: 'error' });
+      setSyncStatus({ football: 'error', nba: 'error', hollinger: 'error', transfermarkt: 'error', news: 'error', all: 'error' });
       toast({ title: 'Refresh Failed', description: error.message, variant: 'destructive' });
       
-      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', all: 'idle' }), 3000);
+      setTimeout(() => setSyncStatus({ football: 'idle', nba: 'idle', hollinger: 'idle', transfermarkt: 'idle', news: 'idle', all: 'idle' }), 3000);
     }
   };
 
@@ -359,6 +359,37 @@ export default function AdminTST() {
       toast({ title: 'Transfermarkt Sync Failed', description: error.message, variant: 'destructive' });
       await logSync('transfermarkt', 'error', { error: error.message });
       setTimeout(() => setSyncStatus(prev => ({ ...prev, transfermarkt: 'idle' })), 3000);
+    }
+  };
+
+  const triggerNewsSync = async () => {
+    setSyncStatus(prev => ({ ...prev, news: 'syncing' }));
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('fetch-athlete-news');
+      
+      if (error) throw error;
+      
+      if (data?.success) {
+        setSyncStatus(prev => ({ ...prev, news: 'success' }));
+        toast({ 
+          title: 'News Sync Complete', 
+          description: `Added ${data.articles_added} new articles from ${data.athletes_processed} athletes` 
+        });
+        await logSync('news', 'success', data);
+      } else {
+        throw new Error(data?.error || 'Unknown error');
+      }
+      
+      loadAthleteNews();
+      refetchSyncLogs();
+      setTimeout(() => setSyncStatus(prev => ({ ...prev, news: 'idle' })), 3000);
+    } catch (error: any) {
+      console.error('News sync error:', error);
+      setSyncStatus(prev => ({ ...prev, news: 'error' }));
+      toast({ title: 'News Sync Failed', description: error.message, variant: 'destructive' });
+      await logSync('news', 'error', { error: error.message });
+      setTimeout(() => setSyncStatus(prev => ({ ...prev, news: 'idle' })), 3000);
     }
   };
 
@@ -847,6 +878,28 @@ export default function AdminTST() {
                 </CardContent>
               </Card>
 
+              <Card>
+                <CardHeader>
+                  <CardTitle>Athlete News Sync</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Fetches recent news articles from Google Custom Search for all tracked athletes
+                  </p>
+                  <p className="text-xs text-accent">{getLastSyncedText('news')}</p>
+                  <Button 
+                    onClick={triggerNewsSync} 
+                    disabled={syncStatus.news === 'syncing'}
+                    className="w-full"
+                  >
+                    {syncStatus.news === 'syncing' && <Loader2 className="h-4 w-4 mr-2 animate-spin" />}
+                    {syncStatus.news === 'success' && <CheckCircle className="h-4 w-4 mr-2 text-green-500" />}
+                    {syncStatus.news === 'error' && <XCircle className="h-4 w-4 mr-2 text-red-500" />}
+                    {syncStatus.news === 'idle' && <RefreshCw className="h-4 w-4 mr-2" />}
+                    Sync Athlete News
+                  </Button>
+                </CardContent>
+              </Card>
 
               <Card>
                 <CardHeader>

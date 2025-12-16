@@ -26,3 +26,6 @@ verify_jwt = false
 
 [functions.sync-live-matches]
 verify_jwt = false
+
+[functions.fetch-athlete-news]
+verify_jwt = false
