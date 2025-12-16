@@ -37,12 +37,13 @@ const AthleteNewsCarousel = ({ news }: AthleteNewsCarouselProps) => {
 
   return (
     <div className="mt-8 animate-fade-in">
-      <div className="flex items-center gap-2 mb-4">
-        <Newspaper className="h-4 w-4 text-primary" />
-        <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
-          Latest News
-        </h3>
-      </div>
+      <div className="bg-secondary/40 backdrop-blur-sm border border-border/30 rounded-xl p-5 border-l-2 border-l-primary/50">
+        <div className="flex items-center gap-2 mb-4">
+          <Newspaper className="h-4 w-4 text-primary" />
+          <h3 className="text-sm font-semibold text-foreground uppercase tracking-wide">
+            Latest News
+          </h3>
+        </div>
       
       <div className="overflow-hidden" ref={emblaRef}>
         <div className="flex gap-3">
@@ -91,6 +92,7 @@ const AthleteNewsCarousel = ({ news }: AthleteNewsCarouselProps) => {
             </a>
           ))}
         </div>
+      </div>
       </div>
     </div>
   );
