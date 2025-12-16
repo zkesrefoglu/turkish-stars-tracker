@@ -16,11 +16,12 @@ export function useSyncLogs() {
     nba: null,
     hollinger: null,
     transfermarkt: null,
+    news: null,
   });
   const [loading, setLoading] = useState(true);
 
   const fetchSyncLogs = async () => {
-    const types = ["football", "nba", "hollinger", "transfermarkt"];
+    const types = ["football", "nba", "hollinger", "transfermarkt", "news"];
     const logs: Record<string, SyncLog | null> = {};
 
     for (const type of types) {
