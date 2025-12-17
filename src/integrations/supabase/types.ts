@@ -310,6 +310,7 @@ export type Database = {
       athlete_market_values: {
         Row: {
           athlete_id: string
+          club_at_time: string | null
           created_at: string
           currency: string | null
           id: string
@@ -321,6 +322,7 @@ export type Database = {
         }
         Insert: {
           athlete_id: string
+          club_at_time?: string | null
           created_at?: string
           currency?: string | null
           id?: string
@@ -332,6 +334,7 @@ export type Database = {
         }
         Update: {
           athlete_id?: string
+          club_at_time?: string | null
           created_at?: string
           currency?: string | null
           id?: string
@@ -552,6 +555,7 @@ export type Database = {
           id: string
           market_value_at_transfer: number | null
           notes: string | null
+          season: string | null
           source_url: string | null
           to_club: string
           to_club_logo_url: string | null
@@ -570,6 +574,7 @@ export type Database = {
           id?: string
           market_value_at_transfer?: number | null
           notes?: string | null
+          season?: string | null
           source_url?: string | null
           to_club: string
           to_club_logo_url?: string | null
@@ -588,6 +593,7 @@ export type Database = {
           id?: string
           market_value_at_transfer?: number | null
           notes?: string | null
+          season?: string | null
           source_url?: string | null
           to_club?: string
           to_club_logo_url?: string | null
