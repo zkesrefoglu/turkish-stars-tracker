@@ -36,7 +36,7 @@ export function AthleteVideoCarousel({ athleteId }: AthleteVideoCarouselProps) {
         .select("*")
         .eq("athlete_id", athleteId)
         .eq("is_active", true)
-        .order("display_order", { ascending: true })
+        .order("display_order", { ascending: false })
         .limit(10);
 
       if (data) {
