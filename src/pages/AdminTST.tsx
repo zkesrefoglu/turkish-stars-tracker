@@ -12,11 +12,12 @@ import { Badge } from '@/components/ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
-import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video, Instagram, TrendingUp, Film } from 'lucide-react';
+import { ArrowLeft, RefreshCw, Plus, Pencil, Trash2, Loader2, CheckCircle, XCircle, Newspaper, ExternalLink, Video, Instagram, TrendingUp, Film, ArrowLeftRight } from 'lucide-react';
 import HeroSettingsPanel from '@/components/admin/HeroSettingsPanel';
 import InstagramDownloaderPanel from '@/components/admin/InstagramDownloaderPanel';
 import EfficiencyRankingsPanel from '@/components/admin/EfficiencyRankingsPanel';
 import AthleteVideosPanel from '@/components/admin/AthleteVideosPanel';
+import TransfermarktDataPanel from '@/components/admin/TransfermarktDataPanel';
 import { useSyncLogs } from '@/hooks/useSyncLogs';
 import { safeParseJSON } from '@/lib/jsonUtils';
 
@@ -430,7 +431,7 @@ export default function AdminTST() {
         </div>
 
         <Tabs defaultValue="athletes" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-12 lg:w-auto lg:inline-grid">
+          <TabsList className="grid w-full grid-cols-13 lg:w-auto lg:inline-grid">
             <TabsTrigger value="athletes">Athletes</TabsTrigger>
             <TabsTrigger value="updates">Daily Updates</TabsTrigger>
             <TabsTrigger value="live">Live Matches</TabsTrigger>
@@ -444,6 +445,10 @@ export default function AdminTST() {
             <TabsTrigger value="videos">
               <Film className="h-4 w-4 mr-1" />
               Videos
+            </TabsTrigger>
+            <TabsTrigger value="transfermarkt">
+              <ArrowLeftRight className="h-4 w-4 mr-1" />
+              TM Data
             </TabsTrigger>
             <TabsTrigger value="news">News</TabsTrigger>
             <TabsTrigger value="hero">
@@ -781,6 +786,11 @@ export default function AdminTST() {
           {/* Videos Tab */}
           <TabsContent value="videos">
             <AthleteVideosPanel athletes={athletes} />
+          </TabsContent>
+
+          {/* Transfermarkt Data Tab */}
+          <TabsContent value="transfermarkt">
+            <TransfermarktDataPanel />
           </TabsContent>
 
           {/* Sync Tab */}
