@@ -561,7 +561,7 @@ const AthleteProfilePage = () => {
         {/* NBA Game Stats Chart (Basketball only) */}
         {athlete.sport === "basketball" && matchHistory.length >= 2 && (
           <div className="mb-8">
-            <NBAGameStatsChart matches={matchHistory} maxGames={12} />
+            <NBAGameStatsChart matches={matchHistory} maxGames={30} />
           </div>
         )}
 
