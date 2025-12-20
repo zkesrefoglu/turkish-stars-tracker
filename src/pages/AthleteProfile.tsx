@@ -11,6 +11,7 @@ import { InjuryHistoryList } from "@/components/InjuryHistoryList";
 import { EfficiencyRankingsTable } from "@/components/EfficiencyRankingsTable";
 import { AthleteVideoCarousel } from "@/components/AthleteVideoCarousel";
 import AthleteNewsCarousel from "@/components/AthleteNewsCarousel";
+import { InstagramSocialSection } from "@/components/InstagramSocialSection";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -991,6 +992,12 @@ const AthleteProfilePage = () => {
           </TabsContent>
         </Tabs>
       </main>
+
+      {/* Instagram Social Media Section */}
+      <InstagramSocialSection 
+        instagramUrl={athlete.instagram} 
+        athleteName={athlete.name} 
+      />
 
       <TurkishStarsFooter />
     </div>
