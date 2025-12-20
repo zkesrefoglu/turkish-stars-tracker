@@ -301,7 +301,7 @@ export type Database = {
           {
             foreignKeyName: "athlete_live_matches_athlete_id_fkey"
             columns: ["athlete_id"]
-            isOneToOne: false
+            isOneToOne: true
             referencedRelation: "athlete_profiles"
             referencedColumns: ["id"]
           },
