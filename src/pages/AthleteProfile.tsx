@@ -166,11 +166,11 @@ interface EfficiencyRanking {
 interface ESPNStatsSectionProps {
   seasonStats: SeasonStats[];
   dailyUpdates: DailyUpdate[];
-  athleteName: string;
+  teamName: string;
   position: string;
 }
 
-const ESPNStatsSection = ({ seasonStats, dailyUpdates, athleteName, position }: ESPNStatsSectionProps) => {
+const ESPNStatsSection = ({ seasonStats, dailyUpdates, teamName, position }: ESPNStatsSectionProps) => {
   // Get the latest NBA season stats with ESPN data
   const nbaStats = seasonStats.find(s => s.competition === 'NBA');
   
@@ -180,21 +180,24 @@ const ESPNStatsSection = ({ seasonStats, dailyUpdates, athleteName, position }: 
   const previousGameData = useMemo(() => {
     if (!lastPlayedGame) return null;
     
-    // Parse the match result to get scores
+    // Parse the match result to get scores - format is "W 115-101" or "L 101-115"
+    // The scores are always from athlete's team perspective: TeamScore-OpponentScore
     const resultMatch = lastPlayedGame.match_result?.match(/([WL])\s*(\d+)[–-](\d+)/i);
-    const isWin = resultMatch?.[1]?.toUpperCase() === 'W';
-    const score1 = resultMatch ? parseInt(resultMatch[2]) : 0;
-    const score2 = resultMatch ? parseInt(resultMatch[3]) : 0;
+    const athleteTeamScore = resultMatch ? parseInt(resultMatch[2]) : 0;
+    const opponentScore = resultMatch ? parseInt(resultMatch[3]) : 0;
     const isHome = lastPlayedGame.home_away === 'home';
+    
+    // Win is when athlete's team scored more (don't trust the W/L prefix)
+    const isWin = athleteTeamScore > opponentScore;
     
     return {
       date: lastPlayedGame.date,
       opponent: lastPlayedGame.opponent || 'Unknown',
       result: lastPlayedGame.match_result || '',
-      homeScore: isHome ? score1 : score2,
-      awayScore: isHome ? score2 : score1,
+      homeScore: isHome ? athleteTeamScore : opponentScore,
+      awayScore: isHome ? opponentScore : athleteTeamScore,
       isHome,
-      isWin: isWin ?? score1 > score2,
+      isWin,
       stats: {
         points: lastPlayedGame.stats?.points || 0,
         rebounds: lastPlayedGame.stats?.rebounds || 0,
@@ -307,7 +310,7 @@ const ESPNStatsSection = ({ seasonStats, dailyUpdates, athleteName, position }: 
         {previousGameData && (
           <PreviousGameCard 
             game={previousGameData} 
-            athleteName={athleteName}
+            teamName={teamName}
           />
         )}
         
@@ -747,7 +750,7 @@ const AthleteProfilePage = () => {
           <ESPNStatsSection 
             seasonStats={seasonStats} 
             dailyUpdates={dailyUpdates} 
-            athleteName={athlete.name}
+            teamName={athlete.team}
             position={athlete.position}
           />
         )}

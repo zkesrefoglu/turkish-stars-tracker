@@ -26,11 +26,29 @@ interface PreviousGameData {
 
 interface PreviousGameCardProps {
   game: PreviousGameData;
-  athleteName?: string;
+  teamName?: string;
   teamLogo?: string;
 }
 
-export const PreviousGameCard = ({ game, athleteName = "Player", teamLogo }: PreviousGameCardProps) => {
+// Get team abbreviation from full team name
+const getTeamAbbr = (teamName: string): string => {
+  const abbrevMap: Record<string, string> = {
+    'Houston Rockets': 'HOU',
+    'Los Angeles Lakers': 'LAL',
+    'Denver Nuggets': 'DEN',
+    'Golden State Warriors': 'GSW',
+    'Boston Celtics': 'BOS',
+    'Miami Heat': 'MIA',
+    'Phoenix Suns': 'PHX',
+    'Milwaukee Bucks': 'MIL',
+    'Dallas Mavericks': 'DAL',
+    'Philadelphia 76ers': 'PHI',
+  };
+  return abbrevMap[teamName] || teamName.split(' ').pop()?.substring(0, 3).toUpperCase() || 'TM';
+};
+
+export const PreviousGameCard = ({ game, teamName = "Team", teamLogo }: PreviousGameCardProps) => {
+  const teamAbbr = getTeamAbbr(teamName);
   const getStatColor = (value: number, type: 'pts' | 'reb' | 'ast' | 'plusMinus') => {
     if (type === 'plusMinus') {
       if (value > 10) return 'bg-emerald-500 text-white';
@@ -68,21 +86,21 @@ export const PreviousGameCard = ({ game, athleteName = "Player", teamLogo }: Pre
       <div className="flex items-center justify-center gap-4 mb-4 py-3 bg-secondary/50 rounded-lg">
         <div className="text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            {game.isHome ? athleteName.split(' ').pop() : game.opponent}
+            {game.isHome ? teamAbbr : game.opponent}
           </div>
-          <div className={`text-2xl font-bold ${game.isHome && game.isWin ? 'text-accent' : !game.isHome && !game.isWin ? 'text-accent' : 'text-foreground'}`}>
-            {game.isHome ? game.homeScore : game.awayScore}
+          <div className={`text-2xl font-bold ${game.isWin ? 'text-accent' : 'text-foreground'}`}>
+            {game.homeScore}
           </div>
         </div>
         
-        <div className="text-muted-foreground text-sm">vs</div>
+        <div className="text-muted-foreground text-sm">@</div>
         
         <div className="text-center">
           <div className="text-xs text-muted-foreground mb-1">
-            {game.isHome ? game.opponent : athleteName.split(' ').pop()}
+            {game.isHome ? game.opponent : teamAbbr}
           </div>
-          <div className={`text-2xl font-bold ${!game.isHome && game.isWin ? 'text-accent' : game.isHome && !game.isWin ? 'text-accent' : 'text-foreground'}`}>
-            {game.isHome ? game.awayScore : game.homeScore}
+          <div className={`text-2xl font-bold ${!game.isWin ? 'text-accent' : 'text-foreground'}`}>
+            {game.awayScore}
           </div>
         </div>
       </div>
