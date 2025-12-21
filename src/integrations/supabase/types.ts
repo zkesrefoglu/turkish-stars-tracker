@@ -411,6 +411,7 @@ export type Database = {
           created_at: string
           current_market_value: number | null
           date_of_birth: string | null
+          espn_id: number | null
           fotmob_id: number | null
           height_cm: number | null
           id: string
@@ -442,6 +443,7 @@ export type Database = {
           created_at?: string
           current_market_value?: number | null
           date_of_birth?: string | null
+          espn_id?: number | null
           fotmob_id?: number | null
           height_cm?: number | null
           id?: string
@@ -473,6 +475,7 @@ export type Database = {
           created_at?: string
           current_market_value?: number | null
           date_of_birth?: string | null
+          espn_id?: number | null
           fotmob_id?: number | null
           height_cm?: number | null
           id?: string
@@ -502,6 +505,10 @@ export type Database = {
           athlete_id: string
           competition: string
           created_at: string
+          espn_fantasy_insight: string | null
+          espn_position_rank: number | null
+          espn_roster_pct: number | null
+          espn_splits: Json | null
           games_played: number | null
           games_started: number | null
           id: string
@@ -514,6 +521,10 @@ export type Database = {
           athlete_id: string
           competition: string
           created_at?: string
+          espn_fantasy_insight?: string | null
+          espn_position_rank?: number | null
+          espn_roster_pct?: number | null
+          espn_splits?: Json | null
           games_played?: number | null
           games_started?: number | null
           id?: string
@@ -526,6 +537,10 @@ export type Database = {
           athlete_id?: string
           competition?: string
           created_at?: string
+          espn_fantasy_insight?: string | null
+          espn_position_rank?: number | null
+          espn_roster_pct?: number | null
+          espn_splits?: Json | null
           games_played?: number | null
           games_started?: number | null
           id?: string

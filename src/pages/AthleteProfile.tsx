@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Link, useParams } from "react-router-dom";
 import { TurkishStarsHeader } from "@/components/TurkishStarsHeader";
 import { TurkishStarsFooter } from "@/components/TurkishStarsFooter";
@@ -12,6 +12,9 @@ import { EfficiencyRankingsTable } from "@/components/EfficiencyRankingsTable";
 import { AthleteVideoCarousel } from "@/components/AthleteVideoCarousel";
 import AthleteNewsCarousel from "@/components/AthleteNewsCarousel";
 import { InstagramSocialSection } from "@/components/InstagramSocialSection";
+import { PreviousGameCard } from "@/components/PreviousGameCard";
+import { PerformanceSplitsTable } from "@/components/PerformanceSplitsTable";
+import { FantasyInsightCard } from "@/components/FantasyInsightCard";
 import { supabase } from "@/integrations/supabase/client";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
@@ -47,6 +50,10 @@ interface SeasonStats {
   games_started: number | null;
   stats: any;
   rankings?: any;
+  espn_splits?: any;
+  espn_fantasy_insight?: string | null;
+  espn_position_rank?: number | null;
+  espn_roster_pct?: number | null;
 }
 
 // Helper function to get ordinal suffix (1st, 2nd, 3rd, etc.)
@@ -154,6 +161,175 @@ interface EfficiencyRanking {
   efficiency_index: number | null;
   is_featured_athlete: boolean;
 }
+
+// ESPN Stats Section Component for Basketball
+interface ESPNStatsSectionProps {
+  seasonStats: SeasonStats[];
+  dailyUpdates: DailyUpdate[];
+  athleteName: string;
+  position: string;
+}
+
+const ESPNStatsSection = ({ seasonStats, dailyUpdates, athleteName, position }: ESPNStatsSectionProps) => {
+  // Get the latest NBA season stats with ESPN data
+  const nbaStats = seasonStats.find(s => s.competition === 'NBA');
+  
+  // Build previous game data from the most recent played game
+  const lastPlayedGame = dailyUpdates.find(u => u.played && u.stats);
+  
+  const previousGameData = useMemo(() => {
+    if (!lastPlayedGame) return null;
+    
+    // Parse the match result to get scores
+    const resultMatch = lastPlayedGame.match_result?.match(/([WL])\s*(\d+)[–-](\d+)/i);
+    const isWin = resultMatch?.[1]?.toUpperCase() === 'W';
+    const score1 = resultMatch ? parseInt(resultMatch[2]) : 0;
+    const score2 = resultMatch ? parseInt(resultMatch[3]) : 0;
+    const isHome = lastPlayedGame.home_away === 'home';
+    
+    return {
+      date: lastPlayedGame.date,
+      opponent: lastPlayedGame.opponent || 'Unknown',
+      result: lastPlayedGame.match_result || '',
+      homeScore: isHome ? score1 : score2,
+      awayScore: isHome ? score2 : score1,
+      isHome,
+      isWin: isWin ?? score1 > score2,
+      stats: {
+        points: lastPlayedGame.stats?.points || 0,
+        rebounds: lastPlayedGame.stats?.rebounds || 0,
+        assists: lastPlayedGame.stats?.assists || 0,
+        plusMinus: lastPlayedGame.stats?.plus_minus,
+        minutes: lastPlayedGame.minutes_played,
+        steals: lastPlayedGame.stats?.steals,
+        blocks: lastPlayedGame.stats?.blocks,
+        fg: lastPlayedGame.stats?.fg_made && lastPlayedGame.stats?.fg_attempted 
+          ? `${lastPlayedGame.stats.fg_made}/${lastPlayedGame.stats.fg_attempted}` 
+          : undefined,
+        threeP: lastPlayedGame.stats?.three_made && lastPlayedGame.stats?.three_attempted 
+          ? `${lastPlayedGame.stats.three_made}/${lastPlayedGame.stats.three_attempted}` 
+          : undefined,
+        ft: lastPlayedGame.stats?.ft_made && lastPlayedGame.stats?.ft_attempted 
+          ? `${lastPlayedGame.stats.ft_made}/${lastPlayedGame.stats.ft_attempted}` 
+          : undefined,
+      },
+    };
+  }, [lastPlayedGame]);
+
+  // Calculate performance splits from existing data
+  const performanceSplits = useMemo(() => {
+    const playedGames = dailyUpdates.filter(u => u.played && u.stats);
+    if (playedGames.length === 0) return [];
+    
+    const splits = [];
+    
+    // Last 10 games
+    const last10 = playedGames.slice(0, 10);
+    if (last10.length > 0) {
+      const avg = {
+        label: 'Last 10',
+        gp: last10.length,
+        min: last10.reduce((sum, g) => sum + (g.minutes_played || 0), 0) / last10.length,
+        pts: last10.reduce((sum, g) => sum + (g.stats?.points || 0), 0) / last10.length,
+        reb: last10.reduce((sum, g) => sum + (g.stats?.rebounds || 0), 0) / last10.length,
+        ast: last10.reduce((sum, g) => sum + (g.stats?.assists || 0), 0) / last10.length,
+        fg_pct: undefined,
+        three_pct: undefined,
+      };
+      splits.push(avg);
+    }
+    
+    // Home games
+    const homeGames = playedGames.filter(g => g.home_away === 'home');
+    if (homeGames.length > 0) {
+      splits.push({
+        label: 'Home',
+        gp: homeGames.length,
+        min: homeGames.reduce((sum, g) => sum + (g.minutes_played || 0), 0) / homeGames.length,
+        pts: homeGames.reduce((sum, g) => sum + (g.stats?.points || 0), 0) / homeGames.length,
+        reb: homeGames.reduce((sum, g) => sum + (g.stats?.rebounds || 0), 0) / homeGames.length,
+        ast: homeGames.reduce((sum, g) => sum + (g.stats?.assists || 0), 0) / homeGames.length,
+      });
+    }
+    
+    // Road games
+    const roadGames = playedGames.filter(g => g.home_away === 'away');
+    if (roadGames.length > 0) {
+      splits.push({
+        label: 'Road',
+        gp: roadGames.length,
+        min: roadGames.reduce((sum, g) => sum + (g.minutes_played || 0), 0) / roadGames.length,
+        pts: roadGames.reduce((sum, g) => sum + (g.stats?.points || 0), 0) / roadGames.length,
+        reb: roadGames.reduce((sum, g) => sum + (g.stats?.rebounds || 0), 0) / roadGames.length,
+        ast: roadGames.reduce((sum, g) => sum + (g.stats?.assists || 0), 0) / roadGames.length,
+      });
+    }
+    
+    // Season totals
+    if (playedGames.length > 0) {
+      splits.push({
+        label: '2024-25',
+        gp: playedGames.length,
+        min: playedGames.reduce((sum, g) => sum + (g.minutes_played || 0), 0) / playedGames.length,
+        pts: playedGames.reduce((sum, g) => sum + (g.stats?.points || 0), 0) / playedGames.length,
+        reb: playedGames.reduce((sum, g) => sum + (g.stats?.rebounds || 0), 0) / playedGames.length,
+        ast: playedGames.reduce((sum, g) => sum + (g.stats?.assists || 0), 0) / playedGames.length,
+      });
+    }
+    
+    return splits;
+  }, [dailyUpdates]);
+
+  // Get season averages for comparison
+  const seasonAverages = useMemo(() => {
+    if (!nbaStats?.stats) return undefined;
+    return {
+      pts: nbaStats.stats.ppg || 0,
+      reb: nbaStats.stats.rpg || 0,
+      ast: nbaStats.stats.apg || 0,
+    };
+  }, [nbaStats]);
+
+  const hasContent = previousGameData || performanceSplits.length > 0 || 
+                     nbaStats?.espn_fantasy_insight || nbaStats?.espn_position_rank;
+
+  if (!hasContent) return null;
+
+  return (
+    <div className="mb-8 space-y-4">
+      <h2 className="text-xl font-semibold text-foreground flex items-center gap-2">
+        <TrendingUp className="w-5 h-5 text-accent" />
+        Performance Insights
+      </h2>
+      
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+        {/* Previous Game Card */}
+        {previousGameData && (
+          <PreviousGameCard 
+            game={previousGameData} 
+            athleteName={athleteName}
+          />
+        )}
+        
+        {/* Fantasy Insight Card */}
+        <FantasyInsightCard
+          insight={nbaStats?.espn_fantasy_insight || null}
+          positionRank={nbaStats?.espn_position_rank}
+          rosterPct={nbaStats?.espn_roster_pct}
+          position={position}
+        />
+      </div>
+
+      {/* Performance Splits Table */}
+      {performanceSplits.length > 0 && (
+        <PerformanceSplitsTable 
+          splits={performanceSplits}
+          seasonAverages={seasonAverages}
+        />
+      )}
+    </div>
+  );
+};
 
 const AthleteProfilePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -564,6 +740,16 @@ const AthleteProfilePage = () => {
           <div className="mb-8">
             <NBAGameStatsChart matches={matchHistory} maxGames={30} />
           </div>
+        )}
+
+        {/* ESPN Stats Section (Basketball only) */}
+        {athlete.sport === "basketball" && (
+          <ESPNStatsSection 
+            seasonStats={seasonStats} 
+            dailyUpdates={dailyUpdates} 
+            athleteName={athlete.name}
+            position={athlete.position}
+          />
         )}
 
         {/* BIO SECTION */}
