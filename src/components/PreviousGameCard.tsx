@@ -88,20 +88,20 @@ export const PreviousGameCard = ({ game, teamName = "Team", teamLogo }: Previous
           <div className="text-xs text-muted-foreground mb-1">
             {game.isHome ? teamAbbr : game.opponent}
           </div>
-          <div className={`text-2xl font-bold ${game.isWin ? 'text-accent' : 'text-foreground'}`}>
-            {game.homeScore}
-          </div>
+        <div className={`text-2xl font-bold ${game.isHome ? 'text-accent' : 'text-muted-foreground'}`}>
+          {game.homeScore}
         </div>
-        
-        <div className="text-muted-foreground text-sm">@</div>
-        
-        <div className="text-center">
-          <div className="text-xs text-muted-foreground mb-1">
-            {game.isHome ? game.opponent : teamAbbr}
-          </div>
-          <div className={`text-2xl font-bold ${!game.isWin ? 'text-accent' : 'text-foreground'}`}>
-            {game.awayScore}
-          </div>
+      </div>
+      
+      <div className="text-muted-foreground text-sm">@</div>
+      
+      <div className="text-center">
+        <div className="text-xs text-muted-foreground mb-1">
+          {game.isHome ? game.opponent : teamAbbr}
+        </div>
+        <div className={`text-2xl font-bold ${!game.isHome ? 'text-accent' : 'text-muted-foreground'}`}>
+          {game.awayScore}
+        </div>
         </div>
       </div>
 
