@@ -3,6 +3,14 @@ import { Resend } from "https://esm.sh/resend@4.0.0";
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
 
+// HTML escape function to prevent XSS
+const escapeHtml = (str: string): string => str
+  .replace(/&/g, '&amp;')
+  .replace(/</g, '&lt;')
+  .replace(/>/g, '&gt;')
+  .replace(/"/g, '&quot;')
+  .replace(/'/g, '&#039;');
+
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
@@ -48,7 +56,7 @@ serve(async (req) => {
 
                       <div style="background-color: #fef2f2; border-left: 4px solid #E30A17; padding: 16px 20px; margin: 32px 0; border-radius: 4px;">
                         <p style="color: #991b1b; font-size: 16px; line-height: 24px; margin: 0;">
-                          🎉 You're now subscribed with: <strong>${email}</strong>
+                          🎉 You're now subscribed with: <strong>${escapeHtml(email)}</strong>
                         </p>
                       </div>
 
