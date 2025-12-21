@@ -29,3 +29,9 @@ verify_jwt = false
 
 [functions.fetch-athlete-news]
 verify_jwt = false
+
+[functions.fetch-espn-player-stats]
+verify_jwt = false
+
+[functions.download-instagram]
+verify_jwt = false
