@@ -65,12 +65,7 @@ export const InstagramSocialSection = ({ instagramUrl, athleteName }: InstagramS
       <div className="container-custom">
         {/* Header */}
         <div className="flex items-center justify-between mb-10">
-          <div className="flex items-center gap-4">
-            <Instagram className="w-8 h-8 text-white" />
-            <h2 className="text-xl md:text-2xl font-headline font-medium text-white">
-              Follow {athleteName} on Instagram
-            </h2>
-          </div>
+          <Instagram className="w-10 h-10 text-white" />
           <a
             href={instagramUrl}
             target="_blank"
