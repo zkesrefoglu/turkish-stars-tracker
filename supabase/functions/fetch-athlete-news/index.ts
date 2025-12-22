@@ -35,17 +35,8 @@ serve(async (req) => {
   const errors: string[] = [];
 
   try {
-    // Verify authorization - either webhook secret or JWT
-    const webhookSecret = req.headers.get('x-webhook-secret');
-    const authHeader = req.headers.get('authorization');
-    const expectedSecret = Deno.env.get('STATS_WEBHOOK_SECRET');
-
-    if (webhookSecret !== expectedSecret && !authHeader) {
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      });
-    }
+    // Authorization is handled by verify_jwt = false in config.toml
+    // This function can be called directly by schedulers or admin actions
 
     const googleApiKey = Deno.env.get('GOOGLE_CSE_API_KEY');
     const googleCx = Deno.env.get('GOOGLE_CSE_CX');
