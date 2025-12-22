@@ -9,6 +9,7 @@ import { AlertTriangle, TrendingUp, User, Calendar } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isWithinInterval, addHours } from "date-fns";
+import { getCompetitionLogo } from "@/lib/competitionLogos";
 
 interface AthleteProfile {
   id: string;
@@ -237,7 +238,7 @@ const TurkishStars = () => {
                     </div>
 
                     {/* Data Fields */}
-                    <div className="flex-1 p-4 grid grid-cols-2 md:grid-cols-6 gap-3 md:gap-4 items-center">
+                    <div className="flex-1 p-4 grid grid-cols-2 md:grid-cols-7 gap-2 md:gap-3 items-center">
                       {/* Athlete Name & Team */}
                       <div className="col-span-2 md:col-span-1">
                         <h3 className="font-headline font-bold text-lg text-foreground truncate group-hover:text-accent transition-colors">
@@ -249,12 +250,12 @@ const TurkishStars = () => {
 
                       {/* Last Match Stats */}
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Last Match</div>
-                        <div className="text-sm font-semibold text-foreground">
+                        <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Last Match</div>
+                        <div className="text-xs font-semibold text-foreground">
                           {lastMatch ? formatStats(athlete, lastMatch.stats) : "—"}
                         </div>
                         {lastMatch && (
-                          <div className="text-xs text-muted-foreground">
+                          <div className="text-[10px] text-muted-foreground">
                             vs {lastMatch.opponent}
                           </div>
                         )}
@@ -262,12 +263,12 @@ const TurkishStars = () => {
 
                       {/* Result */}
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Result</div>
-                        <div className="text-sm font-semibold text-foreground">
+                        <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Result</div>
+                        <div className="text-xs font-semibold text-foreground">
                           {lastMatch?.match_result ? (
                             <>
                               {lastMatch.match_result}
-                              <span className="text-xs text-muted-foreground ml-1">
+                              <span className="text-[10px] text-muted-foreground ml-1">
                                 ({lastMatch.home_away === "home" ? "H" : "A"})
                               </span>
                             </>
@@ -275,36 +276,53 @@ const TurkishStars = () => {
                         </div>
                       </div>
 
+                      {/* Competition Logo */}
+                      <div className="flex flex-col items-center">
+                        <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Comp</div>
+                        {lastMatch?.competition && getCompetitionLogo(lastMatch.competition) ? (
+                          <img 
+                            src={getCompetitionLogo(lastMatch.competition)!} 
+                            alt={lastMatch.competition}
+                            className="w-7 h-7 object-contain"
+                            title={lastMatch.competition}
+                          />
+                        ) : (
+                          <span className="text-[10px] text-muted-foreground text-center leading-tight">
+                            {lastMatch?.competition || "—"}
+                          </span>
+                        )}
+                      </div>
+
                       {/* Form Graphic (Football only) */}
                       {athlete.sport === "football" && (
                         <div>
-                          <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Form</div>
+                          <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Form</div>
                           <FormGraphic matches={recentMatches} maxMatches={5} />
                         </div>
                       )}
 
                       {/* Status */}
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Status</div>
-                        <Badge className={`${getInjuryColor(injuryStatus)} border capitalize text-xs`}>
+                        <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Status</div>
+                        <Badge className={`${getInjuryColor(injuryStatus)} border capitalize text-[10px]`}>
                           {injuryStatus}
                         </Badge>
                       </div>
 
                       {/* Next Match */}
                       <div>
-                        <div className="text-[10px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Next Match</div>
+                        <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Next Match</div>
                         {nextMatch ? (
                           <>
-                            <div className="text-sm font-semibold text-foreground">
+                            <div className="text-xs font-semibold text-foreground">
                               {nextMatch.home_away === "home" ? "vs" : "@"} {nextMatch.opponent}
                             </div>
-                            <div className="text-xs text-accent">
+                            <div className="text-[10px] text-accent">
                               {format(new Date(nextMatch.match_date), "MMM d, h:mm a")} EST
                             </div>
                           </>
                         ) : (
-                          <div className="text-sm text-muted-foreground">—</div>
+                          <div className="text-xs text-muted-foreground">—</div>
                         )}
                       </div>
                     </div>
