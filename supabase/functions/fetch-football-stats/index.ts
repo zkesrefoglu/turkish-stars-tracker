@@ -31,22 +31,40 @@ const TEAM_IDS: Record<string, number> = {
   'Manchester United': 33,
   'Man United': 33,
   'Man Utd': 33,
+  'VfB Stuttgart': 157,
+  'Stuttgart': 157,
+  'Borussia Dortmund': 165,
+  'Dortmund': 165,
+  'BVB': 165,
+  'FC Porto': 212,
+  'Porto': 212,
+  'Pisa': 520,
+  'AC Pisa': 520,
 };
 
 // Player name mappings for Turkish characters
 const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Arda Guler': ['Arda Güler', 'Güler', 'Guler', 'A. Güler'],
+  'Arda Güler': ['Arda Guler', 'Güler', 'Guler', 'A. Güler'],
   'Kenan Yildiz': ['Kenan Yıldız', 'Yıldız', 'Yildiz', 'K. Yıldız'],
+  'Kenan Yıldız': ['Kenan Yildiz', 'Yıldız', 'Yildiz', 'K. Yıldız'],
   'Ferdi Kadioglu': ['Ferdi Kadıoğlu', 'Kadıoğlu', 'Kadioglu', 'F. Kadıoğlu'],
+  'Ferdi Kadıoğlu': ['Ferdi Kadioglu', 'Kadıoğlu', 'Kadioglu', 'F. Kadıoğlu'],
   'Can Uzun': ['Can Uzun', 'Uzun', 'C. Uzun'],
   'Berke Ozer': ['Berke Özer', 'Özer', 'Ozer', 'B. Özer'],
+  'Berke Özer': ['Berke Ozer', 'Özer', 'Ozer', 'B. Özer'],
   'Hakan Calhanoglu': ['Hakan Çalhanoğlu', 'Çalhanoğlu', 'Calhanoglu', 'H. Çalhanoğlu'],
+  'Hakan Çalhanoğlu': ['Hakan Calhanoglu', 'Çalhanoğlu', 'Calhanoglu', 'H. Çalhanoğlu'],
   'Semih Kılıçsoy': ['Semih Kilicsoy', 'Kılıçsoy', 'Kilicsoy', 'S. Kılıçsoy'],
   'Enes Ünal': ['Enes Unal', 'Ünal', 'Unal', 'E. Ünal'],
   'Zeki Çelik': ['Zeki Celik', 'Çelik', 'Celik', 'Z. Çelik'],
   'Merih Demiral': ['Merih Demiral', 'Demiral', 'M. Demiral'],
   'Yusuf Akçiçek': ['Yusuf Akcicek', 'Akçiçek', 'Akcicek', 'Y. Akçiçek'],
   'Altay Bayındır': ['Altay Bayindir', 'Bayındır', 'Bayindir', 'A. Bayındır'],
+  'Atakan Karazor': ['Atakan Karazor', 'Karazor', 'A. Karazor'],
+  'Salih Özcan': ['Salih Ozcan', 'Özcan', 'Ozcan', 'S. Özcan'],
+  'İsak Vural': ['Isak Vural', 'Vural', 'I. Vural'],
+  'Deniz Gül': ['Deniz Gul', 'Gül', 'Gul', 'D. Gül'],
 };
 
 interface ApiFootballResponse {
