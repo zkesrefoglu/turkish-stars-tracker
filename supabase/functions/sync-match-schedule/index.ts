@@ -18,6 +18,9 @@ const TEAM_IDS: Record<string, number> = {
   'Al-Ahli': 2932,
   'Al Ahli': 2932,
   'Al-Ahli Saudi': 2932,
+  'Al-Hilal': 2939,
+  'Al Hilal': 2939,
+  'Al-Hilal Saudi': 2939,
   'Inter Milan': 505,
   'Inter': 505,
 };

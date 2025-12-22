@@ -25,6 +25,9 @@ const TEAM_IDS: Record<string, number> = {
   'Al-Ahli': 2932,
   'Al Ahli': 2932,
   'Al-Ahli Saudi': 2932,
+  'Al-Hilal': 2939,
+  'Al Hilal': 2939,
+  'Al-Hilal Saudi': 2939,
 };
 
 // Player name mappings for Turkish characters
@@ -39,6 +42,7 @@ const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Enes Ünal': ['Enes Unal', 'Ünal', 'Unal', 'E. Ünal'],
   'Zeki Çelik': ['Zeki Celik', 'Çelik', 'Celik', 'Z. Çelik'],
   'Merih Demiral': ['Merih Demiral', 'Demiral', 'M. Demiral'],
+  'Yusuf Akçiçek': ['Yusuf Akcicek', 'Akçiçek', 'Akcicek', 'Y. Akçiçek'],
 };
 
 interface ApiFootballResponse {
