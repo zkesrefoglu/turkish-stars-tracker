@@ -128,19 +128,6 @@ export const InstagramSocialSection = ({ instagramUrl, athleteName }: InstagramS
             </div>
           )}
         </div>
-
-        {/* View More Link */}
-        <div className="text-center mt-10">
-          <a
-            href={instagramUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-sm"
-          >
-            <span>View all posts on Instagram</span>
-            <ExternalLink className="w-4 h-4" />
-          </a>
-        </div>
       </div>
     </section>
   );
