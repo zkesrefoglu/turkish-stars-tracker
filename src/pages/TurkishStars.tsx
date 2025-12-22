@@ -206,7 +206,7 @@ const TurkishStars = () => {
             const nextMatch = getNextMatch(athlete.id);
             const recentMatches = getRecentMatches(athlete.id);
             const injuryStatus = latestUpdate?.injury_status || "healthy";
-            const sportEmoji = athlete.sport === "basketball" ? "🏀" : "⚽";
+            
 
             return (
               <Link
@@ -234,7 +234,7 @@ const TurkishStars = () => {
                           {athlete.jersey_number}
                         </div>
                       )}
-                      <div className="absolute bottom-2 left-2 text-xl">{sportEmoji}</div>
+                      
                     </div>
 
                     {/* Data Fields */}
@@ -336,7 +336,7 @@ const TurkishStars = () => {
                           className="w-20 h-20 md:w-28 md:h-28 object-contain transition-transform duration-300 group-hover:scale-110"
                         />
                       ) : (
-                        <span className="text-4xl">{sportEmoji}</span>
+                        <span className="text-sm text-muted-foreground">{athlete.team}</span>
                       )}
                     </div>
                   </div>
