@@ -12,12 +12,18 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
 
 // Turkish football players with Transfermarkt IDs
 const PLAYERS = [
-  { name: 'Arda Güler', tmId: 797954, slug: 'arda-guler' },
-  { name: 'Kenan Yıldız', tmId: 686379, slug: 'kenan-yildiz' },
-  { name: 'Ferdi Kadıoğlu', tmId: 378032, slug: 'ferdi-kadioglu' },
-  { name: 'Can Uzun', tmId: 757498, slug: 'can-uzun' },
-  { name: 'Berke Özer', tmId: 586628, slug: 'berke-ozer' },
+  { name: 'Altay Bayındır', tmId: 336077, slug: 'altay-bayindir' },
+  { name: 'Arda Güler', tmId: 861410, slug: 'arda-guler' },
+  { name: 'Berke Özer', tmId: 481886, slug: 'berke-ozer' },
+  { name: 'Can Uzun', tmId: 886655, slug: 'can-uzun' },
+  { name: 'Enes Ünal', tmId: 251106, slug: 'enes-unal' },
+  { name: 'Ferdi Kadıoğlu', tmId: 346498, slug: 'ferdi-kadioglu' },
   { name: 'Hakan Çalhanoğlu', tmId: 35251, slug: 'hakan-calhanoglu' },
+  { name: 'Kenan Yıldız', tmId: 798650, slug: 'kenan-yildiz' },
+  { name: 'Merih Demiral', tmId: 340879, slug: 'merih-demiral' },
+  { name: 'Semih Kılıçsoy', tmId: 875334, slug: 'semih-kilicsoy' },
+  { name: 'Yusuf Akçiçek', tmId: 1100642, slug: 'yusuf-akcicek' },
+  { name: 'Zeki Çelik', tmId: 251075, slug: 'zeki-celik' },
 ];
 
 // Delay helper
