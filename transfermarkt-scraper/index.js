@@ -296,22 +296,33 @@ async function saveTransfers(athleteId, transfers, playerName) {
       transfer_type: type,
       season: t.season,
     };
-  }).filter(r => r.transfer_date); // Only records with valid dates
+  }).filter(r => r.transfer_date && r.from_club && r.to_club); // Only records with valid data
   
   if (!records.length) return;
   
-  const { error } = await supabase
-    .from('athlete_transfer_history')
-    .upsert(records, { 
-      onConflict: 'athlete_id,transfer_date,from_club,to_club',
-      ignoreDuplicates: true 
-    });
-  
-  if (error) {
-    console.error(`Error saving transfers for ${playerName}:`, error.message);
-  } else {
-    console.log(`Saved ${records.length} transfers for ${playerName}`);
+  // Insert one by one to avoid constraint issues
+  let savedCount = 0;
+  for (const record of records) {
+    // Check if already exists
+    const { data: existing } = await supabase
+      .from('athlete_transfer_history')
+      .select('id')
+      .eq('athlete_id', record.athlete_id)
+      .eq('transfer_date', record.transfer_date)
+      .eq('from_club', record.from_club)
+      .eq('to_club', record.to_club)
+      .maybeSingle();
+    
+    if (!existing) {
+      const { error } = await supabase
+        .from('athlete_transfer_history')
+        .insert(record);
+      
+      if (!error) savedCount++;
+    }
   }
+  
+  console.log(`Saved ${savedCount} transfers for ${playerName}`);
 }
 
 // Save injuries to Supabase
@@ -323,27 +334,37 @@ async function saveInjuries(athleteId, injuries, playerName) {
     injury_type: i.injury,
     start_date: parseDate(i.from),
     end_date: parseDate(i.until),
-    days_out: parseInt(i.days) || null,
+    days_missed: parseInt(i.days) || null,
     games_missed: parseInt(i.gamesMissed) || null,
-    season: i.season,
     is_current: !i.until || i.until === '-',
-    source: 'transfermarkt',
-  })).filter(r => r.start_date); // Only records with valid dates
+    source_url: 'https://www.transfermarkt.com',
+    severity: 'unknown',
+  })).filter(r => r.start_date && r.injury_type); // Only records with valid dates and injury type
   
   if (!records.length) return;
   
-  const { error } = await supabase
-    .from('athlete_injury_history')
-    .upsert(records, { 
-      onConflict: 'athlete_id,injury_type,start_date',
-      ignoreDuplicates: true 
-    });
-  
-  if (error) {
-    console.error(`Error saving injuries for ${playerName}:`, error.message);
-  } else {
-    console.log(`Saved ${records.length} injuries for ${playerName}`);
+  // Insert injuries one by one to avoid constraint issues
+  let savedCount = 0;
+  for (const record of records) {
+    // Check if already exists
+    const { data: existing } = await supabase
+      .from('athlete_injury_history')
+      .select('id')
+      .eq('athlete_id', record.athlete_id)
+      .eq('injury_type', record.injury_type)
+      .eq('start_date', record.start_date)
+      .maybeSingle();
+    
+    if (!existing) {
+      const { error } = await supabase
+        .from('athlete_injury_history')
+        .insert(record);
+      
+      if (!error) savedCount++;
+    }
   }
+  
+  console.log(`Saved ${savedCount} injuries for ${playerName}`);
 }
 
 // Save market values to Supabase
@@ -369,26 +390,34 @@ async function saveMarketValues(athleteId, marketData, playerName) {
   if (marketData.history?.length) {
     const records = marketData.history.map(mv => ({
       athlete_id: athleteId,
-      value_date: parseDate(mv.date),
+      recorded_date: parseDate(mv.date),
       market_value: parseMarketValue(mv.value),
       currency: 'EUR',
       club_at_time: mv.club,
       source: 'transfermarkt',
-    })).filter(r => r.value_date && r.market_value);
+    })).filter(r => r.recorded_date && r.market_value);
     
-    if (records.length) {
-      const { error } = await supabase
+    // Insert one by one to avoid constraint issues
+    let savedCount = 0;
+    for (const record of records) {
+      const { data: existing } = await supabase
         .from('athlete_market_values')
-        .upsert(records, { 
-          onConflict: 'athlete_id,value_date',
-          ignoreDuplicates: true 
-        });
+        .select('id')
+        .eq('athlete_id', record.athlete_id)
+        .eq('recorded_date', record.recorded_date)
+        .maybeSingle();
       
-      if (error) {
-        console.error(`Error saving market values for ${playerName}:`, error.message);
-      } else {
-        console.log(`Saved ${records.length} market value records for ${playerName}`);
+      if (!existing) {
+        const { error } = await supabase
+          .from('athlete_market_values')
+          .insert(record);
+        
+        if (!error) savedCount++;
       }
+    }
+    
+    if (savedCount) {
+      console.log(`Saved ${savedCount} market value records for ${playerName}`);
     }
   }
 }
