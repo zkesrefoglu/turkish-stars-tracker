@@ -544,11 +544,6 @@ const AthleteProfilePage = () => {
                     ) : (
                       <User className="w-16 h-16 text-muted-foreground" />
                     )}
-                    {athlete.jersey_number && (
-                      <div className="absolute -bottom-1 -right-1 bg-accent text-accent-foreground text-lg font-bold w-10 h-10 rounded-full flex items-center justify-center border-2 border-background shadow-lg">
-                        {athlete.jersey_number}
-                      </div>
-                    )}
                   </div>
                 </div>
 
