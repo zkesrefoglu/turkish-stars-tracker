@@ -15,6 +15,11 @@ const TEAM_IDS: Record<string, number> = {
   'Cagliari': 490,
   'Bournemouth': 35,
   'AS Roma': 497,
+  'Al-Ahli': 2932,
+  'Al Ahli': 2932,
+  'Al-Ahli Saudi': 2932,
+  'Inter Milan': 505,
+  'Inter': 505,
 };
 
 interface UpcomingFixture {
