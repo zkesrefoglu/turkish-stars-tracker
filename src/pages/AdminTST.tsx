@@ -410,9 +410,9 @@ export default function AdminTST() {
       <div className="container mx-auto px-4 py-8">
         <div className="flex items-center justify-between gap-4 mb-8">
           <div className="flex items-center gap-4">
-            <Button variant="ghost" onClick={() => navigate('/admin/tst')}>
+            <Button variant="ghost" onClick={() => navigate('/athletes')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Admin
+              Back to Athletes
             </Button>
             <h1 className="text-3xl font-bold">Turkish Stars Tracker Admin</h1>
           </div>
