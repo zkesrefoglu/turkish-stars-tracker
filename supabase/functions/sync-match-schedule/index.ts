@@ -14,6 +14,7 @@ const TEAM_IDS: Record<string, number> = {
   'Eintracht Frankfurt': 169,
   'Cagliari': 490,
   'Bournemouth': 35,
+  'AS Roma': 497,
 };
 
 interface UpcomingFixture {
