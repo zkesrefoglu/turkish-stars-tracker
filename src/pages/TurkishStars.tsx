@@ -206,7 +206,9 @@ const TurkishStars = () => {
             const nextMatch = getNextMatch(athlete.id);
             const recentMatches = getRecentMatches(athlete.id);
             const injuryStatus = latestUpdate?.injury_status || "healthy";
-            
+            const competitionName = (lastMatch?.competition || athlete.league || "").trim();
+            const competitionLogo = getCompetitionLogo(competitionName);
+
 
             return (
               <Link
@@ -279,16 +281,17 @@ const TurkishStars = () => {
                       {/* Competition Logo */}
                       <div className="flex flex-col items-center">
                         <div className="text-[9px] uppercase tracking-wider text-muted-foreground/70 font-ui mb-1">Comp</div>
-                        {lastMatch?.competition && getCompetitionLogo(lastMatch.competition) ? (
+                        {competitionLogo ? (
                           <img 
-                            src={getCompetitionLogo(lastMatch.competition)!} 
-                            alt={lastMatch.competition}
-                            className="w-7 h-7 object-contain"
-                            title={lastMatch.competition}
+                            src={competitionLogo} 
+                            alt={`${competitionName} competition logo`}
+                            className="w-8 h-8 object-contain"
+                            title={competitionName}
+                            loading="lazy"
                           />
                         ) : (
                           <span className="text-[10px] text-muted-foreground text-center leading-tight">
-                            {lastMatch?.competition || "—"}
+                            {competitionName || "—"}
                           </span>
                         )}
                       </div>
