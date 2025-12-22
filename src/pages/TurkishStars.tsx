@@ -213,7 +213,7 @@ const TurkishStars = () => {
                 to={`/athlete/${athlete.slug}`}
                 className="group block"
               >
-                <Card className={`border-border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:border-accent/40 ${athlete.sport === "basketball" ? "bg-red-950/20 border-red-900/30" : "bg-card"}`}>
+                <Card className={`border-border overflow-hidden cursor-pointer transition-all duration-300 hover:scale-[1.01] hover:shadow-xl hover:border-accent/40 ${athlete.slug === "alperen-sengun" ? "bg-[#FCBABF]" : athlete.sport === "basketball" ? "bg-red-950/20 border-red-900/30" : "bg-card"}`}>
                   <div className="flex items-stretch">
                     {/* Player Photo - Left Edge */}
                     <div className="relative w-[140px] md:w-[180px] h-[160px] md:h-[180px] flex-shrink-0 overflow-hidden bg-white">
