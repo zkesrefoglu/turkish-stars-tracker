@@ -105,22 +105,104 @@ function matchPlayerName(apiName: string, athleteName: string): boolean {
   return false;
 }
 
+// Generate search name variations without Turkish characters
+function getSearchVariations(playerName: string): string[] {
+  const variations: string[] = [];
+  
+  // Add original name
+  variations.push(playerName);
+  
+  // Add last name only
+  const lastName = playerName.split(' ').pop();
+  if (lastName) {
+    variations.push(lastName);
+  }
+  
+  // Add ASCII versions (without Turkish characters)
+  const asciiName = playerName
+    .replace(/ç/gi, 'c')
+    .replace(/ğ/gi, 'g')
+    .replace(/ı/gi, 'i')
+    .replace(/İ/gi, 'I')
+    .replace(/ö/gi, 'o')
+    .replace(/ş/gi, 's')
+    .replace(/ü/gi, 'u')
+    .replace(/Ç/gi, 'C')
+    .replace(/Ğ/gi, 'G')
+    .replace(/Ö/gi, 'O')
+    .replace(/Ş/gi, 'S')
+    .replace(/Ü/gi, 'U');
+  
+  if (asciiName !== playerName) {
+    variations.push(asciiName);
+    const asciiLastName = asciiName.split(' ').pop();
+    if (asciiLastName) {
+      variations.push(asciiLastName);
+    }
+  }
+  
+  // Check predefined variants
+  const predefinedVariants = PLAYER_NAME_VARIANTS[playerName];
+  if (predefinedVariants) {
+    for (const variant of predefinedVariants) {
+      if (!variations.includes(variant)) {
+        variations.push(variant);
+      }
+    }
+  }
+  
+  return [...new Set(variations)]; // Remove duplicates
+}
+
+// Search for player using the search endpoint (fallback)
+async function searchPlayerByName(playerName: string, apiKey: string): Promise<number | null> {
+  const variations = getSearchVariations(playerName);
+  
+  for (const searchTerm of variations) {
+    console.log(`Searching API for: ${searchTerm}...`);
+    const searchData = await fetchApiFootball(`/players?search=${encodeURIComponent(searchTerm)}&season=${CURRENT_SEASON}`, apiKey);
+    
+    if (searchData?.response && searchData.response.length > 0) {
+      // Find the best match
+      for (const result of searchData.response) {
+        const foundName = result.player?.name || '';
+        if (matchPlayerName(foundName, playerName)) {
+          console.log(`Found via search: ${foundName} (ID: ${result.player?.id})`);
+          return result.player?.id;
+        }
+      }
+    }
+    
+    // Small delay between searches
+    await new Promise(resolve => setTimeout(resolve, 200));
+  }
+  
+  return null;
+}
+
 async function findPlayerInTeam(teamId: number, playerName: string, apiKey: string): Promise<number | null> {
   console.log(`Searching for ${playerName} in team ${teamId}...`);
   
+  // First try squad search
   const squadData = await fetchApiFootball(`/players/squads?team=${teamId}`, apiKey);
   
-  if (!squadData?.response?.[0]?.players) {
-    return null;
-  }
-
-  const squad = squadData.response[0].players;
-  
-  for (const player of squad) {
-    if (matchPlayerName(player.name || '', playerName)) {
-      console.log(`Found: ${player.name} (ID: ${player.id})`);
-      return player.id;
+  if (squadData?.response?.[0]?.players) {
+    const squad = squadData.response[0].players;
+    
+    for (const player of squad) {
+      if (matchPlayerName(player.name || '', playerName)) {
+        console.log(`Found in squad: ${player.name} (ID: ${player.id})`);
+        return player.id;
+      }
     }
+  }
+  
+  // Fallback: use player search API
+  console.log(`Player not found in squad, trying search API for ${playerName}...`);
+  const searchResult = await searchPlayerByName(playerName, apiKey);
+  
+  if (searchResult) {
+    return searchResult;
   }
   
   return null;
