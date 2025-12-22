@@ -863,16 +863,7 @@ const AthleteProfilePage = () => {
                   <Card key={stat.id} className="p-6 bg-card border-border">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-foreground">{stat.season}</h3>
-                      <div className="flex items-center gap-2">
-                        {getCompetitionLogo(stat.competition) && (
-                          <img 
-                            src={getCompetitionLogo(stat.competition)!} 
-                            alt={stat.competition}
-                            className="w-6 h-6 object-contain"
-                          />
-                        )}
-                        <Badge variant="outline">{stat.competition}</Badge>
-                      </div>
+                      <Badge variant="outline">{stat.competition}</Badge>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
                       <div className="text-center p-3 bg-secondary rounded-lg">
@@ -914,28 +905,36 @@ const AthleteProfilePage = () => {
                       {athlete.sport === "football" && stat.stats && (
                         <>
                           <div className="text-center p-3 bg-secondary rounded-lg">
-                            <div className="text-xl font-semibold text-foreground">{stat.stats.goals || 0}</div>
-                            <div className="text-xs text-muted-foreground">Goals</div>
+                            <div className="text-lg font-semibold text-foreground">{stat.stats.goals || 0}</div>
+                            <div className="text-[10px] text-muted-foreground">Goals</div>
                           </div>
                           <div className="text-center p-3 bg-secondary rounded-lg">
-                            <div className="text-xl font-semibold text-foreground">{stat.stats.assists || 0}</div>
-                            <div className="text-xs text-muted-foreground">Assists</div>
+                            <div className="text-lg font-semibold text-foreground">{stat.stats.assists || 0}</div>
+                            <div className="text-[10px] text-muted-foreground">Assists</div>
                           </div>
                           <div className="text-center p-3 bg-secondary rounded-lg">
-                            <div className="text-xl font-semibold text-foreground">{stat.stats.minutes || 0}</div>
-                            <div className="text-xs text-muted-foreground">Minutes</div>
+                            <div className="text-lg font-semibold text-foreground">{stat.stats.minutes || 0}</div>
+                            <div className="text-[10px] text-muted-foreground">Minutes</div>
                           </div>
                           <div className="text-center p-3 bg-secondary rounded-lg">
-                            <div className="text-xl font-semibold text-foreground">{stat.stats.shots || 0}</div>
-                            <div className="text-xs text-muted-foreground">Shots</div>
+                            <div className="text-lg font-semibold text-foreground">{stat.stats.shots || 0}</div>
+                            <div className="text-[10px] text-muted-foreground">Shots</div>
                           </div>
                           <div className="text-center p-3 bg-secondary rounded-lg">
-                            <div className="text-xl font-semibold text-foreground">{stat.stats.pass_pct ? `${stat.stats.pass_pct}%` : "—"}</div>
-                            <div className="text-xs text-muted-foreground">Pass%</div>
+                            <div className="text-lg font-semibold text-foreground">{stat.stats.pass_pct ? `${stat.stats.pass_pct}%` : "—"}</div>
+                            <div className="text-[10px] text-muted-foreground">Pass%</div>
                           </div>
-                          <div className="text-center p-3 bg-secondary rounded-lg">
-                            <div className="text-xl font-semibold text-foreground">{stat.stats.avg_rating?.toFixed(1) || "—"}</div>
-                            <div className="text-xs text-muted-foreground">Rating</div>
+                          <div className="text-center p-3 bg-secondary rounded-lg flex flex-col items-center justify-center">
+                            {getCompetitionLogo(stat.competition) ? (
+                              <img 
+                                src={getCompetitionLogo(stat.competition)!} 
+                                alt={stat.competition}
+                                className="w-8 h-8 object-contain"
+                                title={stat.competition}
+                              />
+                            ) : (
+                              <div className="text-lg font-semibold text-foreground">—</div>
+                            )}
                           </div>
                         </>
                       )}
