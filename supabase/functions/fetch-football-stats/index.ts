@@ -20,6 +20,7 @@ const TEAM_IDS: Record<string, number> = {
   'Inter Milan': 505,
   'Inter': 505,
   'Cagliari': 490,
+  'Bournemouth': 35,
 };
 
 // Player name mappings for Turkish characters
@@ -31,6 +32,7 @@ const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Berke Ozer': ['Berke Özer', 'Özer', 'Ozer', 'B. Özer'],
   'Hakan Calhanoglu': ['Hakan Çalhanoğlu', 'Çalhanoğlu', 'Calhanoglu', 'H. Çalhanoğlu'],
   'Semih Kılıçsoy': ['Semih Kilicsoy', 'Kılıçsoy', 'Kilicsoy', 'S. Kılıçsoy'],
+  'Enes Ünal': ['Enes Unal', 'Ünal', 'Unal', 'E. Ünal'],
 };
 
 interface ApiFootballResponse {

@@ -13,6 +13,7 @@ const TEAM_IDS: Record<string, number> = {
   'Lille': 79,
   'Eintracht Frankfurt': 169,
   'Cagliari': 490,
+  'Bournemouth': 35,
 };
 
 interface UpcomingFixture {
