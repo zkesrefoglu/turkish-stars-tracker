@@ -52,9 +52,16 @@ const competitionLogos: Record<string, string> = {
   "FIFA Intercontinental Cup": "/logos/cups/intercontinental-cup.jpg",
 };
 
+const normalizeCompetition = (value: string) => value.trim().toLowerCase();
+
+const competitionLogosNormalized: Record<string, string> = Object.fromEntries(
+  Object.entries(competitionLogos).map(([k, v]) => [normalizeCompetition(k), v])
+);
+
 export const getCompetitionLogo = (competition: string | null | undefined): string | null => {
   if (!competition) return null;
-  return competitionLogos[competition] || null;
+  const raw = competition.trim();
+  return competitionLogos[raw] || competitionLogosNormalized[normalizeCompetition(raw)] || null;
 };
 
 export default competitionLogos;
