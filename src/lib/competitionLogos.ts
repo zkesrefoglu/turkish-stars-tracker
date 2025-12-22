@@ -12,6 +12,12 @@ const competitionLogos: Record<string, string> = {
   "Turkish Super Lig": "/logos/leagues/super-lig.jpg",
   "Trendyol Süper Lig": "/logos/leagues/super-lig.jpg",
   "NBA": "/logos/leagues/nba.jpg",
+  "Primeira Liga": "/logos/leagues/primeira-liga.png",
+  "Liga Portugal": "/logos/leagues/primeira-liga.png",
+  "Liga Portugal Betclic": "/logos/leagues/primeira-liga.png",
+  "Saudi Pro League": "/logos/leagues/saudi-pro-league.jpg",
+  "Roshn Saudi League": "/logos/leagues/saudi-pro-league.jpg",
+  "RSL": "/logos/leagues/saudi-pro-league.jpg",
   
   // UEFA Competitions
   "UEFA Champions League": "/logos/cups/champions-league.jpg",
