@@ -16,6 +16,7 @@ import { PreviousGameCard } from "@/components/PreviousGameCard";
 import { PerformanceSplitsTable } from "@/components/PerformanceSplitsTable";
 import { FantasyInsightCard } from "@/components/FantasyInsightCard";
 import { supabase } from "@/integrations/supabase/client";
+import { getCompetitionLogo } from "@/lib/competitionLogos";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -810,7 +811,16 @@ const AthleteProfilePage = () => {
                   <div className="font-semibold text-foreground">
                     {match.home_away === "home" ? "vs" : "@"} {match.opponent}
                   </div>
-                  <div className="text-sm text-muted-foreground">{match.competition}</div>
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    {getCompetitionLogo(match.competition) && (
+                      <img 
+                        src={getCompetitionLogo(match.competition)!} 
+                        alt={match.competition}
+                        className="w-5 h-5 object-contain"
+                      />
+                    )}
+                    <span>{match.competition}</span>
+                  </div>
                   <div className="text-sm text-accent mt-2">
                     {format(new Date(match.match_date), "MMM d, h:mm a")}
                   </div>
@@ -853,7 +863,16 @@ const AthleteProfilePage = () => {
                   <Card key={stat.id} className="p-6 bg-card border-border">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="text-lg font-semibold text-foreground">{stat.season}</h3>
-                      <Badge variant="outline">{stat.competition}</Badge>
+                      <div className="flex items-center gap-2">
+                        {getCompetitionLogo(stat.competition) && (
+                          <img 
+                            src={getCompetitionLogo(stat.competition)!} 
+                            alt={stat.competition}
+                            className="w-6 h-6 object-contain"
+                          />
+                        )}
+                        <Badge variant="outline">{stat.competition}</Badge>
+                      </div>
                     </div>
                     <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
                       <div className="text-center p-3 bg-secondary rounded-lg">
@@ -954,7 +973,16 @@ const AthleteProfilePage = () => {
                           <div className="font-medium text-foreground">
                             {match.home_away === "home" ? "vs" : "@"} {match.opponent}
                           </div>
-                          <div className="text-sm text-muted-foreground">{match.competition}</div>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            {getCompetitionLogo(match.competition) && (
+                              <img 
+                                src={getCompetitionLogo(match.competition)!} 
+                                alt={match.competition}
+                                className="w-4 h-4 object-contain"
+                              />
+                            )}
+                            <span>{match.competition}</span>
+                          </div>
                         </div>
                       </div>
                       <div className="flex items-center gap-4">
