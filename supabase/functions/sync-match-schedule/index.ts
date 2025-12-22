@@ -21,6 +21,9 @@ const TEAM_IDS: Record<string, number> = {
   'Al-Hilal': 2939,
   'Al Hilal': 2939,
   'Al-Hilal Saudi': 2939,
+  'Manchester United': 33,
+  'Man United': 33,
+  'Man Utd': 33,
   'Inter Milan': 505,
   'Inter': 505,
 };
