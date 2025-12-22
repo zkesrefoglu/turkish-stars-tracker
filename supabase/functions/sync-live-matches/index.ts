@@ -88,14 +88,50 @@ Deno.serve(async (req) => {
       });
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // ========== SMART SCHEDULING CHECK ==========
+    // Check if any matches are happening within a 3-hour window before making API calls
+    const now = new Date();
+    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
+    const oneHourAhead = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+    
+    const { data: upcomingMatches, error: scheduleError } = await supabase
+      .from('athlete_upcoming_matches')
+      .select('id, match_date, athlete_id, opponent, competition')
+      .gte('match_date', twoHoursAgo.toISOString())
+      .lte('match_date', oneHourAhead.toISOString());
+
+    if (scheduleError) {
+      console.error('Error checking schedule:', scheduleError);
+      // Continue anyway in case of schedule error
+    }
+
+    if (!upcomingMatches || upcomingMatches.length === 0) {
+      console.log('No matches scheduled in current time window - skipping API calls');
+      console.log(`Checked window: ${twoHoursAgo.toISOString()} to ${oneHourAhead.toISOString()}`);
+      return new Response(JSON.stringify({ 
+        success: true, 
+        skipped: true,
+        reason: 'No matches scheduled in current time window',
+        checkedWindow: {
+          from: twoHoursAgo.toISOString(),
+          to: oneHourAhead.toISOString()
+        }
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`Found ${upcomingMatches.length} matches in current window - proceeding with API calls`);
+    // ========== END SMART SCHEDULING CHECK ==========
+
     const apiKey = Deno.env.get('API_FOOTBALL_KEY');
     if (!apiKey) {
       throw new Error('API_FOOTBALL_KEY not configured');
     }
-
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
     // Get football athletes
     const { data: athletes, error: athletesError } = await supabase

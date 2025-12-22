@@ -35,3 +35,6 @@ verify_jwt = false
 
 [functions.download-instagram]
 verify_jwt = false
+
+[functions.sync-match-schedule]
+verify_jwt = false
