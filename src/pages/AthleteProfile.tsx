@@ -865,7 +865,7 @@ const AthleteProfilePage = () => {
                       <h3 className="text-lg font-semibold text-foreground">{stat.season}</h3>
                       <Badge variant="outline">{stat.competition}</Badge>
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-4">
+                    <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
                       <div className="text-center p-3 bg-secondary rounded-lg">
                         <div className="text-xl font-semibold text-foreground">{stat.games_played || 0}</div>
                         <div className="text-xs text-muted-foreground">GP</div>
@@ -904,36 +904,40 @@ const AthleteProfilePage = () => {
                       )}
                       {athlete.sport === "football" && stat.stats && (
                         <>
-                          <div className="text-center p-3 bg-secondary rounded-lg">
+                          <div className="text-center p-2 bg-secondary rounded-lg">
                             <div className="text-lg font-semibold text-foreground">{stat.stats.goals || 0}</div>
                             <div className="text-[10px] text-muted-foreground">Goals</div>
                           </div>
-                          <div className="text-center p-3 bg-secondary rounded-lg">
+                          <div className="text-center p-2 bg-secondary rounded-lg">
                             <div className="text-lg font-semibold text-foreground">{stat.stats.assists || 0}</div>
                             <div className="text-[10px] text-muted-foreground">Assists</div>
                           </div>
-                          <div className="text-center p-3 bg-secondary rounded-lg">
+                          <div className="text-center p-2 bg-secondary rounded-lg">
                             <div className="text-lg font-semibold text-foreground">{stat.stats.minutes || 0}</div>
                             <div className="text-[10px] text-muted-foreground">Minutes</div>
                           </div>
-                          <div className="text-center p-3 bg-secondary rounded-lg">
+                          <div className="text-center p-2 bg-secondary rounded-lg">
                             <div className="text-lg font-semibold text-foreground">{stat.stats.shots || 0}</div>
                             <div className="text-[10px] text-muted-foreground">Shots</div>
                           </div>
-                          <div className="text-center p-3 bg-secondary rounded-lg">
+                          <div className="text-center p-2 bg-secondary rounded-lg">
                             <div className="text-lg font-semibold text-foreground">{stat.stats.pass_pct ? `${stat.stats.pass_pct}%` : "—"}</div>
                             <div className="text-[10px] text-muted-foreground">Pass%</div>
                           </div>
-                          <div className="text-center p-3 bg-secondary rounded-lg flex flex-col items-center justify-center">
+                          <div className="text-center p-2 bg-secondary rounded-lg">
+                            <div className="text-lg font-semibold text-foreground">{stat.stats.avg_rating?.toFixed(1) || "—"}</div>
+                            <div className="text-[10px] text-muted-foreground">Rating</div>
+                          </div>
+                          <div className="text-center p-2 bg-secondary rounded-lg flex flex-col items-center justify-center">
                             {getCompetitionLogo(stat.competition) ? (
                               <img 
                                 src={getCompetitionLogo(stat.competition)!} 
                                 alt={stat.competition}
-                                className="w-8 h-8 object-contain"
+                                className="w-10 h-10 object-contain"
                                 title={stat.competition}
                               />
                             ) : (
-                              <div className="text-lg font-semibold text-foreground">—</div>
+                              <div className="text-sm font-medium text-muted-foreground">{stat.competition}</div>
                             )}
                           </div>
                         </>
