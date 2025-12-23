@@ -6,13 +6,13 @@ export const MiniHeader = () => {
     <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border shadow-sm">
       <div className="flex items-center justify-between px-4 h-16">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2.5">
+        <Link to="/" className="flex items-center gap-3">
           <img 
             src="/images/turkish-stars-logo.png" 
             alt="TST" 
-            className="w-10 h-10 object-contain"
+            className="w-12 h-12 object-contain"
           />
-          <span className="font-headline font-black text-xl text-foreground">TST</span>
+          <span className="font-headline font-black text-2xl text-foreground">TST</span>
         </Link>
 
         {/* Subtitle - Mobile */}
