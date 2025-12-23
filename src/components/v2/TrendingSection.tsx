@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { TrendingUp, ChevronRight } from 'lucide-react';
+import { TrendUp, CaretRight, User } from '@phosphor-icons/react';
 import { Badge } from '@/components/ui/badge';
 
 interface DailyUpdate {
@@ -112,11 +112,11 @@ export const TrendingSection = () => {
       {/* Header */}
       <div className="flex items-center justify-between px-4 mb-3">
         <div className="flex items-center gap-2">
-          <TrendingUp className="w-5 h-5 text-accent" />
+          <TrendUp size={20} weight="duotone" className="text-accent" />
           <h2 className="font-headline text-lg font-bold text-foreground">Recent Performances</h2>
         </div>
         <Link to="/athletes" className="flex items-center gap-1 text-xs text-accent font-medium">
-          More <ChevronRight className="w-4 h-4" />
+          More <CaretRight size={16} weight="bold" />
         </Link>
       </div>
 
@@ -142,7 +142,7 @@ export const TrendingSection = () => {
                   />
                 ) : (
                   <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <span className="text-lg">👤</span>
+                    <User size={20} weight="duotone" className="text-muted-foreground" />
                   </div>
                 )}
 

@@ -1,11 +1,11 @@
 import { Link, useLocation } from 'react-router-dom';
-import { Home, BarChart3, Radio, Newspaper, Users } from 'lucide-react';
+import { House, ChartBar, Broadcast, Newspaper, Users } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 
 const navItems = [
-  { icon: Home, label: 'Home', path: '/' },
-  { icon: BarChart3, label: 'Stats', path: '/stats' },
-  { icon: Radio, label: 'LIVE', path: '/live', isLive: true },
+  { icon: House, label: 'Home', path: '/' },
+  { icon: ChartBar, label: 'Stats', path: '/stats' },
+  { icon: Broadcast, label: 'LIVE', path: '/live', isLive: true },
   { icon: Newspaper, label: 'News', path: '/news' },
   { icon: Users, label: 'Players', path: '/athletes' },
 ];
@@ -33,15 +33,15 @@ export const BottomNav = () => {
             >
               {item.isLive ? (
                 <div className="relative">
-                  <Icon className="w-5 h-5" />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                  <Icon size={22} weight={isActive ? 'duotone' : 'regular'} />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 bg-destructive rounded-full animate-pulse" />
                 </div>
               ) : (
-                <Icon className="w-5 h-5" />
+                <Icon size={22} weight={isActive ? 'duotone' : 'regular'} />
               )}
               <span className={cn(
                 "text-[10px] font-ui uppercase tracking-wider",
-                item.isLive && "text-red-500 font-bold"
+                item.isLive && "text-destructive font-bold"
               )}>
                 {item.label}
               </span>

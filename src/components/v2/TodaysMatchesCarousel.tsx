@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { format, isToday, isTomorrow, addDays } from 'date-fns';
-import { ChevronRight } from 'lucide-react';
+import { CaretRight, SoccerBall } from '@phosphor-icons/react';
 import { cn } from '@/lib/utils';
 import { getCompetitionLogo } from '@/lib/competitionLogos';
 
@@ -91,7 +91,7 @@ export const TodaysMatchesCarousel = () => {
       <div className="flex items-center justify-between px-4 mb-3">
         <h2 className="font-headline text-lg font-bold text-foreground">Upcoming Matches</h2>
         <Link to="/athletes" className="flex items-center gap-1 text-xs text-accent font-medium">
-          See all <ChevronRight className="w-4 h-4" />
+          See all <CaretRight size={16} weight="bold" />
         </Link>
       </div>
 
@@ -119,7 +119,7 @@ export const TodaysMatchesCarousel = () => {
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <span className="text-3xl">⚽</span>
+                      <SoccerBall size={32} weight="duotone" className="text-muted-foreground" />
                     </div>
                   )}
                   {/* Date badge */}
