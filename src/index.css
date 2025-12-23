@@ -521,3 +521,17 @@
   @apply shadow-lg;
   backdrop-filter: blur(12px);
 }
+
+/* v2 Mobile Utilities */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+.safe-area-pb {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
