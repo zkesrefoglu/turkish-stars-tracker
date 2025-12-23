@@ -3,16 +3,16 @@ import { MagnifyingGlass, Bell } from '@phosphor-icons/react';
 
 export const MiniHeader = () => {
   return (
-    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border">
-      <div className="flex items-center justify-between px-4 h-14">
+    <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg border-b border-border shadow-sm">
+      <div className="flex items-center justify-between px-4 h-16">
         {/* Logo */}
-        <Link to="/" className="flex items-center gap-2">
+        <Link to="/" className="flex items-center gap-2.5">
           <img 
             src="/images/turkish-stars-logo.png" 
             alt="TST" 
-            className="w-8 h-8 object-contain"
+            className="w-10 h-10 object-contain"
           />
-          <span className="font-headline font-bold text-lg text-foreground">TST</span>
+          <span className="font-headline font-black text-xl text-foreground">TST</span>
         </Link>
 
         {/* Subtitle - Mobile */}

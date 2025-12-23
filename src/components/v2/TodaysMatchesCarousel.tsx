@@ -96,7 +96,7 @@ export const TodaysMatchesCarousel = () => {
       </div>
 
       {/* Carousel */}
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory">
+      <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory scroll-pl-4">
         {matches.map((match) => {
           const matchDate = new Date(match.match_date);
           const athlete = match.athlete;
@@ -108,26 +108,26 @@ export const TodaysMatchesCarousel = () => {
               to={athlete ? `/athlete/${athlete.slug}` : '#'}
               className="flex-shrink-0 snap-start"
             >
-              <div className="w-40 bg-card border border-border rounded-xl overflow-hidden hover:border-accent/40 transition-all duration-300 hover:shadow-lg">
+              <div className="w-48 bg-card border border-border rounded-xl overflow-hidden hover:border-accent/40 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10">
                 {/* Player Image */}
-                <div className="relative h-24 bg-gradient-to-br from-muted to-background">
+                <div className="relative h-32 bg-gradient-to-br from-muted to-background">
                   {athlete?.photo_url ? (
                     <img 
                       src={athlete.photo_url} 
                       alt={athlete.name}
-                      className="w-full h-full object-cover object-[center_20%]"
+                      className="w-full h-full object-cover object-[center_15%]"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <SoccerBall size={32} weight="duotone" className="text-muted-foreground" />
+                      <SoccerBall size={40} weight="duotone" className="text-muted-foreground" />
                     </div>
                   )}
                   {/* Date badge */}
                   <div className={cn(
-                    "absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
+                    "absolute top-2 left-2 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase",
                     isToday(matchDate) 
                       ? "bg-accent text-white" 
-                      : "bg-background/80 text-foreground"
+                      : "bg-background/90 text-foreground"
                   )}>
                     {getDateLabel(matchDate)}
                   </div>
@@ -136,20 +136,20 @@ export const TodaysMatchesCarousel = () => {
                     <img 
                       src={compLogo} 
                       alt={match.competition}
-                      className="absolute top-2 right-2 w-6 h-6 object-contain"
+                      className="absolute top-2 right-2 w-7 h-7 object-contain bg-background/80 rounded-md p-0.5"
                     />
                   )}
                 </div>
 
                 {/* Match Info */}
-                <div className="p-3">
-                  <p className="font-semibold text-sm text-foreground truncate">
+                <div className="p-3.5">
+                  <p className="font-bold text-base text-foreground truncate">
                     {athlete?.name || 'Unknown'}
                   </p>
-                  <p className="text-xs text-muted-foreground mt-0.5">
+                  <p className="text-sm text-muted-foreground mt-1">
                     {match.home_away === 'home' ? 'vs' : '@'} {match.opponent}
                   </p>
-                  <p className="text-[10px] text-accent font-medium mt-1.5">
+                  <p className="text-xs text-accent font-semibold mt-2">
                     {format(matchDate, 'h:mm a')}
                   </p>
                 </div>
