@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { MagnifyingGlass, Bell } from '@phosphor-icons/react';
 
 export const MiniHeader = () => {
   return (
@@ -15,7 +16,7 @@ export const MiniHeader = () => {
         </Link>
 
         {/* Subtitle - Mobile */}
-        <p className="text-xs text-muted-foreground font-ui uppercase tracking-wider">
+        <p className="text-xs text-muted-foreground font-ui uppercase tracking-wider md:hidden">
           Live Hub
         </p>
 
@@ -31,6 +32,17 @@ export const MiniHeader = () => {
             Classic View
           </Link>
         </nav>
+
+        {/* Icons */}
+        <div className="flex items-center gap-3">
+          <button className="p-2 rounded-full hover:bg-muted transition-colors">
+            <MagnifyingGlass size={20} weight="regular" className="text-muted-foreground" />
+          </button>
+          <button className="relative p-2 rounded-full hover:bg-muted transition-colors">
+            <Bell size={20} weight="regular" className="text-muted-foreground" />
+            <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-destructive rounded-full" />
+          </button>
+        </div>
       </div>
     </header>
   );
