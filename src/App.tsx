@@ -10,6 +10,9 @@ import NotFound from "./pages/NotFound";
 import LiveHub from "./pages/LiveHub";
 import TurkishStars from "./pages/TurkishStars";
 import AthleteProfile from "./pages/AthleteProfile";
+import StatsPage from "./pages/StatsPage";
+import LivePage from "./pages/LivePage";
+import NewsPage from "./pages/NewsPage";
 
 // v1 Legacy Pages
 import V1TurkishStarsIndex from "./pages/v1/TurkishStarsIndex";
@@ -33,6 +36,9 @@ const App = () => (
           <Route path="/" element={<LiveHub />} />
           <Route path="/athletes" element={<TurkishStars />} />
           <Route path="/athlete/:slug" element={<AthleteProfile />} />
+          <Route path="/stats" element={<StatsPage />} />
+          <Route path="/live" element={<LivePage />} />
+          <Route path="/news" element={<NewsPage />} />
           
           {/* v1 Legacy Routes */}
           <Route path="/v1" element={<V1TurkishStarsIndex />} />
