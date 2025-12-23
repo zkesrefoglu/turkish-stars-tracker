@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
-import { TrendUp, CaretRight, User } from '@phosphor-icons/react';
+import { TrendUp, CaretRight, User, SoccerBall, Basketball } from '@phosphor-icons/react';
 import { Badge } from '@/components/ui/badge';
 
 interface DailyUpdate {
@@ -121,10 +121,11 @@ export const TrendingSection = () => {
       </div>
 
       {/* Updates List */}
-      <div className="px-4 space-y-2">
+      <div className="px-4 space-y-2.5">
         {recentUpdates.map((update) => {
           const athlete = update.athlete;
           const statsLine = formatStats(update);
+          const SportIcon = athlete?.sport === 'basketball' ? Basketball : SoccerBall;
 
           return (
             <Link
@@ -132,29 +133,30 @@ export const TrendingSection = () => {
               to={athlete ? `/athlete/${athlete.slug}` : '#'}
               className="block"
             >
-              <div className="flex items-center gap-3 p-3 bg-card border border-border rounded-lg hover:border-accent/40 transition-all duration-200">
+              <div className="flex items-center gap-3 p-3.5 bg-card border border-border rounded-lg hover:border-accent/40 transition-all duration-200 border-l-2 border-l-accent/50">
                 {/* Avatar */}
                 {athlete?.photo_url ? (
                   <img 
                     src={athlete.photo_url} 
                     alt={athlete.name}
-                    className="w-10 h-10 rounded-full object-cover object-[center_20%] border border-border"
+                    className="w-12 h-12 rounded-full object-cover object-[center_20%] border-2 border-border"
                   />
                 ) : (
-                  <div className="w-10 h-10 rounded-full bg-muted flex items-center justify-center">
-                    <User size={20} weight="duotone" className="text-muted-foreground" />
+                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
+                    <User size={24} weight="duotone" className="text-muted-foreground" />
                   </div>
                 )}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
+                    <SportIcon size={14} weight="duotone" className="text-muted-foreground flex-shrink-0" />
                     <p className="font-semibold text-sm text-foreground truncate">
                       {athlete?.name || 'Unknown'}
                     </p>
                     {getResultBadge(update.match_result)}
                   </div>
-                  <p className="text-xs text-muted-foreground truncate">
+                  <p className="text-xs text-muted-foreground truncate mt-0.5">
                     vs {update.opponent} • {update.competition}
                   </p>
                 </div>
@@ -162,7 +164,7 @@ export const TrendingSection = () => {
                 {/* Stats */}
                 {statsLine && (
                   <div className="text-right">
-                    <p className="text-xs font-semibold text-accent">{statsLine}</p>
+                    <p className="text-xs font-bold text-accent">{statsLine}</p>
                   </div>
                 )}
               </div>

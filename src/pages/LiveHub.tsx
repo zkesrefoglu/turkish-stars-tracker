@@ -3,6 +3,7 @@ import { BottomNav } from '@/components/v2/BottomNav';
 import { LiveMatchBanner } from '@/components/v2/LiveMatchBanner';
 import { TodaysMatchesCarousel } from '@/components/v2/TodaysMatchesCarousel';
 import { TrendingSection } from '@/components/v2/TrendingSection';
+import { Rocket } from '@phosphor-icons/react';
 
 const LiveHub = () => {
   return (
@@ -26,9 +27,10 @@ const LiveHub = () => {
         {/* Quick Stats / League Standings - Placeholder for future */}
         <div className="px-4 py-6">
           <div className="bg-gradient-to-br from-primary/5 to-accent/5 border border-border rounded-xl p-6 text-center">
-            <p className="text-muted-foreground text-sm">
-              🚀 More features coming soon...
-            </p>
+            <div className="flex items-center justify-center gap-2 text-muted-foreground text-sm">
+              <Rocket size={18} weight="duotone" className="text-accent" />
+              <span>More features coming soon...</span>
+            </div>
             <p className="text-xs text-muted-foreground/70 mt-2">
               News Feed • Stats Dashboard • Player Stories
             </p>
