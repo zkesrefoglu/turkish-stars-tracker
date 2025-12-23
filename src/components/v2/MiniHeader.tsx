@@ -10,7 +10,7 @@ export const MiniHeader = () => {
           <img 
             src="/images/turkish-stars-logo.png" 
             alt="Turkish Stars Tracker" 
-            className="w-[120px] h-[120px] object-contain"
+            className="w-[120px] h-[120px] object-contain hover-scale"
           />
         </Link>
 
