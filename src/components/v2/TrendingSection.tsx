@@ -23,6 +23,14 @@ interface DailyUpdate {
   };
 }
 
+// Helper to get avatar URL - prioritize face-focused avatars
+const getAvatarUrl = (slug: string | undefined, photoUrl: string | null): string | null => {
+  if (!slug) return photoUrl;
+  // Check if we have a dedicated avatar for this athlete
+  const avatarPath = `/athletes/avatars/${slug}-avatar.jpg`;
+  return avatarPath;
+};
+
 export const TrendingSection = () => {
   const [recentUpdates, setRecentUpdates] = useState<DailyUpdate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -134,18 +142,28 @@ export const TrendingSection = () => {
               className="block"
             >
               <div className="flex items-center gap-3 p-3.5 bg-card border border-border rounded-lg hover:border-accent/40 transition-all duration-200 border-l-2 border-l-accent/50">
-                {/* Avatar */}
-                {athlete?.photo_url ? (
-                  <img 
-                    src={athlete.photo_url} 
-                    alt={athlete.name}
-                    className="w-16 h-16 rounded-full object-cover object-[center_10%] border-2 border-border"
-                  />
-                ) : (
-                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                    <User size={28} weight="duotone" className="text-muted-foreground" />
-                  </div>
-                )}
+              {/* Avatar */}
+                {(() => {
+                  const avatarUrl = getAvatarUrl(athlete?.slug, athlete?.photo_url);
+                  return avatarUrl ? (
+                    <img 
+                      src={avatarUrl} 
+                      alt={athlete?.name || 'Athlete'}
+                      className="w-16 h-16 rounded-full object-cover object-center border-2 border-border"
+                      onError={(e) => {
+                        // Fallback to original photo_url if avatar doesn't exist
+                        if (athlete?.photo_url && e.currentTarget.src !== athlete.photo_url) {
+                          e.currentTarget.src = athlete.photo_url;
+                          e.currentTarget.className = "w-16 h-16 rounded-full object-cover object-[center_10%] border-2 border-border";
+                        }
+                      }}
+                    />
+                  ) : (
+                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                      <User size={28} weight="duotone" className="text-muted-foreground" />
+                    </div>
+                  );
+                })()}
 
                 {/* Info */}
                 <div className="flex-1 min-w-0">
