@@ -139,11 +139,11 @@ export const TrendingSection = () => {
                   <img 
                     src={athlete.photo_url} 
                     alt={athlete.name}
-                    className="w-12 h-12 rounded-full object-cover object-[center_20%] border-2 border-border"
+                    className="w-16 h-16 rounded-full object-cover object-[center_10%] border-2 border-border"
                   />
                 ) : (
-                  <div className="w-12 h-12 rounded-full bg-muted flex items-center justify-center">
-                    <User size={24} weight="duotone" className="text-muted-foreground" />
+                  <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
+                    <User size={28} weight="duotone" className="text-muted-foreground" />
                   </div>
                 )}
 
