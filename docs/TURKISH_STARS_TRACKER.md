@@ -461,15 +461,31 @@ Contains route definitions:
 ---
 
 ### `fetch-hollinger-stats`
-**Purpose**: Scrapes ESPN Hollinger statistics for advanced NBA metrics.
+**Purpose**: Scrapes ESPN Hollinger statistics for NBA efficiency rankings comparison.
 
-**Trigger**: Hourly cron job + manual sync
+**Trigger**: Weekly cron job (Monday 6:00 AM UTC) + manual sync
 
-**Stats Fetched**: PER, PER Rank, VA, EWA, TS%, GP, MPG
+**How It Works**:
+1. Uses Firecrawl API to scrape ESPN's Hollinger statistics page
+2. Parses the top 5 NBA players by PER (Player Efficiency Rating)
+3. Always includes Alperen Şengün (marked as `is_featured_athlete: true`)
+4. Calculates `efficiency_index` = (PER × TS%) / 100
+5. Upserts 5-6 players per month with current rankings
+
+**Stats Fetched**:
+| Stat | Description |
+|------|-------------|
+| PER | Player Efficiency Rating |
+| TS% | True Shooting Percentage |
+| Efficiency Index | Calculated: (PER × TS%) / 100 |
 
 **Data Updated**:
-- `athlete_season_stats.rankings` - Hollinger stats in JSONB
-- `sync_logs` - sync status
+- `athlete_efficiency_rankings` - Top 5 + Şengün rankings per month
+- `sync_logs` - sync status with players_synced count
+
+**Cron Schedule**: `0 6 * * 1` (Monday 6:00 AM UTC via pg_cron)
+
+**Required Secret**: `FIRECRAWL_API_KEY`
 
 ---
 
@@ -530,12 +546,38 @@ Edge functions support dual authorization:
 
 | Function | Schedule | Description |
 |----------|----------|-------------|
-| `fetch-football-stats` | Hourly at :00 | Football stats from API-Football |
-| `fetch-nba-stats` | Hourly at :30 | NBA stats from Balldontlie |
-| `fetch-hollinger-stats` | Hourly at :45 | PER rankings from ESPN |
-| `sync-live-matches` | Every minute | Live match polling (conditional) |
+| `fetch-football-stats` | `0 * * * *` (Hourly at :00) | Football stats from API-Football |
+| `fetch-nba-stats` | `30 * * * *` (Hourly at :30) | NBA stats from Balldontlie |
+| `fetch-hollinger-stats` | `0 6 * * 1` (Monday 6:00 AM UTC) | Top 5 PER + Şengün from ESPN |
+| `sync-live-matches` | `* * * * *` (Every minute) | Live match polling (conditional) |
 
 Cron jobs configured via Supabase `pg_cron` extension.
+
+### Hollinger Stats Sync Details
+
+The `fetch-hollinger-stats` function runs weekly because NBA efficiency rankings don't change dramatically day-to-day. The sync:
+
+1. **Scrapes** ESPN Hollinger page via Firecrawl
+2. **Parses** top 5 players + Şengün from the leaderboard
+3. **Calculates** efficiency_index for comparison
+4. **Stores** in `athlete_efficiency_rankings` table with monthly partitioning
+5. **Logs** sync status to `sync_logs` table
+
+**Sample Output**:
+```json
+{
+  "success": true,
+  "data": {
+    "players_synced": 6,
+    "month": "2024-12-01",
+    "players": [
+      { "name": "Nikola Jokic", "rank": 1, "per": 31.2 },
+      { "name": "Shai Gilgeous-Alexander", "rank": 2, "per": 28.5 },
+      { "name": "Alperen Sengun", "rank": 8, "per": 25.1 }
+    ]
+  }
+}
+```
 
 ---
 
