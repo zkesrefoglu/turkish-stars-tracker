@@ -142,25 +142,31 @@ export const TrendingSection = () => {
               className="block"
             >
               <div className="flex items-center gap-3 p-3.5 bg-card border border-border rounded-lg hover:border-accent/40 transition-all duration-200 border-l-2 border-l-accent/50">
-              {/* Avatar */}
+              {/* Avatar with Sport Ring */}
                 {(() => {
                   const avatarUrl = getAvatarUrl(athlete?.slug, athlete?.photo_url);
-                  return avatarUrl ? (
-                    <img 
-                      src={avatarUrl} 
-                      alt={athlete?.name || 'Athlete'}
-                      className="w-16 h-16 rounded-full object-cover object-center border-2 border-border"
-                      onError={(e) => {
-                        // Fallback to original photo_url if avatar doesn't exist
-                        if (athlete?.photo_url && e.currentTarget.src !== athlete.photo_url) {
-                          e.currentTarget.src = athlete.photo_url;
-                          e.currentTarget.className = "w-16 h-16 rounded-full object-cover object-[center_10%] border-2 border-border";
-                        }
-                      }}
-                    />
-                  ) : (
-                    <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center">
-                      <User size={28} weight="duotone" className="text-muted-foreground" />
+                  const isBasketball = athlete?.sport === 'basketball';
+                  const ringColor = isBasketball ? 'ring-orange-500' : 'ring-emerald-500';
+                  
+                  return (
+                    <div className={`relative p-0.5 rounded-full ring-2 ${ringColor}`}>
+                      {avatarUrl ? (
+                        <img 
+                          src={avatarUrl} 
+                          alt={athlete?.name || 'Athlete'}
+                          className="w-14 h-14 rounded-full object-cover object-center bg-white"
+                          onError={(e) => {
+                            if (athlete?.photo_url && e.currentTarget.src !== athlete.photo_url) {
+                              e.currentTarget.src = athlete.photo_url;
+                              e.currentTarget.className = "w-14 h-14 rounded-full object-cover object-[center_10%] bg-white";
+                            }
+                          }}
+                        />
+                      ) : (
+                        <div className="w-14 h-14 rounded-full bg-muted flex items-center justify-center">
+                          <User size={24} weight="duotone" className="text-muted-foreground" />
+                        </div>
+                      )}
                     </div>
                   );
                 })()}

@@ -15,10 +15,8 @@ export const MiniHeader = () => {
           <span className="font-headline font-bold text-2xl text-foreground">TST</span>
         </Link>
 
-        {/* Subtitle - Mobile */}
-        <p className="text-xs text-muted-foreground font-ui uppercase tracking-wider md:hidden">
-          Live Hub
-        </p>
+        {/* Empty spacer for balance */}
+        <div className="md:hidden" />
 
         {/* Desktop Nav - Hidden on mobile */}
         <nav className="hidden md:flex items-center gap-6">
