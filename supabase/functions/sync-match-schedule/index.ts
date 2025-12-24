@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { validateAuth, checkCooldown } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -61,17 +62,26 @@ Deno.serve(async (req) => {
 
   try {
     // Validate authorization
-    const webhookSecret = req.headers.get('x-webhook-secret');
-    const expectedSecret = Deno.env.get('STATS_WEBHOOK_SECRET');
-    const authHeader = req.headers.get('authorization');
-    
-    const hasValidWebhookSecret = expectedSecret && webhookSecret === expectedSecret;
-    const hasAuthHeader = authHeader && authHeader.startsWith('Bearer ');
-    
-    if (!hasValidWebhookSecret && !hasAuthHeader) {
-      console.error('Unauthorized: Invalid or missing webhook secret and no auth header');
-      return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+    const authResult = await validateAuth(req);
+    if (!authResult.authorized) {
+      console.error(`Unauthorized: ${authResult.reason}`);
+      return new Response(JSON.stringify({ error: 'Unauthorized', reason: authResult.reason }), {
         status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    console.log(`Authorized via: ${authResult.reason}`);
+
+    // Check cooldown (10 minutes for match schedule)
+    const cooldownResult = await checkCooldown('match_schedule', 600);
+    if (!cooldownResult.canRun) {
+      console.log(`Cooldown active, skipping. Wait ${cooldownResult.waitSeconds}s`);
+      return new Response(JSON.stringify({
+        success: true,
+        skipped: true,
+        reason: 'cooldown',
+        waitSeconds: cooldownResult.waitSeconds,
+      }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
@@ -196,6 +206,7 @@ Deno.serve(async (req) => {
       details: {
         teams_synced: uniqueTeams.length,
         matches_synced: allUpcomingMatches.length,
+        auth_method: authResult.reason,
       },
     });
 

@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateAuth, checkCooldown } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -24,7 +25,6 @@ interface SearchResult {
 }
 
 serve(async (req) => {
-  // Handle CORS preflight
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
@@ -35,8 +35,30 @@ serve(async (req) => {
   const errors: string[] = [];
 
   try {
-    // Authorization is handled by verify_jwt = false in config.toml
-    // This function can be called directly by schedulers or admin actions
+    // Validate authorization
+    const authResult = await validateAuth(req);
+    if (!authResult.authorized) {
+      console.error(`Unauthorized: ${authResult.reason}`);
+      return new Response(JSON.stringify({ error: 'Unauthorized', reason: authResult.reason }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    console.log(`Authorized via: ${authResult.reason}`);
+
+    // Check cooldown (30 minutes for news)
+    const cooldownResult = await checkCooldown('news', 1800);
+    if (!cooldownResult.canRun) {
+      console.log(`Cooldown active, skipping. Wait ${cooldownResult.waitSeconds}s`);
+      return new Response(JSON.stringify({
+        success: true,
+        skipped: true,
+        reason: 'cooldown',
+        waitSeconds: cooldownResult.waitSeconds,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
     const googleApiKey = Deno.env.get('GOOGLE_CSE_API_KEY');
     const googleCx = Deno.env.get('GOOGLE_CSE_CX');
@@ -71,7 +93,6 @@ serve(async (req) => {
     // Process each athlete
     for (const athlete of athletes as Athlete[]) {
       try {
-        // Build search query based on sport
         const sportContext = athlete.sport === 'basketball' 
           ? 'NBA basketball' 
           : 'football soccer';
@@ -80,7 +101,6 @@ serve(async (req) => {
         
         console.log(`Searching for: ${query}`);
 
-        // Call Google Custom Search API
         const searchUrl = new URL('https://www.googleapis.com/customsearch/v1');
         searchUrl.searchParams.set('key', googleApiKey);
         searchUrl.searchParams.set('cx', googleCx);
@@ -102,15 +122,12 @@ serve(async (req) => {
 
         console.log(`Found ${items.length} results for ${athlete.name}`);
 
-        // Process search results
         for (const item of items) {
-          // Skip if URL already exists
           if (existingUrls.has(item.link)) {
             console.log(`Skipping duplicate: ${item.link}`);
             continue;
           }
 
-          // Extract image URL from pagemap if available
           let imageUrl: string | null = null;
           if (item.pagemap?.cse_image?.[0]?.src) {
             imageUrl = item.pagemap.cse_image[0].src;
@@ -118,11 +135,9 @@ serve(async (req) => {
             imageUrl = item.pagemap.metatags[0]['og:image'];
           }
 
-          // Extract source name from URL
           const urlObj = new URL(item.link);
           const sourceName = urlObj.hostname.replace('www.', '');
 
-          // Insert news article
           const { error: insertError } = await supabase
             .from('athlete_news')
             .insert({
@@ -141,13 +156,12 @@ serve(async (req) => {
             errors.push(`Insert: ${insertError.message}`);
           } else {
             articlesAdded++;
-            existingUrls.add(item.link); // Add to set to prevent duplicates within same run
+            existingUrls.add(item.link);
           }
         }
 
         athletesProcessed++;
 
-        // Small delay between athletes to respect rate limits
         await new Promise(resolve => setTimeout(resolve, 200));
 
       } catch (athleteErr) {
@@ -159,15 +173,15 @@ serve(async (req) => {
 
     const duration = Date.now() - startTime;
 
-    // Log sync status
     await supabase.from('sync_logs').insert({
       sync_type: 'news',
       status: errors.length > 0 ? 'partial' : 'success',
       details: {
         athletes_processed: athletesProcessed,
         articles_added: articlesAdded,
-        errors: errors.slice(0, 10), // Keep only first 10 errors
+        errors: errors.slice(0, 10),
         duration_ms: duration,
+        auth_method: authResult.reason,
       },
     });
 
@@ -187,7 +201,6 @@ serve(async (req) => {
     const errMsg = error instanceof Error ? error.message : 'Unknown error';
     console.error('News fetch error:', error);
 
-    // Log error to sync_logs
     const supabaseUrl = Deno.env.get('SUPABASE_URL');
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
     if (supabaseUrl && supabaseKey) {

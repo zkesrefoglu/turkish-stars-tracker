@@ -1,4 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+import { validateAuth, checkCooldown } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -37,7 +38,6 @@ async function findSengunPlayerId(apiKey: string): Promise<number | null> {
 }
 
 async function fetchPlayerStats(playerId: number, apiKey: string, season: number = 2025): Promise<any[]> {
-  // Get current season games by date range (October to now)
   const seasonStartYear = new Date().getMonth() >= 9 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   const startDate = `${seasonStartYear}-10-01`;
   const endDate = new Date().toISOString().split('T')[0];
@@ -60,7 +60,6 @@ async function fetchSeasonAverages(playerId: number, apiKey: string, season: num
 }
 
 async function fetchRocketsGames(apiKey: string): Promise<Map<string, any>> {
-  // Houston Rockets team ID is 11
   const rocketsTeamId = 11;
   const seasonStartYear = new Date().getMonth() >= 9 ? new Date().getFullYear() : new Date().getFullYear() - 1;
   const startDate = `${seasonStartYear}-10-01`;
@@ -71,7 +70,6 @@ async function fetchRocketsGames(apiKey: string): Promise<Map<string, any>> {
     apiKey
   );
   
-  // Create a map of date -> game info for quick lookup
   const gameMap = new Map<string, any>();
   for (const game of (data.data || [])) {
     const gameDate = new Date(game.date).toISOString().split('T')[0];
@@ -83,12 +81,9 @@ async function fetchRocketsGames(apiKey: string): Promise<Map<string, any>> {
 }
 
 async function fetchUpcomingRocketsGames(apiKey: string): Promise<any[]> {
-  // Houston Rockets team ID is 11
   const rocketsTeamId = 11;
   const today = new Date();
   const startDate = today.toISOString().split('T')[0];
-  
-  // Fetch games for next 30 days
   const endDate = new Date(today.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
   
   const data = await fetchWithAuth(
@@ -96,7 +91,6 @@ async function fetchUpcomingRocketsGames(apiKey: string): Promise<any[]> {
     apiKey
   );
   
-  // Filter to only future games (status not 'Final')
   const upcomingGames = (data.data || []).filter((game: any) => 
     game.status !== 'Final' && game.status !== 'In Progress'
   );
@@ -105,7 +99,6 @@ async function fetchUpcomingRocketsGames(apiKey: string): Promise<any[]> {
   return upcomingGames;
 }
 
-// Fetch player injury status (ALL-STAR tier)
 async function fetchPlayerInjuries(playerId: number, apiKey: string): Promise<any | null> {
   try {
     const data = await fetchWithAuth(
@@ -113,7 +106,6 @@ async function fetchPlayerInjuries(playerId: number, apiKey: string): Promise<an
       apiKey
     );
     
-    // Return most recent injury if exists
     const injuries = data.data || [];
     if (injuries.length > 0) {
       const injury = injuries[0];
@@ -135,31 +127,32 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate authorization - allow either webhook secret OR valid auth header
-  const webhookSecret = Deno.env.get("STATS_WEBHOOK_SECRET");
-  const providedSecret = req.headers.get("x-webhook-secret");
-  const authHeader = req.headers.get("authorization");
-  
-  // Check if webhook secret matches OR if there's a valid auth header (from supabase.functions.invoke)
-  // SECURITY: Reject if webhook secret is not configured AND no auth header provided
-  const hasValidWebhookSecret = webhookSecret && providedSecret === webhookSecret;
-  const hasAuthHeader = authHeader && authHeader.startsWith("Bearer ");
-  
-  if (!hasValidWebhookSecret && !hasAuthHeader) {
-    // If webhook secret is provided but doesn't match, or if no auth at all
-    const reason = providedSecret && !webhookSecret 
-      ? "STATS_WEBHOOK_SECRET not configured"
-      : providedSecret && providedSecret !== webhookSecret
-        ? "Invalid webhook secret"
-        : "Missing authentication";
-    console.error(`Unauthorized: ${reason}`);
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-
   try {
+    // Validate authorization
+    const authResult = await validateAuth(req);
+    if (!authResult.authorized) {
+      console.error(`Unauthorized: ${authResult.reason}`);
+      return new Response(JSON.stringify({ error: 'Unauthorized', reason: authResult.reason }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    console.log(`Authorized via: ${authResult.reason}`);
+
+    // Check cooldown (5 minutes for NBA stats)
+    const cooldownResult = await checkCooldown('nba_stats', 300);
+    if (!cooldownResult.canRun) {
+      console.log(`Cooldown active, skipping. Wait ${cooldownResult.waitSeconds}s`);
+      return new Response(JSON.stringify({
+        success: true,
+        skipped: true,
+        reason: 'cooldown',
+        waitSeconds: cooldownResult.waitSeconds,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const apiKey = Deno.env.get('BALLDONTLIE_API_KEY');
     if (!apiKey) {
       throw new Error('BALLDONTLIE_API_KEY not configured');
@@ -169,7 +162,7 @@ Deno.serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Starting NBA stats fetch for Alperen Sengun, searching API...');
+    console.log('Starting NBA stats fetch for Alperen Sengun...');
 
     // Get Alperen Sengun from database
     const { data: athlete, error: athleteError } = await supabase
@@ -184,7 +177,7 @@ Deno.serve(async (req) => {
 
     let playerId = athlete.balldontlie_id;
 
-    // Always search fresh to ensure we have the correct player ID
+    // Search for player ID if needed
     console.log('Searching for Sengun player ID...');
     const foundPlayerId = await findSengunPlayerId(apiKey);
     console.log(`Search result player ID: ${foundPlayerId}, Stored ID: ${playerId}`);
@@ -204,11 +197,9 @@ Deno.serve(async (req) => {
 
     console.log(`Using player ID: ${playerId}`);
 
-    // Fetch player stats for current season (2025-26 season uses 2025)
     const currentSeason = new Date().getFullYear();
-    const nbaSeasonYear = new Date().getMonth() >= 9 ? currentSeason : currentSeason - 1; // NBA season starts in October
+    const nbaSeasonYear = new Date().getMonth() >= 9 ? currentSeason : currentSeason - 1;
     
-    // Fetch both player stats and Rockets games in parallel
     const [playerStats, gameMap] = await Promise.all([
       fetchPlayerStats(playerId, apiKey, nbaSeasonYear),
       fetchRocketsGames(apiKey)
@@ -224,25 +215,20 @@ Deno.serve(async (req) => {
       const matchDate = game.date ? new Date(game.date).toISOString().split('T')[0] : null;
       if (!matchDate) continue;
 
-      // Get full game info from gameMap for opponent details
       const fullGame = gameMap.get(matchDate);
-      
-      // Determine home/away and opponent from fullGame
-      const isHome = fullGame?.home_team?.id === 11; // Rockets team ID
+      const isHome = fullGame?.home_team?.id === 11;
       const opponent = fullGame 
         ? (isHome ? fullGame.visitor_team?.full_name : fullGame.home_team?.full_name) || 'Unknown'
         : 'Unknown';
       const teamScore = fullGame ? (isHome ? fullGame.home_team_score : fullGame.visitor_team_score) : null;
       const opponentScore = fullGame ? (isHome ? fullGame.visitor_team_score : fullGame.home_team_score) : null;
       
-      // Format result as W/L with scores
       let matchResult = null;
       if (teamScore !== null && opponentScore !== null) {
         const won = teamScore > opponentScore;
         matchResult = `${won ? 'W' : 'L'} ${teamScore}-${opponentScore}`;
       }
 
-      // Determine if player actually played - ensure it's always a boolean
       const minutesStr = stat.min || '0';
       const minutesPlayed = typeof minutesStr === 'string' 
         ? parseInt(minutesStr.split(':')[0]) || 0 
@@ -258,7 +244,7 @@ Deno.serve(async (req) => {
           competition: 'NBA',
           home_away: isHome ? 'home' : 'away',
           match_result: matchResult,
-          played: didPlay, // Always boolean now
+          played: didPlay,
           minutes_played: minutesPlayed,
           injury_status: 'healthy',
           stats: {
@@ -307,7 +293,7 @@ Deno.serve(async (req) => {
           season: `${nbaSeasonYear}-${(nbaSeasonYear + 1).toString().slice(-2)}`,
           competition: 'NBA',
           games_played: seasonAverages.games_played || 0,
-          games_started: seasonAverages.games_played || 0, // API doesn't provide starts separately
+          games_started: seasonAverages.games_played || 0,
           stats: {
             ppg: seasonAverages.pts || 0,
             rpg: seasonAverages.reb || 0,
@@ -336,7 +322,6 @@ Deno.serve(async (req) => {
       injuryInfo = await fetchPlayerInjuries(playerId, apiKey);
       console.log('Injury status:', injuryInfo);
       
-      // Update the most recent daily update with injury info
       if (injuryInfo) {
         const today = new Date().toISOString().split('T')[0];
         await supabase
@@ -360,20 +345,17 @@ Deno.serve(async (req) => {
     try {
       const upcomingGames = await fetchUpcomingRocketsGames(apiKey);
       
-      // Delete existing upcoming matches for this athlete first
       await supabase
         .from('athlete_upcoming_matches')
         .delete()
         .eq('athlete_id', athlete.id);
       
-      // Insert new upcoming matches
       for (const game of upcomingGames) {
-        const isHome = game.home_team?.id === 11; // Rockets team ID
+        const isHome = game.home_team?.id === 11;
         const opponent = isHome ? game.visitor_team?.full_name : game.home_team?.full_name;
         
         if (!opponent) continue;
         
-        // Parse the game date/time
         const matchDate = new Date(game.date);
         
         const { error: matchError } = await supabase
@@ -397,6 +379,18 @@ Deno.serve(async (req) => {
     } catch (upcomingError) {
       console.error('Error fetching upcoming matches:', upcomingError);
     }
+
+    // Log the sync
+    await supabase.from('sync_logs').insert({
+      sync_type: 'nba_stats',
+      status: 'success',
+      details: {
+        athlete: athlete.name,
+        games_processed: playerStats.length,
+        upcoming_matches: upcomingMatchesCount,
+        auth_method: authResult.reason,
+      },
+    });
 
     console.log('NBA stats fetch completed');
 
