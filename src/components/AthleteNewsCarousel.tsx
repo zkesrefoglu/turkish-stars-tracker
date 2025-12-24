@@ -1,4 +1,4 @@
-import { useRef, useEffect } from "react";
+import { useRef, useState } from "react";
 import useEmblaCarousel from "embla-carousel-react";
 import Autoplay from "embla-carousel-autoplay";
 import { Newspaper, ExternalLink } from "lucide-react";
@@ -17,6 +17,7 @@ interface AthleteNewsCarouselProps {
 }
 
 const AthleteNewsCarousel = ({ news }: AthleteNewsCarouselProps) => {
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
   const autoplayRef = useRef(
     Autoplay({ delay: 3500, stopOnInteraction: false, stopOnMouseEnter: true })
   );
@@ -58,13 +59,13 @@ const AthleteNewsCarousel = ({ news }: AthleteNewsCarouselProps) => {
               <div className="bg-card border border-border/50 rounded-lg overflow-hidden transition-all duration-300 hover:border-primary/50 hover:scale-[1.02] hover:shadow-lg hover:shadow-primary/10">
                 {/* Image */}
                 <div className="aspect-video bg-muted relative overflow-hidden">
-                  {item.image_url ? (
+                  {item.image_url && !failedImages.has(item.id) ? (
                     <img
                       src={item.image_url}
                       alt=""
                       className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105"
-                      onError={(e) => {
-                        e.currentTarget.style.display = 'none';
+                      onError={() => {
+                        setFailedImages(prev => new Set(prev).add(item.id));
                       }}
                     />
                   ) : (
