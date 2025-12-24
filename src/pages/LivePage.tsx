@@ -5,6 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Link } from 'react-router-dom';
 import { Broadcast, Clock, CalendarBlank, CheckCircle } from '@phosphor-icons/react';
 import { format, formatDistanceToNow, isToday, isTomorrow, parseISO } from 'date-fns';
+import { useNbaLivePolling } from '@/hooks/useNbaLivePolling';
 
 interface LiveMatch {
   id: string;
@@ -47,6 +48,9 @@ const LivePage = () => {
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
   const [recentMatches, setRecentMatches] = useState<LiveMatch[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Poll for live NBA matches every 30 seconds
+  useNbaLivePolling({ enabled: true, intervalMs: 30000 });
 
   useEffect(() => {
     const fetchData = async () => {

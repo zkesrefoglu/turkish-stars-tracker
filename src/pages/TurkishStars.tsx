@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { format, isWithinInterval, addHours } from "date-fns";
 import { getCompetitionLogo } from "@/lib/competitionLogos";
+import { useNbaLivePolling } from "@/hooks/useNbaLivePolling";
 
 interface AthleteProfile {
   id: string;
@@ -69,6 +70,9 @@ const TurkishStars = () => {
   const [transferRumors, setTransferRumors] = useState<TransferRumor[]>([]);
   const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Poll for live NBA matches every 30 seconds
+  useNbaLivePolling({ enabled: true, intervalMs: 30000 });
 
   useEffect(() => {
     const fetchData = async () => {

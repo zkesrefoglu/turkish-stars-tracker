@@ -72,11 +72,16 @@ async function fetchRocketsGames(apiKey: string): Promise<Map<string, any>> {
   
   const gameMap = new Map<string, any>();
   for (const game of (data.data || [])) {
+    // ONLY include completed games - skip in-progress or scheduled games
+    if (game.status !== 'Final') {
+      console.log(`Skipping non-final game on ${game.date}: status=${game.status}`);
+      continue;
+    }
     const gameDate = new Date(game.date).toISOString().split('T')[0];
     gameMap.set(gameDate, game);
   }
   
-  console.log(`Fetched ${gameMap.size} Rockets games for opponent info`);
+  console.log(`Fetched ${gameMap.size} completed Rockets games for opponent info`);
   return gameMap;
 }
 
@@ -206,8 +211,9 @@ Deno.serve(async (req) => {
     ]);
     console.log(`Found ${playerStats.length} game stats for ${nbaSeasonYear}-${nbaSeasonYear + 1} season`);
 
-    // Process game stats into daily updates
+    // Process game stats into daily updates (only for completed games)
     let gamesInserted = 0;
+    let gamesSkipped = 0;
     for (const stat of playerStats) {
       const game = stat.game;
       if (!game) continue;
@@ -216,6 +222,13 @@ Deno.serve(async (req) => {
       if (!matchDate) continue;
 
       const fullGame = gameMap.get(matchDate);
+      
+      // Skip if game is not in our completed games map (still in progress or not found)
+      if (!fullGame) {
+        console.log(`Skipping stats for ${matchDate} - game not yet complete`);
+        gamesSkipped++;
+        continue;
+      }
       const isHome = fullGame?.home_team?.id === 11;
       const opponent = fullGame 
         ? (isHome ? fullGame.visitor_team?.full_name : fullGame.home_team?.full_name) || 'Unknown'
@@ -280,7 +293,7 @@ Deno.serve(async (req) => {
         gamesInserted++;
       }
     }
-    console.log(`Successfully upserted ${gamesInserted} game records`);
+    console.log(`Successfully upserted ${gamesInserted} game records, skipped ${gamesSkipped} in-progress games`);
 
     // Fetch and store season averages
     const seasonAverages = await fetchSeasonAverages(playerId, apiKey, nbaSeasonYear);

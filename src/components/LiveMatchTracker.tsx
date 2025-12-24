@@ -113,20 +113,23 @@ export const LiveMatchTracker = () => {
     return null;
   }
 
-  const getStatusBadge = (status: string, minute: number) => {
+  const getStatusBadge = (match: LiveMatch) => {
+    const { match_status: status, current_minute: minute, last_event, athlete } = match;
+    const isBasketball = athlete?.sport === 'basketball';
+    
     switch (status) {
       case 'live':
         return (
           <Badge className="bg-red-500 text-white animate-pulse flex items-center gap-1">
             <Radio className="w-3 h-3" />
-            LIVE {minute}'
+            {isBasketball && last_event ? `LIVE ${last_event}` : `LIVE ${minute}'`}
           </Badge>
         );
       case 'halftime':
         return (
           <Badge className="bg-yellow-500 text-black flex items-center gap-1">
             <Clock className="w-3 h-3" />
-            HT
+            {isBasketball ? 'Halftime' : 'HT'}
           </Badge>
         );
       default:
@@ -184,7 +187,7 @@ export const LiveMatchTracker = () => {
                   <p className="text-xs text-muted-foreground">{match.athlete?.team}</p>
                 </div>
               </div>
-              {getStatusBadge(match.match_status, match.current_minute)}
+              {getStatusBadge(match)}
             </div>
 
             <div className="text-center py-3 bg-background/50 rounded-lg mb-3">
