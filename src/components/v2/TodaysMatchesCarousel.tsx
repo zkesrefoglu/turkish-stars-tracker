@@ -95,8 +95,8 @@ export const TodaysMatchesCarousel = () => {
         </Link>
       </div>
 
-      {/* Carousel */}
-      <div className="flex gap-3 overflow-x-auto scrollbar-hide px-4 pb-2 snap-x snap-mandatory scroll-pl-4">
+      {/* Carousel - grid on mobile for no overlap, horizontal scroll on larger screens */}
+      <div className="grid grid-cols-2 gap-3 px-4 sm:flex sm:overflow-x-auto sm:scrollbar-hide sm:pb-2 sm:snap-x sm:snap-mandatory sm:scroll-pl-4">
         {matches.map((match) => {
           const matchDate = new Date(match.match_date);
           const athlete = match.athlete;
@@ -106,16 +106,16 @@ export const TodaysMatchesCarousel = () => {
             <Link
               key={match.id}
               to={athlete ? `/athlete/${athlete.slug}` : '#'}
-              className="flex-shrink-0 snap-start"
+              className="sm:flex-shrink-0 sm:snap-start sm:w-48"
             >
-              <div className="w-48 bg-card border border-border rounded-xl overflow-hidden hover:border-accent/40 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10">
-                {/* Player Image */}
-                <div className="relative h-32 bg-gradient-to-br from-muted to-background">
+              <div className="h-full bg-card border border-border rounded-xl overflow-hidden hover:border-accent/40 transition-all duration-300 hover:shadow-lg hover:shadow-accent/10 flex flex-col">
+                {/* Player Image - Fixed aspect ratio */}
+                <div className="relative aspect-[4/3] bg-gradient-to-br from-muted to-background overflow-hidden">
                   {athlete?.photo_url ? (
                     <img 
                       src={athlete.photo_url} 
                       alt={athlete.name}
-                      className="w-full h-full object-cover object-[center_15%]"
+                      className="w-full h-full object-cover object-top"
                     />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
@@ -124,7 +124,7 @@ export const TodaysMatchesCarousel = () => {
                   )}
                   {/* Date badge */}
                   <div className={cn(
-                    "absolute top-2 left-2 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase",
+                    "absolute top-2 left-2 px-2 py-0.5 rounded-full text-[10px] font-bold uppercase",
                     isToday(matchDate) 
                       ? "bg-accent text-white" 
                       : "bg-background/90 text-foreground"
@@ -136,19 +136,21 @@ export const TodaysMatchesCarousel = () => {
                     <img 
                       src={compLogo} 
                       alt={match.competition}
-                      className="absolute top-2 right-2 w-7 h-7 object-contain bg-background/80 rounded-md p-0.5"
+                      className="absolute top-2 right-2 w-6 h-6 object-contain bg-background/80 rounded-md p-0.5"
                     />
                   )}
                 </div>
 
-                {/* Match Info */}
-                <div className="p-3.5">
-                  <p className="font-bold text-base text-foreground truncate">
-                    {athlete?.name || 'Unknown'}
-                  </p>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    {match.home_away === 'home' ? 'vs' : '@'} {match.opponent}
-                  </p>
+                {/* Match Info - Fixed height with consistent spacing */}
+                <div className="p-3 flex-1 flex flex-col justify-between min-h-[88px]">
+                  <div>
+                    <p className="font-bold text-sm text-foreground truncate leading-tight">
+                      {athlete?.name || 'Unknown'}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1 truncate">
+                      {match.home_away === 'home' ? 'vs' : '@'} {match.opponent}
+                    </p>
+                  </div>
                   <p className="text-xs text-accent font-semibold mt-2">
                     {format(matchDate, 'h:mm a')}
                   </p>
