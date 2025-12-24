@@ -170,7 +170,7 @@ function getSearchVariations(playerName: string): string[] {
   return [...new Set(variations)];
 }
 
-async function searchPlayerByName(playerName: string, apiKey: string): Promise<number | null> {
+async function searchPlayerByName(playerName: string, apiKey: string, expectedTeamId?: number): Promise<number | null> {
   const variations = getSearchVariations(playerName);
   
   for (const searchTerm of variations) {
@@ -181,6 +181,14 @@ async function searchPlayerByName(playerName: string, apiKey: string): Promise<n
       for (const result of searchData.response) {
         const foundName = result.player?.name || '';
         if (matchPlayerName(foundName, playerName)) {
+          // If expectedTeamId is provided, verify the player is on the correct team
+          if (expectedTeamId) {
+            const playerTeamId = result.statistics?.[0]?.team?.id;
+            if (playerTeamId && playerTeamId !== expectedTeamId) {
+              console.log(`Skipping ${foundName} (ID: ${result.player?.id}) - wrong team: ${playerTeamId} vs expected ${expectedTeamId}`);
+              continue;
+            }
+          }
           console.log(`Found via search: ${foundName} (ID: ${result.player?.id})`);
           return result.player?.id;
         }
@@ -210,7 +218,7 @@ async function findPlayerInTeam(teamId: number, playerName: string, apiKey: stri
   }
   
   console.log(`Player not found in squad, trying search API for ${playerName}...`);
-  const searchResult = await searchPlayerByName(playerName, apiKey);
+  const searchResult = await searchPlayerByName(playerName, apiKey, teamId);
   
   if (searchResult) {
     return searchResult;
