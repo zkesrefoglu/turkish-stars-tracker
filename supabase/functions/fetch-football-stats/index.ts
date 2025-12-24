@@ -41,6 +41,8 @@ const TEAM_IDS: Record<string, number> = {
   'Porto': 212,
   'Pisa': 520,
   'AC Pisa': 520,
+  'Torino': 503,
+  'Torino FC': 503,
 };
 
 // Player name mappings for Turkish characters
@@ -66,6 +68,8 @@ const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Salih Özcan': ['Salih Ozcan', 'Özcan', 'Ozcan', 'S. Özcan'],
   'İsak Vural': ['Isak Vural', 'Vural', 'I. Vural'],
   'Deniz Gül': ['Deniz Gul', 'Gül', 'Gul', 'D. Gül'],
+  'Emirhan İlkhan': ['Emirhan Ilkhan', 'İlkhan', 'Ilkhan', 'E. İlkhan', 'E. Ilkhan'],
+  'Emirhan Ilkhan': ['Emirhan İlkhan', 'İlkhan', 'Ilkhan', 'E. İlkhan', 'E. Ilkhan'],
 };
 
 interface ApiFootballResponse {
