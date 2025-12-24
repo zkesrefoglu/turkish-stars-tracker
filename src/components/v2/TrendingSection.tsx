@@ -154,11 +154,11 @@ export const TrendingSection = () => {
                         <img 
                           src={avatarUrl} 
                           alt={athlete?.name || 'Athlete'}
-                          className="w-14 h-14 rounded-full object-cover object-center bg-white"
+                          className="w-14 h-14 rounded-full object-cover object-[center_30%] bg-white"
                           onError={(e) => {
                             if (athlete?.photo_url && e.currentTarget.src !== athlete.photo_url) {
                               e.currentTarget.src = athlete.photo_url;
-                              e.currentTarget.className = "w-14 h-14 rounded-full object-cover object-[center_10%] bg-white";
+                              e.currentTarget.className = "w-14 h-14 rounded-full object-cover object-[center_20%] bg-white";
                             }
                           }}
                         />
