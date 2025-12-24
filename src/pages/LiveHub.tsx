@@ -3,10 +3,14 @@ import { BottomNav } from '@/components/v2/BottomNav';
 import { LiveMatchBanner } from '@/components/v2/LiveMatchBanner';
 import { TodaysMatchesCarousel } from '@/components/v2/TodaysMatchesCarousel';
 import { TrendingSection } from '@/components/v2/TrendingSection';
+import { useNbaLivePolling } from '@/hooks/useNbaLivePolling';
 import { Newspaper, ChartLineUp, UserCircle, ArrowRight } from '@phosphor-icons/react';
 import { Link } from 'react-router-dom';
 
 const LiveHub = () => {
+  // Keep live NBA games synced so the banner reflects the real score
+  useNbaLivePolling({ enabled: true, intervalMs: 30000 });
+
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <MiniHeader />
