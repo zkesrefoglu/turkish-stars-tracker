@@ -137,7 +137,13 @@ export const LiveMatchBanner = () => {
           <div className="flex flex-col items-center">
             <span className="text-2xl font-bold tabular-nums">{formatScore()}</span>
             <span className="text-[10px] opacity-80">
-              {currentMatch.match_status === 'halftime' ? 'HT' : `${currentMatch.current_minute}'`}
+              {currentMatch.match_status === 'halftime' 
+                ? (athlete?.sport === 'basketball' ? 'Halftime' : 'HT')
+                : (athlete?.sport === 'basketball' && currentMatch.last_event
+                    ? currentMatch.last_event
+                    : `${currentMatch.current_minute}'`
+                  )
+              }
             </span>
           </div>
 
