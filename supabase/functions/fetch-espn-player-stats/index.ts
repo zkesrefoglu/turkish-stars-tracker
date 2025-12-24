@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { validateAuth, checkCooldown } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,9 +47,6 @@ function parseNumber(str: string | undefined): number | null {
 
 function parseSplitsFromMarkdown(markdown: string): ESPNSplits[] {
   const splits: ESPNSplits[] = [];
-  
-  // Look for the Splits table pattern
-  // Format: GP | MIN | PTS | REB | AST | STL | BLK | FG% | 3P% | FT%
   const splitsLabels = ['This Game', 'Last 10', 'L10', '2024-25', 'Season', 'Road', 'Home', 'vs'];
   
   const lines = markdown.split('\n');
@@ -58,14 +56,10 @@ function parseSplitsFromMarkdown(markdown: string): ESPNSplits[] {
     
     for (const label of splitsLabels) {
       if (line.includes(label)) {
-        // Try to extract stats from this line or nearby lines
         const statsMatch = line.match(/(\d+(?:\.\d+)?)\s*\|\s*(\d+(?:\.\d+)?)\s*\|\s*(\d+(?:\.\d+)?)\s*\|\s*(\d+(?:\.\d+)?)\s*\|\s*(\d+(?:\.\d+)?)/);
         
         if (statsMatch) {
-          // Parse the full row
           const parts = line.split('|').map(p => p.trim());
-          
-          // Find the label part
           const labelMatch = line.match(/(This Game|Last 10|L10|2024-25|Season|Road|Home|vs\s+\w+)/i);
           const splitLabel = labelMatch ? labelMatch[1] : label;
           
@@ -92,13 +86,11 @@ function parseSplitsFromMarkdown(markdown: string): ESPNSplits[] {
 }
 
 function parseFantasyInsight(markdown: string): string | null {
-  // Look for the "Spin" section which contains fantasy analysis
   const spinMatch = markdown.match(/Spin\s*[:\-]?\s*([^#\n]{50,500})/i);
   if (spinMatch) {
     return spinMatch[1].trim();
   }
   
-  // Alternative: look for text after player status section
   const fantasyMatch = markdown.match(/fantasy[^.]*\.\s*([^#\n]{50,300})/i);
   if (fantasyMatch) {
     return fantasyMatch[1].trim();
@@ -108,8 +100,6 @@ function parseFantasyInsight(markdown: string): string | null {
 }
 
 function parsePreviousGame(markdown: string): ESPNPlayerStats['previousGame'] {
-  // Look for Previous Game section
-  // Pattern: W 124-112 vs OKC followed by PTS REB AST +/-
   const gameMatch = markdown.match(/([WL])\s*(\d+)[–-](\d+)\s*(vs|@)\s*(\w+)/i);
   
   if (!gameMatch) return null;
@@ -120,7 +110,6 @@ function parsePreviousGame(markdown: string): ESPNPlayerStats['previousGame'] {
   const homeAway = gameMatch[4];
   const opponent = gameMatch[5];
   
-  // Look for PTS, REB, AST values near this match
   const statsSection = markdown.substring(markdown.indexOf(gameMatch[0]), markdown.indexOf(gameMatch[0]) + 500);
   
   const ptsMatch = statsSection.match(/(\d+)\s*PTS/i) || statsSection.match(/PTS\s*(\d+)/i);
@@ -129,7 +118,7 @@ function parsePreviousGame(markdown: string): ESPNPlayerStats['previousGame'] {
   const plusMinusMatch = statsSection.match(/([+-]\d+)/);
   
   return {
-    date: null, // We'd need to parse this separately
+    date: null,
     opponent: `${homeAway.toLowerCase() === 'vs' ? '' : '@'}${opponent}`,
     result: `${isWin ? 'W' : 'L'} ${score1}-${score2}`,
     pts: ptsMatch ? parseInt(ptsMatch[1]) : null,
@@ -158,23 +147,32 @@ serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Validate authorization
-  const webhookSecret = Deno.env.get("STATS_WEBHOOK_SECRET");
-  const providedSecret = req.headers.get("x-webhook-secret");
-  const authHeader = req.headers.get("authorization");
-  
-  const hasValidWebhookSecret = webhookSecret && providedSecret === webhookSecret;
-  const hasAuthHeader = authHeader && authHeader.startsWith("Bearer ");
-  
-  if (!hasValidWebhookSecret && !hasAuthHeader) {
-    console.error('Unauthorized request');
-    return new Response(
-      JSON.stringify({ error: "Unauthorized" }),
-      { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  }
-
   try {
+    // Validate authorization
+    const authResult = await validateAuth(req);
+    if (!authResult.authorized) {
+      console.error(`Unauthorized: ${authResult.reason}`);
+      return new Response(JSON.stringify({ error: 'Unauthorized', reason: authResult.reason }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+    console.log(`Authorized via: ${authResult.reason}`);
+
+    // Check cooldown (30 minutes for ESPN stats)
+    const cooldownResult = await checkCooldown('espn_player_stats', 1800);
+    if (!cooldownResult.canRun) {
+      console.log(`Cooldown active, skipping. Wait ${cooldownResult.waitSeconds}s`);
+      return new Response(JSON.stringify({
+        success: true,
+        skipped: true,
+        reason: 'cooldown',
+        waitSeconds: cooldownResult.waitSeconds,
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
     const FIRECRAWL_API_KEY = Deno.env.get('FIRECRAWL_API_KEY');
     const SUPABASE_URL = Deno.env.get('SUPABASE_URL');
     const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
@@ -183,7 +181,6 @@ serve(async (req) => {
       throw new Error('FIRECRAWL_API_KEY is not configured');
     }
 
-    // Get ESPN ID from request body or use default (Alperen Sengun)
     let espnId = 4871144; // Default: Alperen Sengun
     let athleteSlug = 'alperen-sengun';
     
@@ -198,7 +195,6 @@ serve(async (req) => {
     const espnUrl = `https://www.espn.com/nba/player/_/id/${espnId}`;
     console.log(`Fetching ESPN player stats from: ${espnUrl}`);
 
-    // Scrape ESPN player page
     const scrapeResponse = await fetch('https://api.firecrawl.dev/v1/scrape', {
       method: 'POST',
       headers: {
@@ -228,10 +224,8 @@ serve(async (req) => {
     console.log('ESPN page scraped successfully');
     const markdown = scrapeResult.data.markdown;
     
-    // Log first 3000 chars for debugging
     console.log('Markdown preview:', markdown.substring(0, 3000));
 
-    // Parse the data
     const stats: ESPNPlayerStats = {
       previousGame: parsePreviousGame(markdown),
       splits: parseSplitsFromMarkdown(markdown),
@@ -242,7 +236,6 @@ serve(async (req) => {
 
     console.log('Parsed ESPN stats:', JSON.stringify(stats, null, 2));
 
-    // Update database if we have Supabase credentials
     if (SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY) {
       const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);
 
@@ -255,7 +248,6 @@ serve(async (req) => {
       if (athlete && !athleteError) {
         const currentSeason = '2024-25';
         
-        // Update season stats with ESPN data
         const { error: updateError } = await supabase
           .from('athlete_season_stats')
           .update({
@@ -275,7 +267,6 @@ serve(async (req) => {
           console.log('Successfully updated ESPN player stats in database');
         }
 
-        // Log the sync
         await supabase.from('sync_logs').insert({
           sync_type: 'espn_player_stats',
           status: 'success',
@@ -284,6 +275,7 @@ serve(async (req) => {
             espn_id: espnId,
             splits_count: stats.splits.length,
             has_fantasy_insight: !!stats.fantasyInsight,
+            auth_method: authResult.reason,
           },
         });
       }
