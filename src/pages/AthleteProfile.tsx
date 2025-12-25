@@ -806,6 +806,9 @@ const AthleteProfilePage = () => {
           </div>
         )}
 
+        {/* LATEST NEWS CAROUSEL - Right after upcoming matches */}
+        <AthleteNewsCarousel news={athleteNews} />
+
         {/* NBA Game Stats Chart (Basketball only) */}
         {athlete.sport === "basketball" && matchHistory.length >= 2 && (
           <div className="mb-8">
@@ -832,8 +835,7 @@ const AthleteProfilePage = () => {
           />
         </div>
 
-        {/* LATEST NEWS CAROUSEL */}
-        <AthleteNewsCarousel news={athleteNews} />
+        {/* ATHLETE VIDEO CAROUSEL */}
 
         {/* ATHLETE VIDEO CAROUSEL */}
         <AthleteVideoCarousel athleteId={athlete.id} />
