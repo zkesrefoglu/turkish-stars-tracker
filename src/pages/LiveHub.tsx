@@ -19,7 +19,8 @@ import {
   ArrowRight,
   Trophy,
   CurrencyEur,
-  ArrowSquareOut
+  ArrowSquareOut,
+  CheckCircle
 } from '@phosphor-icons/react';
 
 // ============================================================================
@@ -378,7 +379,7 @@ const MatchCard = ({
       </div>
       
       <div className="flex items-center gap-1.5">
-        <span className="text-red-500 text-sm">🇹🇷</span>
+        <Star size={14} weight="fill" className="text-red-500" />
         <span className="text-xs font-medium text-foreground truncate">{athlete.name.split(' ')[0]}</span>
       </div>
       
@@ -778,8 +779,8 @@ const SpotlightCard = ({
       <div className="relative p-5 min-h-[280px] flex flex-col justify-end text-white">
         {/* Status Badge */}
         <div className="absolute top-4 left-4 flex items-center gap-2">
-          <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
-            🟢 Fit
+          <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-medium flex items-center gap-1">
+            <CheckCircle size={12} weight="fill" /> Fit
           </span>
           <span className="text-white/70 text-xs">#{athlete.jersey_number}</span>
         </div>

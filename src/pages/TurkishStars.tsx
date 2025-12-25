@@ -10,7 +10,10 @@ import {
   Basketball,
   MagnifyingGlass,
   CaretRight,
-  MapPin
+  MapPin,
+  CheckCircle,
+  Warning,
+  Flag
 } from "@phosphor-icons/react";
 
 // ============================================================================
@@ -255,7 +258,11 @@ const AthleteCard = ({
             {/* Status Badge */}
             <div className="mt-2">
               <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${injuryBadge.bg} ${injuryBadge.text}`}>
-                {injuryStatus === "healthy" ? "🟢" : "🔴"} {injuryBadge.label}
+                {injuryStatus === "healthy" ? (
+                  <CheckCircle size={12} weight="fill" />
+                ) : (
+                  <Warning size={12} weight="fill" />
+                )} {injuryBadge.label}
               </span>
             </div>
           </div>
@@ -457,7 +464,7 @@ const TurkishStars = () => {
         {/* Page Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
-            <span className="text-3xl">🇹🇷</span>
+            <Flag size={28} weight="fill" className="text-red-600" />
             Turkish Stars
           </h1>
           <p className="text-muted-foreground mt-1">
