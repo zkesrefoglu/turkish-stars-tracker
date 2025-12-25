@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Trophy, Star, ArrowSquareOut, TrendUp } from '@phosphor-icons/react';
+import { formatMarketValueMillions } from '@/lib/formatMarketValue';
 
 // Full leaderboard data from GlobalStatsX (December 2025)
 const MARKET_VALUE_LEADERBOARD = [
@@ -94,7 +95,7 @@ export const MarketValueLeaderboard = ({
               {/* Value */}
               <div className="text-right flex-shrink-0">
                 <div className={`font-bold ${player.tracked ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'}`}>
-                  €{player.value}m
+                  {formatMarketValueMillions(player.value)}
                 </div>
               </div>
 
@@ -159,7 +160,7 @@ export const MarketValueTicker = () => {
           }`}
         >
           <span className="font-medium">{player.name.split(' ')[0]}</span>
-          <span className="font-bold">€{player.value}m</span>
+          <span className="font-bold">{formatMarketValueMillions(player.value)}</span>
           {player.tracked && <Star size={12} weight="fill" className="text-yellow-500" />}
         </Link>
       ))}

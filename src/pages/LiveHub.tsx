@@ -112,12 +112,7 @@ interface SeasonStats {
 // HELPER FUNCTIONS
 // ============================================================================
 
-const formatMarketValue = (value: number | null): string => {
-  if (!value) return '—';
-  if (value >= 1000000) return `€${(value / 1000000).toFixed(0)}M`;
-  if (value >= 1000) return `€${(value / 1000).toFixed(0)}K`;
-  return `€${value}`;
-};
+import { formatMarketValue } from "@/lib/formatMarketValue";
 
 const getTimeAgo = (dateStr: string | null): string => {
   if (!dateStr) return '';
