@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MiniHeader } from '@/components/v2/MiniHeader';
 import { BottomNav } from '@/components/v2/BottomNav';
@@ -13,7 +13,6 @@ import {
   Newspaper, 
   FirstAid,
   CaretRight,
-  Play,
   Clock,
   Fire,
   Star,
@@ -94,6 +93,7 @@ interface AthleteNews {
   source_name: string | null;
   image_url: string | null;
   published_at: string | null;
+  created_at: string;
 }
 
 interface SeasonStats {
@@ -147,6 +147,83 @@ const getReliabilityStyle = (reliability: string): string => {
     case 'tier_3': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
     default: return 'bg-muted text-muted-foreground';
   }
+};
+
+// Parse match result to determine W/L/D
+const parseMatchResult = (result: string | null, sport: string): 'win' | 'loss' | 'draw' | null => {
+  if (!result) return null;
+  
+  // NBA format: "W 137-109" or "L 109-122"
+  if (sport === 'basketball') {
+    if (result.startsWith('W')) return 'win';
+    if (result.startsWith('L')) return 'loss';
+    return null;
+  }
+  
+  // Football format: "4-0" or "0-1" (home score - away score from team perspective)
+  // We need to check if result has W/L prefix first
+  if (result.startsWith('W')) return 'win';
+  if (result.startsWith('L')) return 'loss';
+  if (result.startsWith('D')) return 'draw';
+  
+  // Parse score like "4-0"
+  const scoreMatch = result.match(/(\d+)\s*[-–]\s*(\d+)/);
+  if (scoreMatch) {
+    const homeScore = parseInt(scoreMatch[1]);
+    const awayScore = parseInt(scoreMatch[2]);
+    if (homeScore > awayScore) return 'win';
+    if (homeScore < awayScore) return 'loss';
+    return 'draw';
+  }
+  
+  return null;
+};
+
+// Aggregate season stats for an athlete
+const aggregateSeasonStats = (stats: SeasonStats[], athleteId: string, sport: string) => {
+  const athleteStats = stats.filter(s => s.athlete_id === athleteId);
+  
+  if (sport === 'basketball') {
+    // For NBA, find the NBA season stats (should be one row)
+    const nbaStats = athleteStats.find(s => s.competition === 'NBA');
+    if (nbaStats?.stats) {
+      return {
+        ppg: nbaStats.stats.ppg || nbaStats.stats.points_per_game || 0,
+        rpg: nbaStats.stats.rpg || nbaStats.stats.rebounds_per_game || 0,
+        apg: nbaStats.stats.apg || nbaStats.stats.assists_per_game || 0,
+        gamesPlayed: nbaStats.games_played || 0
+      };
+    }
+    return { ppg: 0, rpg: 0, apg: 0, gamesPlayed: 0 };
+  }
+  
+  // For football, aggregate across all competitions
+  let totalGoals = 0;
+  let totalAssists = 0;
+  let totalMinutes = 0;
+  let totalGames = 0;
+  let ratingSum = 0;
+  let ratingCount = 0;
+  
+  athleteStats.forEach(s => {
+    if (s.stats) {
+      totalGoals += s.stats.goals || 0;
+      totalAssists += s.stats.assists || 0;
+      totalMinutes += s.stats.minutes || 0;
+      if (s.stats.rating && s.stats.rating > 0) {
+        ratingSum += s.stats.rating;
+        ratingCount++;
+      }
+    }
+    totalGames += s.games_played || 0;
+  });
+  
+  return {
+    goals: totalGoals,
+    assists: totalAssists,
+    rating: ratingCount > 0 ? ratingSum / ratingCount : null,
+    gamesPlayed: totalGames
+  };
 };
 
 // ============================================================================
@@ -228,7 +305,7 @@ const LiveMatchHero = ({
           </div>
 
           {/* Player Stats (if available) */}
-          {match.athlete_stats && (
+          {match.athlete_stats && Object.keys(match.athlete_stats).length > 0 && (
             <div className="mt-4 pt-3 border-t border-white/20">
               <div className="flex items-center gap-2 mb-2">
                 <img 
@@ -249,9 +326,6 @@ const LiveMatchHero = ({
                   <>
                     <span><strong>{match.athlete_stats.goals || 0}</strong> Goals</span>
                     <span><strong>{match.athlete_stats.assists || 0}</strong> Assists</span>
-                    {match.athlete_stats.rating && (
-                      <span><strong>{match.athlete_stats.rating.toFixed(1)}</strong> Rating</span>
-                    )}
                   </>
                 )}
               </div>
@@ -388,7 +462,7 @@ const PerformanceCard = ({
               <div className="text-[10px] text-muted-foreground uppercase">Assists</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-foreground">{stats.shots || '—'}</div>
+              <div className="text-lg font-bold text-foreground">{stats.shots_total || '—'}</div>
               <div className="text-[10px] text-muted-foreground uppercase">Shots</div>
             </div>
             <div className="text-center">
@@ -541,22 +615,21 @@ const InjuryCard = ({
 // Player Spotlight Card (Featured)
 const SpotlightCard = ({
   athlete,
-  seasonStats,
+  aggregatedStats,
   recentMatches
 }: {
   athlete: AthleteProfile;
-  seasonStats: SeasonStats | null;
+  aggregatedStats: any;
   recentMatches: DailyUpdate[];
 }) => {
   const isBasketball = athlete.sport === 'basketball';
-  const stats = seasonStats?.stats || {};
   
   // Calculate form (last 5 matches)
-  const form = recentMatches.slice(0, 5).map(m => {
-    if (!m.played) return null;
-    const result = m.match_result?.charAt(0);
-    return result === 'W' ? 'win' : result === 'L' ? 'loss' : 'draw';
-  }).filter(Boolean);
+  const form = recentMatches
+    .filter(m => m.played)
+    .slice(0, 5)
+    .map(m => parseMatchResult(m.match_result, athlete.sport))
+    .filter(Boolean);
 
   return (
     <Link 
@@ -605,30 +678,34 @@ const SpotlightCard = ({
           {isBasketball ? (
             <>
               <div className="text-center">
-                <div className="text-xl font-bold">{stats.points_per_game?.toFixed(1) || '—'}</div>
+                <div className="text-xl font-bold">{aggregatedStats.ppg?.toFixed(1) || '—'}</div>
                 <div className="text-xs text-white/60">PPG</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold">{stats.rebounds_per_game?.toFixed(1) || '—'}</div>
+                <div className="text-xl font-bold">{aggregatedStats.rpg?.toFixed(1) || '—'}</div>
                 <div className="text-xs text-white/60">RPG</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold">{stats.assists_per_game?.toFixed(1) || '—'}</div>
+                <div className="text-xl font-bold">{aggregatedStats.apg?.toFixed(1) || '—'}</div>
                 <div className="text-xs text-white/60">APG</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{aggregatedStats.gamesPlayed || '—'}</div>
+                <div className="text-xs text-white/60">GP</div>
               </div>
             </>
           ) : (
             <>
               <div className="text-center">
-                <div className="text-xl font-bold">{stats.goals || 0}</div>
+                <div className="text-xl font-bold">{aggregatedStats.goals || 0}</div>
                 <div className="text-xs text-white/60">Goals</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold">{stats.assists || 0}</div>
+                <div className="text-xl font-bold">{aggregatedStats.assists || 0}</div>
                 <div className="text-xs text-white/60">Assists</div>
               </div>
               <div className="text-center">
-                <div className="text-xl font-bold">{stats.average_rating?.toFixed(1) || '—'}</div>
+                <div className="text-xl font-bold">{aggregatedStats.rating?.toFixed(1) || '—'}</div>
                 <div className="text-xs text-white/60">Rating</div>
               </div>
               <div className="text-center">
@@ -639,10 +716,10 @@ const SpotlightCard = ({
           )}
         </div>
         
-        {/* Form (Football only) */}
-        {!isBasketball && form.length > 0 && (
+        {/* Form (if available) */}
+        {form.length > 0 && (
           <div>
-            <div className="text-xs text-white/60 mb-1">Last 5 matches</div>
+            <div className="text-xs text-white/60 mb-1">Last {form.length} matches</div>
             <div className="flex gap-1">
               {form.map((result, i) => (
                 <div
@@ -705,8 +782,8 @@ const LiveHub = () => {
           .order('match_date'),
         supabase.from('athlete_daily_updates').select('*').order('date', { ascending: false }).limit(50),
         supabase.from('athlete_transfer_rumors').select('*').eq('status', 'active').order('rumor_date', { ascending: false }).limit(10),
-        supabase.from('athlete_news').select('*').order('published_at', { ascending: false }).limit(10),
-        supabase.from('athlete_season_stats').select('*').eq('season', '2024-25')
+        supabase.from('athlete_news').select('*').order('published_at', { ascending: false, nullsFirst: false }).limit(10),
+        supabase.from('athlete_season_stats').select('*').ilike('season', '%24%') // Get 2024-25 season
       ]);
 
       if (athletesRes.data) setAthletes(athletesRes.data);
@@ -748,11 +825,11 @@ const LiveHub = () => {
   });
 
   const recentPerformances = dailyUpdates
-    .filter(u => u.played && u.stats)
+    .filter(u => u.played && u.stats && Object.keys(u.stats).length > 0)
     .slice(0, 5);
 
   const injuryAlerts = dailyUpdates
-    .filter(u => u.injury_status !== 'healthy')
+    .filter(u => u.injury_status && u.injury_status !== 'healthy')
     .filter((u, i, arr) => arr.findIndex(x => x.athlete_id === u.athlete_id) === i)
     .slice(0, 3);
 
@@ -762,9 +839,10 @@ const LiveHub = () => {
 
   // Featured athlete (rotate or pick top performer)
   const featuredAthlete = athletes.find(a => a.slug === 'arda-guler') || athletes[0];
-  const featuredStats = featuredAthlete 
-    ? seasonStats.find(s => s.athlete_id === featuredAthlete.id)
-    : null;
+  const featuredStats = useMemo(() => {
+    if (!featuredAthlete) return null;
+    return aggregateSeasonStats(seasonStats, featuredAthlete.id, featuredAthlete.sport);
+  }, [featuredAthlete, seasonStats]);
   const featuredMatches = featuredAthlete
     ? dailyUpdates.filter(u => u.athlete_id === featuredAthlete.id)
     : [];
@@ -843,7 +921,7 @@ const LiveHub = () => {
             <div className="flex items-center justify-between px-4 mb-3">
               <h2 className="font-bold text-foreground flex items-center gap-2">
                 <Clock size={18} weight="bold" className="text-accent" />
-                Today's Matches
+                Upcoming Matches
               </h2>
               <Link to="/live" className="text-accent text-sm font-medium flex items-center gap-1">
                 See all <CaretRight size={14} weight="bold" />
@@ -920,7 +998,7 @@ const LiveHub = () => {
         <div className="h-2 bg-muted/50" />
 
         {/* PLAYER SPOTLIGHT */}
-        {featuredAthlete && (
+        {featuredAthlete && featuredStats && (
           <section className="py-5 px-4">
             <div className="flex items-center justify-between mb-4">
               <h2 className="font-bold text-foreground flex items-center gap-2">
@@ -933,7 +1011,7 @@ const LiveHub = () => {
             </div>
             <SpotlightCard 
               athlete={featuredAthlete} 
-              seasonStats={featuredStats || null}
+              aggregatedStats={featuredStats}
               recentMatches={featuredMatches}
             />
           </section>
