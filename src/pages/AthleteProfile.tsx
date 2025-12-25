@@ -774,6 +774,38 @@ const AthleteProfilePage = () => {
           </Card>
         )}
 
+        {/* UPCOMING MATCHES - Right under the bio */}
+        {upcomingMatches.length > 0 && (
+          <div className="mb-6">
+            <h3 className="text-sm font-semibold text-muted-foreground mb-3 flex items-center gap-2 uppercase tracking-wide">
+              <Calendar className="w-4 h-4 text-accent" />
+              Upcoming
+            </h3>
+            <div className="flex gap-3 overflow-x-auto pb-2">
+              {upcomingMatches.slice(0, 5).map((match) => (
+                <Card key={match.id} className="flex-shrink-0 p-3 min-w-[160px] bg-card border-border">
+                  <div className="font-semibold text-foreground text-sm">
+                    {match.home_away === "home" ? "vs" : "@"} {match.opponent}
+                  </div>
+                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-1">
+                    {getCompetitionLogo(match.competition) && (
+                      <img 
+                        src={getCompetitionLogo(match.competition)!} 
+                        alt={match.competition}
+                        className="w-4 h-4 object-contain"
+                      />
+                    )}
+                    <span>{match.competition}</span>
+                  </div>
+                  <div className="text-xs text-accent mt-1.5 font-medium">
+                    {format(new Date(match.match_date), "MMM d, h:mm a")}
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* NBA Game Stats Chart (Basketball only) */}
         {athlete.sport === "basketball" && matchHistory.length >= 2 && (
           <div className="mb-8">
@@ -805,38 +837,6 @@ const AthleteProfilePage = () => {
 
         {/* ATHLETE VIDEO CAROUSEL */}
         <AthleteVideoCarousel athleteId={athlete.id} />
-
-        {/* UPCOMING MATCHES */}
-        {upcomingMatches.length > 0 && (
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center gap-2">
-              <Calendar className="w-5 h-5 text-accent" />
-              Upcoming Matches
-            </h2>
-            <div className="flex gap-4 overflow-x-auto pb-2">
-              {upcomingMatches.map((match) => (
-                <Card key={match.id} className="flex-shrink-0 p-4 min-w-[200px] bg-card border-border">
-                  <div className="font-semibold text-foreground">
-                    {match.home_away === "home" ? "vs" : "@"} {match.opponent}
-                  </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    {getCompetitionLogo(match.competition) && (
-                      <img 
-                        src={getCompetitionLogo(match.competition)!} 
-                        alt={match.competition}
-                        className="w-5 h-5 object-contain"
-                      />
-                    )}
-                    <span>{match.competition}</span>
-                  </div>
-                  <div className="text-sm text-accent mt-2">
-                    {format(new Date(match.match_date), "MMM d, h:mm a")}
-                  </div>
-                </Card>
-              ))}
-            </div>
-          </div>
-        )}
 
         {/* TABBED CONTENT */}
         <Tabs defaultValue="stats" className="w-full">
