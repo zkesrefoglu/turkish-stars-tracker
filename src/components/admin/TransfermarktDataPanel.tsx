@@ -105,11 +105,18 @@ export default function TransfermarktDataPanel() {
   };
 
   const loadAthletes = async () => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('athlete_profiles')
       .select('id, name, team, sport')
-      .eq('sport', 'Football')
+      // sport values in DB are lowercase (e.g. "football")
+      .ilike('sport', 'football')
       .order('name');
+
+    if (error) {
+      toast({ title: 'Error', description: `Failed to load athletes: ${error.message}`, variant: 'destructive' });
+      return;
+    }
+
     if (data) setAthletes(data);
   };
 
