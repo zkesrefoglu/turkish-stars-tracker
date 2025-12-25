@@ -1094,7 +1094,10 @@ const AthleteProfilePage = () => {
                               src={news.image_url} 
                               alt={news.title}
                               className="w-full h-full object-cover"
-                              onError={(e) => (e.currentTarget.style.display = 'none')}
+                              onError={(e) => {
+                                const parent = e.currentTarget.parentElement;
+                                if (parent) parent.style.display = 'none';
+                              }}
                             />
                           </div>
                         )}

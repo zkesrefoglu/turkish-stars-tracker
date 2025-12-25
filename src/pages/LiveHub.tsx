@@ -486,55 +486,56 @@ const NewsCard = ({
 }: {
   news: AthleteNews;
   athlete: AthleteProfile;
-}) => (
-  <a
-    href={news.source_url}
-    target="_blank"
-    rel="noopener noreferrer"
-    className="block bg-card border border-border rounded-xl overflow-hidden hover:border-accent/50 transition-all"
-  >
-    {news.image_url && (
+}) => {
+  const [imageError, setImageError] = useState(false);
+  
+  return (
+    <a
+      href={news.source_url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="block bg-card border border-border rounded-xl overflow-hidden hover:border-accent/50 transition-all"
+    >
       <div className="relative h-40 bg-muted">
-        <img
-          src={news.image_url}
-          alt=""
-          className="w-full h-full object-cover"
-        />
+        {news.image_url && !imageError ? (
+          <img
+            src={news.image_url}
+            alt=""
+            className="w-full h-full object-cover"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Newspaper size={32} weight="light" className="text-muted-foreground/50" />
+          </div>
+        )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         <div className="absolute bottom-2 left-2 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium flex items-center gap-1">
           <Newspaper size={12} weight="fill" />
           NEWS
         </div>
       </div>
-    )}
-    <div className="p-4">
-      {!news.image_url && (
-        <div className="flex items-center gap-2 mb-2">
-          <span className="bg-accent/10 text-accent text-xs px-2 py-0.5 rounded font-medium flex items-center gap-1">
-            <Newspaper size={12} weight="fill" />
-            NEWS
-          </span>
-          <span className="text-xs text-muted-foreground">{getTimeAgo(news.published_at)}</span>
+      <div className="p-4">
+        <h3 className="font-semibold text-foreground line-clamp-2 mb-2">{news.title}</h3>
+        <div className="flex items-center gap-2">
+          <img
+            src={athlete.photo_url || '/placeholder.svg'}
+            alt={athlete.name}
+            className="w-5 h-5 rounded-full object-cover"
+            onError={(e) => { e.currentTarget.src = '/placeholder.svg'; }}
+          />
+          <span className="text-sm text-muted-foreground">{athlete.name}</span>
+          {news.source_name && (
+            <>
+              <span className="text-muted-foreground">•</span>
+              <span className="text-xs text-muted-foreground">{news.source_name}</span>
+            </>
+          )}
         </div>
-      )}
-      <h3 className="font-semibold text-foreground line-clamp-2 mb-2">{news.title}</h3>
-      <div className="flex items-center gap-2">
-        <img
-          src={athlete.photo_url || '/placeholder.svg'}
-          alt={athlete.name}
-          className="w-5 h-5 rounded-full object-cover"
-        />
-        <span className="text-sm text-muted-foreground">{athlete.name}</span>
-        {news.source_name && (
-          <>
-            <span className="text-muted-foreground">•</span>
-            <span className="text-xs text-muted-foreground">{news.source_name}</span>
-          </>
-        )}
       </div>
-    </div>
-  </a>
-);
+    </a>
+  );
+};
 
 // Transfer Rumor Card (for feed)
 const TransferCard = ({
