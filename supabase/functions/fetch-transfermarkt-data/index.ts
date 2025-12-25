@@ -12,22 +12,75 @@ serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+    // Check for webhook secret OR authenticated admin user
     const webhookSecret = req.headers.get("x-webhook-secret");
     const expectedSecret = Deno.env.get("STATS_WEBHOOK_SECRET");
+    const authHeader = req.headers.get("authorization");
 
-    if (!webhookSecret || webhookSecret !== expectedSecret) {
+    let isAuthorized = false;
+
+    // Method 1: Valid webhook secret
+    if (webhookSecret && webhookSecret === expectedSecret) {
+      isAuthorized = true;
+      console.log("Authorized via webhook secret");
+    }
+
+    // Method 2: Authenticated admin user
+    if (!isAuthorized && authHeader) {
+      const token = authHeader.replace("Bearer ", "");
+      const userClient = createClient(supabaseUrl, Deno.env.get("SUPABASE_ANON_KEY")!, {
+        global: { headers: { Authorization: `Bearer ${token}` } },
+      });
+      const { data: { user } } = await userClient.auth.getUser();
+      
+      if (user) {
+        const { data: roles } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id);
+        
+        if (roles?.some((r: any) => r.role === "admin")) {
+          isAuthorized = true;
+          console.log("Authorized via admin user:", user.email);
+        }
+      }
+    }
+
+    if (!isAuthorized) {
       return new Response(JSON.stringify({ error: "Unauthorized" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
-    const supabase = createClient(supabaseUrl, supabaseServiceKey);
+    let body: any = {};
+    try {
+      body = await req.json();
+    } catch {
+      // No body provided - this is a status check or admin ping
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Transfermarkt webhook receiver is ready. This endpoint receives data from the external transfermarkt-scraper service.",
+        note: "To sync Transfermarkt data, run the external scraper service which will POST data to this endpoint."
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
-    const body = await req.json();
     const { type, athlete_slug, data } = body;
+
+    if (!type || !athlete_slug || !data) {
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Transfermarkt webhook receiver is ready. Missing required fields: type, athlete_slug, data",
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
 
     const { data: athlete, error: athleteError } = await supabase
       .from("athlete_profiles")
