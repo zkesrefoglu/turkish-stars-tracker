@@ -237,7 +237,7 @@ const AthleteCard = ({
                 <img
                   src={athlete.team_logo_url}
                   alt={athlete.team}
-                  className="w-10 h-10 object-contain flex-shrink-0"
+                  className="w-10 h-10 object-contain flex-shrink-0 mix-blend-multiply dark:mix-blend-normal dark:brightness-100 dark:contrast-100"
                 />
               )}
             </div>
