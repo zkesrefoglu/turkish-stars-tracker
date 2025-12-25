@@ -3,7 +3,8 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Trophy } from "lucide-react";
+import { Trophy, ChevronDown, ChevronUp } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 // NBA Standings types
 interface NBATeamStanding {
@@ -45,11 +46,40 @@ interface LeagueStandingsTableProps {
   highlightTeam?: string;
 }
 
+// Helper to get compact view indices (team + 2 above + 2 below)
+const getCompactIndices = (teamIndex: number, totalLength: number): number[] => {
+  const indices: number[] = [];
+  const radius = 2; // Show 2 teams above and below
+  
+  for (let i = teamIndex - radius; i <= teamIndex + radius; i++) {
+    if (i >= 0 && i < totalLength) {
+      indices.push(i);
+    }
+  }
+  
+  // Ensure we have at least 5 teams if possible
+  while (indices.length < 5 && indices.length < totalLength) {
+    const firstIdx = indices[0];
+    const lastIdx = indices[indices.length - 1];
+    
+    if (firstIdx > 0) {
+      indices.unshift(firstIdx - 1);
+    } else if (lastIdx < totalLength - 1) {
+      indices.push(lastIdx + 1);
+    } else {
+      break;
+    }
+  }
+  
+  return indices;
+};
+
 export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueStandingsTableProps) => {
   const [nbaStandings, setNbaStandings] = useState<NBATeamStanding[]>([]);
   const [footballStandings, setFootballStandings] = useState<FootballTeamStanding[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [expanded, setExpanded] = useState(false);
 
   useEffect(() => {
     const fetchStandings = async () => {
@@ -91,7 +121,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
           <h3 className="font-semibold text-foreground">{league} Standings</h3>
         </div>
         <div className="space-y-2">
-          {[...Array(10)].map((_, i) => (
+          {[...Array(5)].map((_, i) => (
             <Skeleton key={i} className="h-8 w-full" />
           ))}
         </div>
@@ -116,6 +146,14 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
     const highlightedTeamIndex = nbaStandings.findIndex(t => 
       highlightTeam && t.name.toLowerCase().includes(highlightTeam.toLowerCase())
     );
+    
+    const compactIndices = highlightedTeamIndex !== -1 
+      ? getCompactIndices(highlightedTeamIndex, nbaStandings.length)
+      : [0, 1, 2, 3, 4]; // Default to top 5 if no team found
+    
+    const teamsToShow = expanded 
+      ? nbaStandings 
+      : nbaStandings.filter((_, idx) => compactIndices.includes(idx));
 
     return (
       <Card className="p-4 bg-card border-border overflow-hidden">
@@ -147,10 +185,11 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
               </TableRow>
             </TableHeader>
             <TableBody>
-              {nbaStandings.map((team, index) => {
+              {teamsToShow.map((team) => {
+                const originalIndex = nbaStandings.findIndex(t => t.teamId === team.teamId);
                 const isHighlighted = highlightTeam && team.name.toLowerCase().includes(highlightTeam.toLowerCase());
-                const isPlayoffSpot = index < 6;
-                const isPlayInSpot = index >= 6 && index < 10;
+                const isPlayoffSpot = originalIndex < 6;
+                const isPlayInSpot = originalIndex >= 6 && originalIndex < 10;
                 
                 return (
                   <TableRow 
@@ -164,7 +203,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
                         isPlayoffSpot ? 'text-emerald-500' : 
                         isPlayInSpot ? 'text-yellow-500' : 'text-muted-foreground'
                       }`}>
-                        {index + 1}
+                        {originalIndex + 1}
                       </span>
                     </TableCell>
                     <TableCell className="py-2">
@@ -205,15 +244,29 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
           </Table>
         </div>
         
-        <div className="mt-3 pt-3 border-t border-border flex flex-wrap gap-3 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            Playoff (1-6)
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-            Play-In (7-10)
-          </span>
+        <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+          <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+              Playoff
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+              Play-In
+            </span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setExpanded(!expanded)}
+            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+          >
+            {expanded ? (
+              <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
+            ) : (
+              <>Full Table <ChevronDown className="w-3 h-3 ml-1" /></>
+            )}
+          </Button>
         </div>
       </Card>
     );
@@ -224,6 +277,14 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
     const highlightedTeamIndex = footballStandings.findIndex(t => 
       highlightTeam && t.teamName.toLowerCase().includes(highlightTeam.toLowerCase())
     );
+    
+    const compactIndices = highlightedTeamIndex !== -1 
+      ? getCompactIndices(highlightedTeamIndex, footballStandings.length)
+      : [0, 1, 2, 3, 4]; // Default to top 5 if no team found
+    
+    const teamsToShow = expanded 
+      ? footballStandings 
+      : footballStandings.filter((_, idx) => compactIndices.includes(idx));
 
     return (
       <Card className="p-4 bg-card border-border overflow-hidden">
@@ -256,7 +317,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
               </TableRow>
             </TableHeader>
             <TableBody>
-              {footballStandings.map((team) => {
+              {teamsToShow.map((team) => {
                 const isHighlighted = highlightTeam && team.teamName.toLowerCase().includes(highlightTeam.toLowerCase());
                 const isChampionsLeague = team.rank <= 4;
                 const isEuropaLeague = team.rank === 5 || team.rank === 6;
@@ -334,19 +395,33 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
           </Table>
         </div>
         
-        <div className="mt-3 pt-3 border-t border-border flex flex-wrap gap-3 text-[10px] text-muted-foreground">
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-            Champions League
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-            Europa League
-          </span>
-          <span className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full bg-red-500"></span>
-            Relegation
-          </span>
+        <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
+          <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              UCL
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-orange-500"></span>
+              UEL
+            </span>
+            <span className="flex items-center gap-1">
+              <span className="w-2 h-2 rounded-full bg-red-500"></span>
+              Rel.
+            </span>
+          </div>
+          <Button 
+            variant="ghost" 
+            size="sm" 
+            onClick={() => setExpanded(!expanded)}
+            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
+          >
+            {expanded ? (
+              <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
+            ) : (
+              <>Full Table <ChevronDown className="w-3 h-3 ml-1" /></>
+            )}
+          </Button>
         </div>
       </Card>
     );
