@@ -44,3 +44,6 @@ verify_jwt = false
 
 [functions.fetch-nba-standings]
 verify_jwt = false
+
+[functions.fetch-football-standings]
+verify_jwt = false
