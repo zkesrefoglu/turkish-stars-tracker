@@ -154,17 +154,37 @@ const StatsPage = () => {
     sportFilter === "all" || a.sport === sportFilter
   );
 
-  // Get top performers - sorted by RATING (descending), not date
-  const topPerformers = dailyUpdates
-    .filter(u => {
+  // Get top performers - sorted by AVERAGE RATING across all matches
+  const topPerformers = (() => {
+    // Group updates by athlete and calculate average rating
+    const athleteRatings: { [athleteId: string]: { total: number; count: number; games: DailyUpdate[] } } = {};
+    
+    dailyUpdates.forEach(u => {
       const athlete = getAthlete(u.athlete_id);
-      if (!athlete) return false;
-      if (sportFilter !== "all" && athlete.sport !== sportFilter) return false;
-      // Must have played and have a rating
-      return u.played && u.rating && u.rating > 0;
-    })
-    .sort((a, b) => (b.rating || 0) - (a.rating || 0)) // Sort by rating DESC
-    .slice(0, 10);
+      if (!athlete) return;
+      if (sportFilter !== "all" && athlete.sport !== sportFilter) return;
+      if (!u.played || !u.rating || u.rating <= 0) return;
+      
+      if (!athleteRatings[u.athlete_id]) {
+        athleteRatings[u.athlete_id] = { total: 0, count: 0, games: [] };
+      }
+      athleteRatings[u.athlete_id].total += u.rating;
+      athleteRatings[u.athlete_id].count += 1;
+      athleteRatings[u.athlete_id].games.push(u);
+    });
+    
+    // Calculate averages and sort
+    return Object.entries(athleteRatings)
+      .map(([athleteId, data]) => ({
+        athleteId,
+        avgRating: data.total / data.count,
+        gamesPlayed: data.count,
+        lastGame: data.games[0] // Most recent game for context
+      }))
+      .filter(item => item.gamesPlayed >= 1) // At least 1 rated game
+      .sort((a, b) => b.avgRating - a.avgRating)
+      .slice(0, 10);
+  })();
 
   // Get top scorers (football) - aggregate goals
   const footballAthletes = athletes.filter(a => a.sport === "football");
@@ -273,20 +293,20 @@ const StatsPage = () => {
             <h2 className="font-bold text-foreground">Top Performers</h2>
             <span className="text-xs text-muted-foreground ml-auto flex items-center gap-1">
               <SortDescending size={12} />
-              By rating
+              By avg rating
             </span>
           </div>
 
           <div className="bg-card border border-border rounded-2xl overflow-hidden">
             {topPerformers.length > 0 ? (
               <div className="divide-y divide-border">
-                {topPerformers.map((update, index) => {
-                  const athlete = getAthlete(update.athlete_id);
+                {topPerformers.map((item, index) => {
+                  const athlete = getAthlete(item.athleteId);
                   if (!athlete) return null;
 
                   return (
                     <Link
-                      key={update.id}
+                      key={item.athleteId}
                       to={`/athlete/${athlete.slug}`}
                       className="flex items-center gap-3 px-4 py-3 hover:bg-muted/50 transition-colors"
                     >
@@ -311,16 +331,16 @@ const StatsPage = () => {
                       <div className="flex-1 min-w-0">
                         <div className="font-semibold text-foreground truncate">{athlete.name}</div>
                         <div className="text-xs text-muted-foreground truncate">
-                          vs {update.opponent} • {update.competition}
+                          {athlete.team} • {item.gamesPlayed} games
                         </div>
                       </div>
 
-                      {/* Rating */}
-                      <div className={`text-right ${getRatingBg(update.rating)} px-3 py-1 rounded-lg`}>
-                        <div className={`text-lg font-bold ${getRatingColor(update.rating)}`}>
-                          {update.rating?.toFixed(1)}
+                      {/* Average Rating */}
+                      <div className={`text-right ${getRatingBg(item.avgRating)} px-3 py-1 rounded-lg`}>
+                        <div className={`text-lg font-bold ${getRatingColor(item.avgRating)}`}>
+                          {item.avgRating.toFixed(2)}
                         </div>
-                        <div className="text-[10px] text-muted-foreground">rating</div>
+                        <div className="text-[10px] text-muted-foreground">avg rating</div>
                       </div>
                     </Link>
                   );
