@@ -9,6 +9,7 @@ import { MarketValueChart } from "@/components/MarketValueChart";
 import { TransferHistoryTimeline } from "@/components/TransferHistoryTimeline";
 import { InjuryHistoryList } from "@/components/InjuryHistoryList";
 import { EfficiencyRankingsTable } from "@/components/EfficiencyRankingsTable";
+import { NBAStandingsTable } from "@/components/NBAStandingsTable";
 import { AthleteVideoCarousel } from "@/components/AthleteVideoCarousel";
 import AthleteNewsCarousel from "@/components/AthleteNewsCarousel";
 import { InstagramSocialSection } from "@/components/InstagramSocialSection";
@@ -749,6 +750,13 @@ const AthleteProfilePage = () => {
             teamName={athlete.team}
             position={athlete.position}
           />
+        )}
+
+        {/* NBA Standings Table (Basketball only) */}
+        {athlete.sport === "basketball" && (
+          <div className="mb-8">
+            <NBAStandingsTable highlightTeam={athlete.team.split(' ').pop()} />
+          </div>
         )}
 
         {/* BIO SECTION */}

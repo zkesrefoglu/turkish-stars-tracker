@@ -41,3 +41,6 @@ verify_jwt = false
 
 [functions.sync-match-schedule]
 verify_jwt = false
+
+[functions.fetch-nba-standings]
+verify_jwt = false
