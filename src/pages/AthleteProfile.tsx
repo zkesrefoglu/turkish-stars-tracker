@@ -842,27 +842,46 @@ const AthleteProfilePage = () => {
 
         {/* TABBED CONTENT */}
         <Tabs defaultValue="stats" className="w-full">
-          <TabsList className="w-full justify-start mb-6 bg-secondary overflow-x-auto flex-wrap">
-            <TabsTrigger value="stats" className="flex-1 sm:flex-none">Season Stats</TabsTrigger>
-            <TabsTrigger value="history" className="flex-1 sm:flex-none">Match History</TabsTrigger>
-            <TabsTrigger value="news" className="flex-1 sm:flex-none">Latest News</TabsTrigger>
+          <TabsList className="w-full justify-start mb-6 bg-card/80 backdrop-blur-sm border border-border/50 overflow-x-auto flex-nowrap p-2 rounded-xl shadow-sm">
+            <TabsTrigger value="stats" className="gap-2 min-w-fit">
+              <TrendingUp className="w-4 h-4" />
+              <span className="hidden sm:inline">Season Stats</span>
+              <span className="sm:hidden">Stats</span>
+            </TabsTrigger>
+            <TabsTrigger value="history" className="gap-2 min-w-fit">
+              <Calendar className="w-4 h-4" />
+              <span className="hidden sm:inline">Match History</span>
+              <span className="sm:hidden">History</span>
+            </TabsTrigger>
+            <TabsTrigger value="news" className="gap-2 min-w-fit">
+              <Newspaper className="w-4 h-4" />
+              <span className="hidden sm:inline">Latest News</span>
+              <span className="sm:hidden">News</span>
+            </TabsTrigger>
             {athlete.sport === "football" && (
               <>
-                <TabsTrigger value="market-value" className="flex-1 sm:flex-none">
-                  <DollarSign className="w-4 h-4 mr-1" />
-                  Market Value
+                <TabsTrigger value="market-value" className="gap-2 min-w-fit">
+                  <DollarSign className="w-4 h-4" />
+                  <span className="hidden sm:inline">Market Value</span>
+                  <span className="sm:hidden">Value</span>
                 </TabsTrigger>
-                <TabsTrigger value="transfer-history" className="flex-1 sm:flex-none">
-                  <History className="w-4 h-4 mr-1" />
-                  Transfers
+                <TabsTrigger value="transfer-history" className="gap-2 min-w-fit">
+                  <History className="w-4 h-4" />
+                  <span className="hidden sm:inline">Transfers</span>
+                  <span className="sm:hidden">Transfers</span>
                 </TabsTrigger>
-                <TabsTrigger value="injury-history" className="flex-1 sm:flex-none">
-                  <HeartPulse className="w-4 h-4 mr-1" />
-                  Injuries
+                <TabsTrigger value="injury-history" className="gap-2 min-w-fit">
+                  <HeartPulse className="w-4 h-4" />
+                  <span className="hidden sm:inline">Injuries</span>
+                  <span className="sm:hidden">Injuries</span>
                 </TabsTrigger>
               </>
             )}
-            <TabsTrigger value="transfers" className="flex-1 sm:flex-none">Transfer Rumors</TabsTrigger>
+            <TabsTrigger value="transfers" className="gap-2 min-w-fit">
+              <AlertTriangle className="w-4 h-4" />
+              <span className="hidden sm:inline">Transfer Rumors</span>
+              <span className="sm:hidden">Rumors</span>
+            </TabsTrigger>
           </TabsList>
 
           {/* TAB 1: Season Stats */}
