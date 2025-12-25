@@ -16,14 +16,10 @@ interface MarketValueChartProps {
   marketValues: MarketValue[];
 }
 
-const formatValue = (value: number): string => {
-  if (value >= 1000000) {
-    return `€${(value / 1000000).toFixed(1)}M`;
-  } else if (value >= 1000) {
-    return `€${(value / 1000).toFixed(0)}K`;
-  }
-  return `€${value}`;
-};
+import { formatMarketValue } from "@/lib/formatMarketValue";
+
+// Alias for backward compatibility within the chart
+const formatValue = (value: number): string => formatMarketValue(value);
 
 export const MarketValueChart = ({ marketValues }: MarketValueChartProps) => {
   const chartData = useMemo(() => {
