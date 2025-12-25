@@ -620,7 +620,7 @@ const MARKET_VALUE_DATA = [
   { rank: 2, name: "Kenan Yıldız", team: "Juventus", value: 75, slug: "kenan-yildiz", tracked: true },
   { rank: 3, name: "Can Uzun", team: "Eintracht Frankfurt", value: 45, slug: "can-uzun", tracked: true },
   { rank: 4, name: "Ferdi Kadıoğlu", team: "Brighton", value: 28, slug: "ferdi-kadioglu", tracked: true },
-  { rank: 5, name: "Hakan Çalhanoğlu", team: "Inter", value: 25, slug: null, tracked: false },
+  { rank: 5, name: "Hakan Çalhanoğlu", team: "Inter", value: 25, slug: "hakan-calhanoglu", tracked: true },
   { rank: 6, name: "Orkun Kökçü", team: "Benfica", value: 25, slug: null, tracked: false },
   { rank: 7, name: "Barış Alper Yılmaz", team: "Galatasaray", value: 24, slug: null, tracked: false },
   { rank: 8, name: "Kerem Aktürkoğlu", team: "Benfica", value: 22, slug: null, tracked: false },
@@ -728,7 +728,7 @@ const MarketValueLeaderboard = () => {
             = Tracked in TST
           </span>
           <span className="text-muted-foreground">
-            Total tracked value: <span className="font-bold text-emerald-600 dark:text-emerald-400">€304m</span>
+            Total tracked value: <span className="font-bold text-emerald-600 dark:text-emerald-400">€339m</span>
           </span>
         </div>
       </div>
