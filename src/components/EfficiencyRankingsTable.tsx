@@ -21,6 +21,12 @@ interface EfficiencyRankingsTableProps {
   athleteName: string;
 }
 
+// Helper to extract player name from markdown link format: [Name](url)
+const parsePlayerName = (name: string): string => {
+  const match = name.match(/^\[([^\]]+)\]/);
+  return match ? match[1] : name;
+};
+
 export const EfficiencyRankingsTable = ({ rankings, athleteName }: EfficiencyRankingsTableProps) => {
   if (!rankings || rankings.length === 0) {
     return null;
@@ -83,7 +89,7 @@ export const EfficiencyRankingsTable = ({ rankings, athleteName }: EfficiencyRan
                         <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
                       )}
                       <span className={ranking.is_featured_athlete ? 'text-foreground font-semibold' : 'text-foreground'}>
-                        {ranking.player_name}
+                        {parsePlayerName(ranking.player_name)}
                       </span>
                     </div>
                   </TableCell>
