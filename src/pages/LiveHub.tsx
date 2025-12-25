@@ -1,80 +1,1040 @@
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { MiniHeader } from '@/components/v2/MiniHeader';
 import { BottomNav } from '@/components/v2/BottomNav';
-import { LiveMatchBanner } from '@/components/v2/LiveMatchBanner';
-import { TodaysMatchesCarousel } from '@/components/v2/TodaysMatchesCarousel';
-import { TrendingSection } from '@/components/v2/TrendingSection';
+import { supabase } from '@/integrations/supabase/client';
 import { useNbaLivePolling } from '@/hooks/useNbaLivePolling';
-import { Newspaper, ChartLineUp, UserCircle, ArrowRight } from '@phosphor-icons/react';
-import { Link } from 'react-router-dom';
+import { format, formatDistanceToNow, parseISO, isToday, isTomorrow } from 'date-fns';
+import { 
+  Broadcast, 
+  SoccerBall, 
+  Basketball, 
+  TrendUp, 
+  Newspaper, 
+  FirstAid,
+  CaretRight,
+  Play,
+  Clock,
+  Fire,
+  Star,
+  ArrowRight,
+  Trophy
+} from '@phosphor-icons/react';
+
+// ============================================================================
+// INTERFACES
+// ============================================================================
+
+interface AthleteProfile {
+  id: string;
+  name: string;
+  slug: string;
+  sport: string;
+  team: string;
+  league: string;
+  photo_url: string | null;
+  team_logo_url: string | null;
+  position: string;
+  jersey_number: number | null;
+  current_market_value: number | null;
+}
+
+interface LiveMatch {
+  id: string;
+  athlete_id: string;
+  opponent: string;
+  competition: string;
+  home_away: string | null;
+  home_score: number | null;
+  away_score: number | null;
+  current_minute: number | null;
+  match_status: string;
+  kickoff_time: string;
+  athlete_stats: any;
+}
+
+interface UpcomingMatch {
+  id: string;
+  athlete_id: string;
+  opponent: string;
+  competition: string;
+  home_away: string | null;
+  match_date: string;
+}
+
+interface DailyUpdate {
+  id: string;
+  athlete_id: string;
+  date: string;
+  played: boolean;
+  match_result: string | null;
+  opponent: string | null;
+  competition: string | null;
+  stats: any;
+  rating: number | null;
+  minutes_played: number | null;
+  injury_status: string;
+  injury_details: string | null;
+}
+
+interface TransferRumor {
+  id: string;
+  athlete_id: string;
+  rumor_date: string;
+  headline: string;
+  source: string | null;
+  reliability: string;
+}
+
+interface AthleteNews {
+  id: string;
+  athlete_id: string;
+  title: string;
+  source_url: string;
+  source_name: string | null;
+  image_url: string | null;
+  published_at: string | null;
+}
+
+interface SeasonStats {
+  id: string;
+  athlete_id: string;
+  season: string;
+  competition: string;
+  games_played: number | null;
+  stats: any;
+}
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+const formatMarketValue = (value: number | null): string => {
+  if (!value) return '—';
+  if (value >= 1000000) return `€${(value / 1000000).toFixed(0)}M`;
+  if (value >= 1000) return `€${(value / 1000).toFixed(0)}K`;
+  return `€${value}`;
+};
+
+const getTimeAgo = (dateStr: string | null): string => {
+  if (!dateStr) return '';
+  try {
+    return formatDistanceToNow(parseISO(dateStr), { addSuffix: true });
+  } catch {
+    return '';
+  }
+};
+
+const formatMatchTime = (dateStr: string): string => {
+  const date = parseISO(dateStr);
+  if (isToday(date)) return `Today ${format(date, 'HH:mm')}`;
+  if (isTomorrow(date)) return `Tomorrow ${format(date, 'HH:mm')}`;
+  return format(date, 'EEE HH:mm');
+};
+
+const getRatingColor = (rating: number | null): string => {
+  if (!rating) return 'text-muted-foreground';
+  if (rating >= 8) return 'text-emerald-500';
+  if (rating >= 7) return 'text-blue-500';
+  if (rating >= 6) return 'text-yellow-500';
+  return 'text-red-500';
+};
+
+const getReliabilityStyle = (reliability: string): string => {
+  switch (reliability) {
+    case 'tier_1': return 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400';
+    case 'tier_2': return 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+    case 'tier_3': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400';
+    default: return 'bg-muted text-muted-foreground';
+  }
+};
+
+// ============================================================================
+// SUB-COMPONENTS
+// ============================================================================
+
+// Live Match Hero Banner
+const LiveMatchHero = ({ 
+  match, 
+  athlete 
+}: { 
+  match: LiveMatch; 
+  athlete: AthleteProfile;
+}) => {
+  const isHome = match.home_away === 'home';
+  const teamScore = isHome ? match.home_score : match.away_score;
+  const oppScore = isHome ? match.away_score : match.home_score;
+  const isBasketball = athlete.sport === 'basketball';
+
+  return (
+    <Link to={`/athlete/${athlete.slug}`} className="block">
+      <div className="mx-4 mt-4 rounded-2xl overflow-hidden bg-gradient-to-br from-red-600 via-red-700 to-red-900 text-white shadow-lg">
+        {/* Live Badge */}
+        <div className="flex items-center gap-2 px-4 pt-4 pb-2">
+          <span className="relative flex h-2.5 w-2.5">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-white"></span>
+          </span>
+          <span className="text-xs font-bold uppercase tracking-wider">Live Now</span>
+          <span className="text-xs text-white/70">• {match.competition}</span>
+        </div>
+
+        {/* Score Section */}
+        <div className="px-4 pb-4">
+          <div className="flex items-center justify-between">
+            {/* Team Side */}
+            <div className="flex items-center gap-3">
+              {athlete.team_logo_url ? (
+                <img 
+                  src={athlete.team_logo_url} 
+                  alt={athlete.team}
+                  className="w-12 h-12 object-contain bg-white rounded-lg p-1"
+                />
+              ) : (
+                <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                  {isBasketball ? <Basketball size={24} /> : <SoccerBall size={24} />}
+                </div>
+              )}
+              <div>
+                <div className="font-bold text-lg">{athlete.team}</div>
+                <div className="text-xs text-white/70">{isHome ? 'Home' : 'Away'}</div>
+              </div>
+            </div>
+
+            {/* Score */}
+            <div className="text-center px-4">
+              <div className="text-4xl font-black tracking-tight">
+                {teamScore ?? 0} - {oppScore ?? 0}
+              </div>
+              <div className="mt-1 inline-flex items-center gap-1 bg-white/20 rounded-full px-2 py-0.5">
+                <span className="text-sm font-semibold">
+                  {match.match_status === 'halftime' ? 'HT' : 
+                   isBasketball ? `Q${Math.ceil((match.current_minute || 1) / 12)}` : 
+                   `${match.current_minute}'`}
+                </span>
+              </div>
+            </div>
+
+            {/* Opponent Side */}
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <div className="font-bold text-lg">{match.opponent}</div>
+                <div className="text-xs text-white/70">{isHome ? 'Away' : 'Home'}</div>
+              </div>
+              <div className="w-12 h-12 bg-white/20 rounded-lg flex items-center justify-center">
+                <span className="text-xs font-bold">{match.opponent.substring(0, 3).toUpperCase()}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Player Stats (if available) */}
+          {match.athlete_stats && (
+            <div className="mt-4 pt-3 border-t border-white/20">
+              <div className="flex items-center gap-2 mb-2">
+                <img 
+                  src={athlete.photo_url || '/placeholder.svg'} 
+                  alt={athlete.name}
+                  className="w-6 h-6 rounded-full object-cover"
+                />
+                <span className="text-sm font-medium">{athlete.name}</span>
+              </div>
+              <div className="flex gap-4 text-sm">
+                {isBasketball ? (
+                  <>
+                    <span><strong>{match.athlete_stats.points || 0}</strong> PTS</span>
+                    <span><strong>{match.athlete_stats.rebounds || 0}</strong> REB</span>
+                    <span><strong>{match.athlete_stats.assists || 0}</strong> AST</span>
+                  </>
+                ) : (
+                  <>
+                    <span><strong>{match.athlete_stats.goals || 0}</strong> Goals</span>
+                    <span><strong>{match.athlete_stats.assists || 0}</strong> Assists</span>
+                    {match.athlete_stats.rating && (
+                      <span><strong>{match.athlete_stats.rating.toFixed(1)}</strong> Rating</span>
+                    )}
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  );
+};
+
+// Today's Match Card (Compact)
+const MatchCard = ({ 
+  match, 
+  athlete 
+}: { 
+  match: UpcomingMatch; 
+  athlete: AthleteProfile;
+}) => {
+  const isBasketball = athlete.sport === 'basketball';
+  
+  return (
+    <Link 
+      to={`/athlete/${athlete.slug}`}
+      className="flex-shrink-0 w-40 bg-card border border-border rounded-xl p-3 hover:border-accent/50 hover:shadow-md transition-all"
+    >
+      <div className="text-xs text-muted-foreground mb-2 flex items-center gap-1">
+        <Clock size={10} weight="bold" />
+        {formatMatchTime(match.match_date)}
+      </div>
+      
+      <div className="flex items-center justify-between mb-3">
+        {athlete.team_logo_url ? (
+          <img 
+            src={athlete.team_logo_url} 
+            alt={athlete.team}
+            className="w-8 h-8 object-contain"
+          />
+        ) : (
+          <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+            {isBasketball ? <Basketball size={16} /> : <SoccerBall size={16} />}
+          </div>
+        )}
+        <span className="text-xs font-medium text-muted-foreground">vs</span>
+        <div className="w-8 h-8 bg-muted rounded flex items-center justify-center">
+          <span className="text-[10px] font-bold">{match.opponent.substring(0, 3).toUpperCase()}</span>
+        </div>
+      </div>
+      
+      <div className="flex items-center gap-1.5">
+        <span className="text-red-500 text-sm">🇹🇷</span>
+        <span className="text-xs font-medium text-foreground truncate">{athlete.name.split(' ')[0]}</span>
+      </div>
+      
+      <div className="text-[10px] text-muted-foreground mt-1 truncate">
+        {match.competition}
+      </div>
+    </Link>
+  );
+};
+
+// Performance Card (for feed)
+const PerformanceCard = ({
+  update,
+  athlete
+}: {
+  update: DailyUpdate;
+  athlete: AthleteProfile;
+}) => {
+  const isBasketball = athlete.sport === 'basketball';
+  const stats = update.stats || {};
+
+  return (
+    <Link 
+      to={`/athlete/${athlete.slug}`}
+      className="block bg-card border border-border rounded-xl p-4 hover:border-accent/50 transition-all"
+    >
+      <div className="flex items-center gap-2 mb-3">
+        <span className="bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs px-2 py-0.5 rounded font-medium flex items-center gap-1">
+          <Trophy size={12} weight="fill" />
+          STATS
+        </span>
+        <span className="text-xs text-muted-foreground">{getTimeAgo(update.date)}</span>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <img
+          src={athlete.photo_url || '/placeholder.svg'}
+          alt={athlete.name}
+          className="w-14 h-14 rounded-full object-cover border-2 border-border"
+        />
+        <div className="flex-1 min-w-0">
+          <h3 className="font-semibold text-foreground truncate">{athlete.name}</h3>
+          <p className="text-sm text-muted-foreground">
+            vs {update.opponent} • {update.match_result || ''}
+          </p>
+        </div>
+        {update.rating && (
+          <div className={`text-2xl font-bold ${getRatingColor(update.rating)}`}>
+            {update.rating.toFixed(1)}
+          </div>
+        )}
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-4 gap-2 mt-4 pt-3 border-t border-border">
+        {isBasketball ? (
+          <>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.points || 0}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">PTS</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.rebounds || 0}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">REB</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.assists || 0}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">AST</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.blocks || 0}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">BLK</div>
+            </div>
+          </>
+        ) : (
+          <>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.goals || 0}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Goals</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.assists || 0}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Assists</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{stats.shots || '—'}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">Shots</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-foreground">{update.minutes_played || '—'}</div>
+              <div className="text-[10px] text-muted-foreground uppercase">MIN</div>
+            </div>
+          </>
+        )}
+      </div>
+    </Link>
+  );
+};
+
+// News Card (for feed)
+const NewsCard = ({
+  news,
+  athlete
+}: {
+  news: AthleteNews;
+  athlete: AthleteProfile;
+}) => (
+  <a
+    href={news.source_url}
+    target="_blank"
+    rel="noopener noreferrer"
+    className="block bg-card border border-border rounded-xl overflow-hidden hover:border-accent/50 transition-all"
+  >
+    {news.image_url && (
+      <div className="relative h-40 bg-muted">
+        <img
+          src={news.image_url}
+          alt=""
+          className="w-full h-full object-cover"
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+        <div className="absolute bottom-2 left-2 bg-accent text-accent-foreground text-xs px-2 py-1 rounded font-medium flex items-center gap-1">
+          <Newspaper size={12} weight="fill" />
+          NEWS
+        </div>
+      </div>
+    )}
+    <div className="p-4">
+      {!news.image_url && (
+        <div className="flex items-center gap-2 mb-2">
+          <span className="bg-accent/10 text-accent text-xs px-2 py-0.5 rounded font-medium flex items-center gap-1">
+            <Newspaper size={12} weight="fill" />
+            NEWS
+          </span>
+          <span className="text-xs text-muted-foreground">{getTimeAgo(news.published_at)}</span>
+        </div>
+      )}
+      <h3 className="font-semibold text-foreground line-clamp-2 mb-2">{news.title}</h3>
+      <div className="flex items-center gap-2">
+        <img
+          src={athlete.photo_url || '/placeholder.svg'}
+          alt={athlete.name}
+          className="w-5 h-5 rounded-full object-cover"
+        />
+        <span className="text-sm text-muted-foreground">{athlete.name}</span>
+        {news.source_name && (
+          <>
+            <span className="text-muted-foreground">•</span>
+            <span className="text-xs text-muted-foreground">{news.source_name}</span>
+          </>
+        )}
+      </div>
+    </div>
+  </a>
+);
+
+// Transfer Rumor Card (for feed)
+const TransferCard = ({
+  rumor,
+  athlete
+}: {
+  rumor: TransferRumor;
+  athlete: AthleteProfile;
+}) => (
+  <Link
+    to={`/athlete/${athlete.slug}`}
+    className="flex items-center gap-4 p-4 bg-gradient-to-r from-blue-50 to-card dark:from-blue-950/20 dark:to-card border border-blue-200 dark:border-blue-800/50 rounded-xl hover:shadow-md transition-all"
+  >
+    <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/30 rounded-full flex items-center justify-center flex-shrink-0">
+      <TrendUp size={24} weight="duotone" className="text-blue-600 dark:text-blue-400" />
+    </div>
+    <div className="flex-1 min-w-0">
+      <div className="flex items-center gap-2 mb-1">
+        <span className={`text-xs px-2 py-0.5 rounded font-medium ${getReliabilityStyle(rumor.reliability)}`}>
+          {rumor.reliability.replace('_', ' ').toUpperCase()}
+        </span>
+        <span className="text-xs text-muted-foreground">{getTimeAgo(rumor.rumor_date)}</span>
+      </div>
+      <h3 className="font-semibold text-foreground line-clamp-2">{rumor.headline}</h3>
+      <p className="text-sm text-muted-foreground mt-1">{athlete.name}</p>
+    </div>
+    <CaretRight size={20} className="text-muted-foreground flex-shrink-0" />
+  </Link>
+);
+
+// Injury Alert Card (for feed)
+const InjuryCard = ({
+  update,
+  athlete
+}: {
+  update: DailyUpdate;
+  athlete: AthleteProfile;
+}) => {
+  const getInjuryStyle = (status: string) => {
+    switch (status) {
+      case 'out': return 'from-red-50 to-card dark:from-red-950/20 border-red-200 dark:border-red-800/50';
+      case 'doubtful': return 'from-orange-50 to-card dark:from-orange-950/20 border-orange-200 dark:border-orange-800/50';
+      case 'questionable': return 'from-yellow-50 to-card dark:from-yellow-950/20 border-yellow-200 dark:border-yellow-800/50';
+      default: return 'from-muted to-card border-border';
+    }
+  };
+
+  const getInjuryIconColor = (status: string) => {
+    switch (status) {
+      case 'out': return 'bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400';
+      case 'doubtful': return 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400';
+      case 'questionable': return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400';
+      default: return 'bg-muted text-muted-foreground';
+    }
+  };
+
+  return (
+    <Link
+      to={`/athlete/${athlete.slug}`}
+      className={`flex items-center gap-4 p-4 bg-gradient-to-r ${getInjuryStyle(update.injury_status)} border rounded-xl hover:shadow-md transition-all`}
+    >
+      <div className={`w-12 h-12 rounded-full flex items-center justify-center flex-shrink-0 ${getInjuryIconColor(update.injury_status)}`}>
+        <FirstAid size={24} weight="duotone" />
+      </div>
+      <div className="flex-1 min-w-0">
+        <div className="flex items-center gap-2 mb-1">
+          <span className="bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 text-xs px-2 py-0.5 rounded font-medium">
+            INJURY
+          </span>
+        </div>
+        <h3 className="font-semibold text-foreground">{athlete.name}</h3>
+        <p className="text-sm text-muted-foreground capitalize">
+          {update.injury_status} {update.injury_details && `— ${update.injury_details}`}
+        </p>
+      </div>
+      <CaretRight size={20} className="text-muted-foreground flex-shrink-0" />
+    </Link>
+  );
+};
+
+// Player Spotlight Card (Featured)
+const SpotlightCard = ({
+  athlete,
+  seasonStats,
+  recentMatches
+}: {
+  athlete: AthleteProfile;
+  seasonStats: SeasonStats | null;
+  recentMatches: DailyUpdate[];
+}) => {
+  const isBasketball = athlete.sport === 'basketball';
+  const stats = seasonStats?.stats || {};
+  
+  // Calculate form (last 5 matches)
+  const form = recentMatches.slice(0, 5).map(m => {
+    if (!m.played) return null;
+    const result = m.match_result?.charAt(0);
+    return result === 'W' ? 'win' : result === 'L' ? 'loss' : 'draw';
+  }).filter(Boolean);
+
+  return (
+    <Link 
+      to={`/athlete/${athlete.slug}`}
+      className="block relative rounded-2xl overflow-hidden group"
+    >
+      {/* Background Image */}
+      <div className="absolute inset-0 bg-gradient-to-br from-primary to-primary/80">
+        {athlete.photo_url && (
+          <img
+            src={athlete.photo_url}
+            alt=""
+            className="w-full h-full object-cover opacity-30 group-hover:scale-105 transition-transform duration-500"
+          />
+        )}
+      </div>
+      
+      {/* Gradient Overlay */}
+      <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-transparent" />
+      
+      {/* Content */}
+      <div className="relative p-5 min-h-[280px] flex flex-col justify-end text-white">
+        {/* Status Badge */}
+        <div className="absolute top-4 left-4 flex items-center gap-2">
+          <span className="bg-emerald-500 text-white text-xs px-2 py-0.5 rounded-full font-medium">
+            🟢 Fit
+          </span>
+          <span className="text-white/70 text-xs">#{athlete.jersey_number}</span>
+        </div>
+        
+        {/* Team Logo */}
+        {athlete.team_logo_url && (
+          <img
+            src={athlete.team_logo_url}
+            alt={athlete.team}
+            className="absolute top-4 right-4 w-12 h-12 object-contain opacity-80"
+          />
+        )}
+        
+        {/* Player Info */}
+        <h3 className="text-2xl font-bold mb-1">{athlete.name}</h3>
+        <p className="text-white/80 text-sm mb-4">{athlete.team} • {athlete.position}</p>
+        
+        {/* Stats Row */}
+        <div className="flex gap-4 mb-4">
+          {isBasketball ? (
+            <>
+              <div className="text-center">
+                <div className="text-xl font-bold">{stats.points_per_game?.toFixed(1) || '—'}</div>
+                <div className="text-xs text-white/60">PPG</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{stats.rebounds_per_game?.toFixed(1) || '—'}</div>
+                <div className="text-xs text-white/60">RPG</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{stats.assists_per_game?.toFixed(1) || '—'}</div>
+                <div className="text-xs text-white/60">APG</div>
+              </div>
+            </>
+          ) : (
+            <>
+              <div className="text-center">
+                <div className="text-xl font-bold">{stats.goals || 0}</div>
+                <div className="text-xs text-white/60">Goals</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{stats.assists || 0}</div>
+                <div className="text-xs text-white/60">Assists</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{stats.average_rating?.toFixed(1) || '—'}</div>
+                <div className="text-xs text-white/60">Rating</div>
+              </div>
+              <div className="text-center">
+                <div className="text-xl font-bold">{formatMarketValue(athlete.current_market_value)}</div>
+                <div className="text-xs text-white/60">Value</div>
+              </div>
+            </>
+          )}
+        </div>
+        
+        {/* Form (Football only) */}
+        {!isBasketball && form.length > 0 && (
+          <div>
+            <div className="text-xs text-white/60 mb-1">Last 5 matches</div>
+            <div className="flex gap-1">
+              {form.map((result, i) => (
+                <div
+                  key={i}
+                  className={`w-7 h-7 rounded flex items-center justify-center text-xs font-bold ${
+                    result === 'win' ? 'bg-emerald-500' :
+                    result === 'loss' ? 'bg-red-500' :
+                    'bg-gray-500'
+                  }`}
+                >
+                  {result === 'win' ? 'W' : result === 'loss' ? 'L' : 'D'}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    </Link>
+  );
+};
+
+// ============================================================================
+// MAIN COMPONENT
+// ============================================================================
 
 const LiveHub = () => {
-  // Keep live NBA games synced so the banner reflects the real score
+  // State
+  const [athletes, setAthletes] = useState<AthleteProfile[]>([]);
+  const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([]);
+  const [upcomingMatches, setUpcomingMatches] = useState<UpcomingMatch[]>([]);
+  const [dailyUpdates, setDailyUpdates] = useState<DailyUpdate[]>([]);
+  const [transferRumors, setTransferRumors] = useState<TransferRumor[]>([]);
+  const [news, setNews] = useState<AthleteNews[]>([]);
+  const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // Keep live NBA games synced
   useNbaLivePolling({ enabled: true, intervalMs: 30000 });
+
+  // Fetch all data
+  useEffect(() => {
+    const fetchData = async () => {
+      const now = new Date();
+      const twoDaysLater = new Date(now.getTime() + 48 * 60 * 60 * 1000);
+
+      const [
+        athletesRes,
+        liveRes,
+        upcomingRes,
+        updatesRes,
+        rumorsRes,
+        newsRes,
+        statsRes
+      ] = await Promise.all([
+        supabase.from('athlete_profiles').select('*').order('name'),
+        supabase.from('athlete_live_matches').select('*').in('match_status', ['live', 'halftime']),
+        supabase.from('athlete_upcoming_matches').select('*')
+          .gte('match_date', now.toISOString())
+          .lte('match_date', twoDaysLater.toISOString())
+          .order('match_date'),
+        supabase.from('athlete_daily_updates').select('*').order('date', { ascending: false }).limit(50),
+        supabase.from('athlete_transfer_rumors').select('*').eq('status', 'active').order('rumor_date', { ascending: false }).limit(10),
+        supabase.from('athlete_news').select('*').order('published_at', { ascending: false }).limit(10),
+        supabase.from('athlete_season_stats').select('*').eq('season', '2024-25')
+      ]);
+
+      if (athletesRes.data) setAthletes(athletesRes.data);
+      if (liveRes.data) setLiveMatches(liveRes.data);
+      if (upcomingRes.data) setUpcomingMatches(upcomingRes.data);
+      if (updatesRes.data) setDailyUpdates(updatesRes.data);
+      if (rumorsRes.data) setTransferRumors(rumorsRes.data);
+      if (newsRes.data) setNews(newsRes.data);
+      if (statsRes.data) setSeasonStats(statsRes.data);
+      
+      setLoading(false);
+    };
+
+    fetchData();
+
+    // Realtime subscription for live matches
+    const channel = supabase
+      .channel('live-hub-realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'athlete_live_matches' }, () => {
+        fetchData();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  // Helper to get athlete by ID
+  const getAthlete = (id: string) => athletes.find(a => a.id === id);
+
+  // Derived data
+  const activeLiveMatch = liveMatches[0];
+  const activeLiveAthlete = activeLiveMatch ? getAthlete(activeLiveMatch.athlete_id) : null;
+  
+  const todaysMatches = upcomingMatches.filter(m => {
+    const matchDate = parseISO(m.match_date);
+    return isToday(matchDate) || isTomorrow(matchDate);
+  });
+
+  const recentPerformances = dailyUpdates
+    .filter(u => u.played && u.stats)
+    .slice(0, 5);
+
+  const injuryAlerts = dailyUpdates
+    .filter(u => u.injury_status !== 'healthy')
+    .filter((u, i, arr) => arr.findIndex(x => x.athlete_id === u.athlete_id) === i)
+    .slice(0, 3);
+
+  const topRumors = transferRumors
+    .filter(r => r.reliability === 'tier_1' || r.reliability === 'tier_2')
+    .slice(0, 3);
+
+  // Featured athlete (rotate or pick top performer)
+  const featuredAthlete = athletes.find(a => a.slug === 'arda-guler') || athletes[0];
+  const featuredStats = featuredAthlete 
+    ? seasonStats.find(s => s.athlete_id === featuredAthlete.id)
+    : null;
+  const featuredMatches = featuredAthlete
+    ? dailyUpdates.filter(u => u.athlete_id === featuredAthlete.id)
+    : [];
+
+  // Build mixed feed
+  const buildFeed = () => {
+    const feed: Array<{ type: string; data: any; date: string }> = [];
+
+    // Add performances
+    recentPerformances.forEach(p => {
+      const athlete = getAthlete(p.athlete_id);
+      if (athlete) {
+        feed.push({ type: 'performance', data: { update: p, athlete }, date: p.date });
+      }
+    });
+
+    // Add news
+    news.slice(0, 5).forEach(n => {
+      const athlete = getAthlete(n.athlete_id);
+      if (athlete) {
+        feed.push({ type: 'news', data: { news: n, athlete }, date: n.published_at || n.created_at });
+      }
+    });
+
+    // Add transfer rumors
+    topRumors.forEach(r => {
+      const athlete = getAthlete(r.athlete_id);
+      if (athlete) {
+        feed.push({ type: 'transfer', data: { rumor: r, athlete }, date: r.rumor_date });
+      }
+    });
+
+    // Add injury alerts
+    injuryAlerts.forEach(i => {
+      const athlete = getAthlete(i.athlete_id);
+      if (athlete) {
+        feed.push({ type: 'injury', data: { update: i, athlete }, date: i.date });
+      }
+    });
+
+    // Sort by date descending
+    return feed.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+  };
+
+  const feedItems = buildFeed();
+
+  // Loading state
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <MiniHeader />
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-pulse flex flex-col items-center gap-2">
+            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin" />
+            <span className="text-sm text-muted-foreground">Loading...</span>
+          </div>
+        </div>
+        <BottomNav />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20 md:pb-0">
       <MiniHeader />
       
-      {/* Live Match Banner - Shows when matches are live */}
-      <LiveMatchBanner />
-      
-      {/* Main Content */}
-      <main className="max-w-3xl mx-auto">
-        {/* Today's Matches Carousel */}
-        <TodaysMatchesCarousel />
-        
-        {/* Divider */}
-        <div className="h-px bg-border mx-4" />
-        
-        {/* Trending / Recent Performances */}
-        <TrendingSection />
-        
-        {/* Quick Actions Grid */}
-        <div className="px-4 py-6">
-          <div className="grid grid-cols-3 gap-3">
-            <Link 
-              to="/v1" 
-              className="flex flex-col items-center gap-2 p-4 bg-card border border-border rounded-xl hover:border-accent/40 transition-all"
+      <main className="max-w-xl mx-auto">
+        {/* LIVE MATCH HERO */}
+        {activeLiveMatch && activeLiveAthlete && (
+          <LiveMatchHero match={activeLiveMatch} athlete={activeLiveAthlete} />
+        )}
+
+        {/* TODAY'S MATCHES CAROUSEL */}
+        {todaysMatches.length > 0 && (
+          <section className="py-5">
+            <div className="flex items-center justify-between px-4 mb-3">
+              <h2 className="font-bold text-foreground flex items-center gap-2">
+                <Clock size={18} weight="bold" className="text-accent" />
+                Today's Matches
+              </h2>
+              <Link to="/live" className="text-accent text-sm font-medium flex items-center gap-1">
+                See all <CaretRight size={14} weight="bold" />
+              </Link>
+            </div>
+            <div className="flex gap-3 overflow-x-auto px-4 pb-2 scrollbar-hide">
+              {todaysMatches.map(match => {
+                const athlete = getAthlete(match.athlete_id);
+                if (!athlete) return null;
+                return <MatchCard key={match.id} match={match} athlete={athlete} />;
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* DIVIDER */}
+        <div className="h-2 bg-muted/50" />
+
+        {/* TRENDING / HOT RIGHT NOW */}
+        {recentPerformances.length > 0 && (
+          <section className="py-5 px-4">
+            <h2 className="font-bold text-foreground flex items-center gap-2 mb-4">
+              <Fire size={18} weight="fill" className="text-orange-500" />
+              Hot Right Now
+            </h2>
+            <div className="space-y-3">
+              {recentPerformances.slice(0, 3).map(perf => {
+                const athlete = getAthlete(perf.athlete_id);
+                if (!athlete) return null;
+                const stats = perf.stats || {};
+                const isBasketball = athlete.sport === 'basketball';
+                
+                return (
+                  <Link
+                    key={perf.id}
+                    to={`/athlete/${athlete.slug}`}
+                    className="flex items-center gap-3 p-3 bg-gradient-to-r from-orange-50 to-card dark:from-orange-950/10 dark:to-card border border-orange-200/50 dark:border-orange-800/30 rounded-xl hover:shadow-md transition-all"
+                  >
+                    <img
+                      src={athlete.photo_url || '/placeholder.svg'}
+                      alt={athlete.name}
+                      className="w-12 h-12 rounded-full object-cover border-2 border-orange-300 dark:border-orange-700"
+                    />
+                    <div className="flex-1 min-w-0">
+                      <div className="font-semibold text-foreground truncate">{athlete.name}</div>
+                      <div className="text-sm text-muted-foreground">
+                        vs {perf.opponent} • {perf.match_result}
+                      </div>
+                    </div>
+                    <div className="text-right flex-shrink-0">
+                      {isBasketball ? (
+                        <div className="font-bold text-foreground">
+                          {stats.points || 0}/{stats.rebounds || 0}/{stats.assists || 0}
+                        </div>
+                      ) : (
+                        <div className="font-bold text-foreground">
+                          {stats.goals || 0}G {stats.assists || 0}A
+                        </div>
+                      )}
+                      {perf.rating && (
+                        <div className={`text-sm font-semibold ${getRatingColor(perf.rating)}`}>
+                          ★ {perf.rating.toFixed(1)}
+                        </div>
+                      )}
+                    </div>
+                  </Link>
+                );
+              })}
+            </div>
+          </section>
+        )}
+
+        {/* DIVIDER */}
+        <div className="h-2 bg-muted/50" />
+
+        {/* PLAYER SPOTLIGHT */}
+        {featuredAthlete && (
+          <section className="py-5 px-4">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="font-bold text-foreground flex items-center gap-2">
+                <Star size={18} weight="fill" className="text-yellow-500" />
+                Player Spotlight
+              </h2>
+              <Link to="/athletes" className="text-accent text-sm font-medium flex items-center gap-1">
+                All {athletes.length} <CaretRight size={14} weight="bold" />
+              </Link>
+            </div>
+            <SpotlightCard 
+              athlete={featuredAthlete} 
+              seasonStats={featuredStats || null}
+              recentMatches={featuredMatches}
+            />
+          </section>
+        )}
+
+        {/* DIVIDER */}
+        <div className="h-2 bg-muted/50" />
+
+        {/* MIXED FEED */}
+        <section className="py-5 px-4">
+          <h2 className="font-bold text-foreground flex items-center gap-2 mb-4">
+            <Broadcast size={18} weight="duotone" className="text-accent" />
+            Latest Updates
+          </h2>
+          
+          <div className="space-y-4">
+            {feedItems.map((item, index) => {
+              switch (item.type) {
+                case 'performance':
+                  return (
+                    <PerformanceCard 
+                      key={`perf-${index}`} 
+                      update={item.data.update} 
+                      athlete={item.data.athlete} 
+                    />
+                  );
+                case 'news':
+                  return (
+                    <NewsCard 
+                      key={`news-${index}`} 
+                      news={item.data.news} 
+                      athlete={item.data.athlete} 
+                    />
+                  );
+                case 'transfer':
+                  return (
+                    <TransferCard 
+                      key={`transfer-${index}`} 
+                      rumor={item.data.rumor} 
+                      athlete={item.data.athlete} 
+                    />
+                  );
+                case 'injury':
+                  return (
+                    <InjuryCard 
+                      key={`injury-${index}`} 
+                      update={item.data.update} 
+                      athlete={item.data.athlete} 
+                    />
+                  );
+                default:
+                  return null;
+              }
+            })}
+          </div>
+
+          {feedItems.length === 0 && (
+            <div className="text-center py-12">
+              <Broadcast size={48} className="mx-auto text-muted-foreground mb-4" />
+              <p className="text-muted-foreground">No updates yet. Check back soon!</p>
+            </div>
+          )}
+        </section>
+
+        {/* QUICK LINKS */}
+        <section className="py-5 px-4">
+          <div className="grid grid-cols-2 gap-3">
+            <Link
+              to="/athletes"
+              className="flex items-center justify-between p-4 bg-card border border-border rounded-xl hover:border-accent/50 transition-all group"
             >
-              <div className="w-10 h-10 rounded-full bg-accent/10 flex items-center justify-center">
-                <Newspaper size={20} weight="duotone" className="text-accent" />
+              <div>
+                <div className="font-semibold text-foreground">All Athletes</div>
+                <div className="text-sm text-muted-foreground">{athletes.length} tracked</div>
               </div>
-              <span className="text-xs font-medium text-foreground">News</span>
+              <ArrowRight size={20} className="text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
             </Link>
-            
-            <Link 
-              to="/v1" 
-              className="flex flex-col items-center gap-2 p-4 bg-card border border-border rounded-xl hover:border-accent/40 transition-all"
+            <Link
+              to="/stats"
+              className="flex items-center justify-between p-4 bg-card border border-border rounded-xl hover:border-accent/50 transition-all group"
             >
-              <div className="w-10 h-10 rounded-full bg-emerald-500/10 flex items-center justify-center">
-                <ChartLineUp size={20} weight="duotone" className="text-emerald-500" />
+              <div>
+                <div className="font-semibold text-foreground">Statistics</div>
+                <div className="text-sm text-muted-foreground">Rankings & stats</div>
               </div>
-              <span className="text-xs font-medium text-foreground">Stats</span>
-            </Link>
-            
-            <Link 
-              to="/v1" 
-              className="flex flex-col items-center gap-2 p-4 bg-card border border-border rounded-xl hover:border-accent/40 transition-all"
-            >
-              <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center">
-                <UserCircle size={20} weight="duotone" className="text-orange-500" />
-              </div>
-              <span className="text-xs font-medium text-foreground">Athletes</span>
+              <ArrowRight size={20} className="text-muted-foreground group-hover:text-accent group-hover:translate-x-1 transition-all" />
             </Link>
           </div>
           
-          {/* View Classic Site Link */}
-          <Link 
-            to="/v1" 
-            className="flex items-center justify-between mt-4 p-4 bg-gradient-to-r from-primary/5 to-accent/5 border border-border rounded-xl hover:border-accent/40 transition-all group"
+          {/* View Classic Link */}
+          <Link
+            to="/v1"
+            className="flex items-center justify-between mt-3 p-4 bg-gradient-to-r from-primary/5 to-accent/5 border border-border rounded-xl hover:border-accent/40 transition-all group"
           >
             <div>
-              <p className="text-sm font-medium text-foreground">Explore Full Experience</p>
-              <p className="text-xs text-muted-foreground">News, detailed stats & more</p>
+              <div className="font-semibold text-foreground">Classic View</div>
+              <div className="text-sm text-muted-foreground">Original detailed layout</div>
             </div>
-            <ArrowRight size={20} weight="bold" className="text-accent group-hover:translate-x-1 transition-transform" />
+            <ArrowRight size={20} className="text-accent group-hover:translate-x-1 transition-transform" />
           </Link>
-        </div>
+        </section>
       </main>
       
       {/* Mobile Bottom Navigation */}
