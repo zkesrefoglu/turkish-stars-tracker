@@ -338,7 +338,7 @@ const StatsPage = () => {
                       {/* Average Rating */}
                       <div className={`text-right ${getRatingBg(item.avgRating)} px-3 py-1 rounded-lg`}>
                         <div className={`text-lg font-bold ${getRatingColor(item.avgRating)}`}>
-                          {item.avgRating.toFixed(2)}
+                          {item.avgRating.toFixed(1)}
                         </div>
                         <div className="text-[10px] text-muted-foreground">avg rating</div>
                       </div>
