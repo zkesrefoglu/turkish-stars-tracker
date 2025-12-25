@@ -2,28 +2,24 @@ import { Link } from 'react-router-dom';
 import { Trophy, Star, ArrowSquareOut, TrendUp } from '@phosphor-icons/react';
 import { formatMarketValueMillions } from '@/lib/formatMarketValue';
 
-// Full leaderboard data from GlobalStatsX (December 2025)
+// Full leaderboard data - values in millions EUR (synced with database)
 const MARKET_VALUE_LEADERBOARD = [
-  { rank: 1, name: "Arda Güler", team: "Real Madrid", value: 90, slug: "arda-guler", tracked: true },
-  { rank: 2, name: "Kenan Yıldız", team: "Juventus", value: 75, slug: "kenan-yildiz", tracked: true },
-  { rank: 3, name: "Can Uzun", team: "Eintracht Frankfurt", value: 45, slug: "can-uzun", tracked: true },
-  { rank: 4, name: "Ferdi Kadıoğlu", team: "Brighton", value: 28, slug: "ferdi-kadioglu", tracked: true },
-  { rank: 5, name: "Hakan Çalhanoğlu", team: "Inter", value: 25, slug: null, tracked: false },
-  { rank: 6, name: "Orkun Kökçü", team: "Benfica", value: 25, slug: null, tracked: false },
-  { rank: 7, name: "Barış Alper Yılmaz", team: "Galatasaray", value: 24, slug: null, tracked: false },
-  { rank: 8, name: "Kerem Aktürkoğlu", team: "Benfica", value: 22, slug: null, tracked: false },
-  { rank: 9, name: "Yunus Akgün", team: "Galatasaray", value: 17, slug: null, tracked: false },
-  { rank: 10, name: "Yusuf Akçiçek", team: "Al-Hilal", value: 16, slug: "yusuf-akcicek", tracked: true },
-  { rank: 11, name: "Uğurcan Çakır", team: "Galatasaray", value: 15, slug: null, tracked: false },
-  { rank: 12, name: "Merih Demiral", team: "Al-Ahli", value: 14, slug: "merih-demiral", tracked: true },
-  { rank: 13, name: "İsmail Yüksek", team: "Fenerbahçe", value: 13, slug: null, tracked: false },
-  { rank: 14, name: "Semih Kılıçsoy", team: "Cagliari", value: 12, slug: "semih-kilicsoy", tracked: true },
-  { rank: 15, name: "Oğuz Aydın", team: "Fenerbahçe", value: 10, slug: null, tracked: false },
-  { rank: 16, name: "Berke Özer", team: "Lille", value: 10, slug: "berke-ozer", tracked: true },
-  { rank: 17, name: "Atakan Karazor", team: "Stuttgart", value: 9, slug: "atakan-karazor", tracked: true },
-  { rank: 18, name: "Enes Ünal", team: "Bournemouth", value: 8, slug: "enes-unal", tracked: true },
-  { rank: 19, name: "Altay Bayındır", team: "Manchester United", value: 7, slug: "altay-bayindir", tracked: true },
-  { rank: 20, name: "Cengiz Ünder", team: "Fenerbahçe", value: 7, slug: null, tracked: false },
+  { rank: 1, name: "Arda Güler", team: "Real Madrid", value: 55, slug: "arda-guler", tracked: true },
+  { rank: 2, name: "Kenan Yıldız", team: "Juventus", value: 45, slug: "kenan-yildiz", tracked: true },
+  { rank: 3, name: "Hakan Çalhanoğlu", team: "Inter", value: 42, slug: "hakan-calhanoglu", tracked: true },
+  { rank: 4, name: "Ferdi Kadıoğlu", team: "Brighton", value: 35, slug: "ferdi-kadioglu", tracked: true },
+  { rank: 5, name: "Semih Kılıçsoy", team: "Beşiktaş", value: 20, slug: "semih-kilicsoy", tracked: true },
+  { rank: 6, name: "Deniz Gül", team: "Galatasaray", value: 15, slug: "deniz-gul", tracked: true },
+  { rank: 7, name: "Can Uzun", team: "Eintracht Frankfurt", value: 12, slug: "can-uzun", tracked: true },
+  { rank: 8, name: "Merih Demiral", team: "Al-Ahli", value: 12, slug: "merih-demiral", tracked: true },
+  { rank: 9, name: "Altay Bayındır", team: "Manchester United", value: 9, slug: "altay-bayindir", tracked: true },
+  { rank: 10, name: "Atakan Karazor", team: "Stuttgart", value: 8, slug: "atakan-karazor", tracked: true },
+  { rank: 11, name: "Salih Özcan", team: "Borussia Dortmund", value: 7, slug: "salih-ozcan", tracked: true },
+  { rank: 12, name: "Enes Ünal", team: "Bournemouth", value: 5, slug: "enes-unal", tracked: true },
+  { rank: 13, name: "Zeki Çelik", team: "Roma", value: 4, slug: "zeki-celik", tracked: true },
+  { rank: 14, name: "Yusuf Akçiçek", team: "Al-Hilal", value: 3, slug: "yusuf-akcicek", tracked: true },
+  { rank: 15, name: "İsak Vural", team: "Galatasaray", value: 3, slug: "isak-vural", tracked: true },
+  { rank: 16, name: "Berke Özer", team: "Lille", value: 1.5, slug: "berke-ozer", tracked: true },
 ];
 
 interface MarketValueLeaderboardProps {
