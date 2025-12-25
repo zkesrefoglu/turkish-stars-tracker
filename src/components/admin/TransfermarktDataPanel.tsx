@@ -236,6 +236,7 @@ export default function TransfermarktDataPanel() {
         market_value: parseFloat(marketValueForm.market_value),
       });
 
+      // Insert into athlete_market_values history table
       const { error } = await supabase.from('athlete_market_values').insert({
         athlete_id: validated.athlete_id,
         market_value: validated.market_value,
@@ -246,7 +247,22 @@ export default function TransfermarktDataPanel() {
 
       if (error) throw error;
 
-      toast({ title: 'Success', description: 'Market value record added' });
+      // Also update the current_market_value in athlete_profiles so /athletes page shows correct value
+      const { error: updateError } = await supabase
+        .from('athlete_profiles')
+        .update({ 
+          current_market_value: validated.market_value,
+          market_value_currency: validated.currency 
+        })
+        .eq('id', validated.athlete_id);
+
+      if (updateError) {
+        console.error('Failed to update athlete profile market value:', updateError);
+        toast({ title: 'Warning', description: 'Value saved to history but failed to update profile', variant: 'destructive' });
+      } else {
+        toast({ title: 'Success', description: 'Market value updated' });
+      }
+
       setMarketValueForm({
         athlete_id: '',
         market_value: '',
