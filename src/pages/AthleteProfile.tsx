@@ -735,6 +735,45 @@ const AthleteProfilePage = () => {
           </Card>
         </div>
 
+        {/* BIO SECTION - Right under the banner */}
+        {athlete.bio && (
+          <Card className="mb-6 p-4 bg-card border-border">
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              {athlete.bio}
+            </p>
+            {(athlete.instagram || athlete.official_link) && (
+              <div className="flex items-center gap-4 mt-3 pt-3 border-t border-border">
+                {athlete.instagram && (
+                  <a 
+                    href={athlete.instagram.startsWith('http') ? athlete.instagram : `https://instagram.com/${athlete.instagram.replace('@', '')}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
+                  >
+                    <Instagram className="w-4 h-4" />
+                    <span className="text-xs">
+                      {athlete.instagram.includes('instagram.com/') 
+                        ? '@' + athlete.instagram.split('instagram.com/')[1].replace(/\/$/, '')
+                        : athlete.instagram.startsWith('@') ? athlete.instagram : `@${athlete.instagram}`}
+                    </span>
+                  </a>
+                )}
+                {athlete.official_link && (
+                  <a 
+                    href={athlete.official_link.startsWith('http') ? athlete.official_link : `https://${athlete.official_link}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
+                  >
+                    <ExternalLink className="w-4 h-4" />
+                    <span className="text-xs">Official Page</span>
+                  </a>
+                )}
+              </div>
+            )}
+          </Card>
+        )}
+
         {/* NBA Game Stats Chart (Basketball only) */}
         {athlete.sport === "basketball" && matchHistory.length >= 2 && (
           <div className="mb-8">
@@ -760,47 +799,6 @@ const AthleteProfilePage = () => {
             highlightTeam={athlete.team.split(' ').pop()}
           />
         </div>
-
-        {/* BIO SECTION */}
-        {(athlete.bio || athlete.instagram || athlete.official_link) && (
-          <Card className="mb-8 p-6 bg-card border-border">
-            {athlete.bio && (
-              <p className="text-muted-foreground text-justify leading-relaxed">
-                {athlete.bio}
-              </p>
-            )}
-            {(athlete.instagram || athlete.official_link) && (
-              <div className={`flex items-center gap-4 ${athlete.bio ? 'mt-4 pt-4 border-t border-border' : ''}`}>
-                {athlete.instagram && (
-                  <a 
-                    href={athlete.instagram.startsWith('http') ? athlete.instagram : `https://instagram.com/${athlete.instagram.replace('@', '')}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
-                  >
-                    <Instagram className="w-5 h-5" />
-                    <span className="text-sm">
-                      {athlete.instagram.includes('instagram.com/') 
-                        ? '@' + athlete.instagram.split('instagram.com/')[1].replace(/\/$/, '')
-                        : athlete.instagram.startsWith('@') ? athlete.instagram : `@${athlete.instagram}`}
-                    </span>
-                  </a>
-                )}
-                {athlete.official_link && (
-                  <a 
-                    href={athlete.official_link.startsWith('http') ? athlete.official_link : `https://${athlete.official_link}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="flex items-center gap-2 text-muted-foreground hover:text-accent transition-colors"
-                  >
-                    <ExternalLink className="w-5 h-5" />
-                    <span className="text-sm">Official Page</span>
-                  </a>
-                )}
-              </div>
-            )}
-          </Card>
-        )}
 
         {/* LATEST NEWS CAROUSEL */}
         <AthleteNewsCarousel news={athleteNews} />
