@@ -14,7 +14,10 @@ import {
   CaretRight,
   Funnel,
   SortAscending,
-  SortDescending
+  SortDescending,
+  TrendUp,
+  TrendDown,
+  Minus
 } from "@phosphor-icons/react";
 
 // ============================================================================
@@ -72,6 +75,92 @@ const getRatingBg = (rating: number | null): string => {
   if (rating >= 7) return "bg-blue-100 dark:bg-blue-900/30";
   if (rating >= 6) return "bg-yellow-100 dark:bg-yellow-900/30";
   return "bg-red-100 dark:bg-red-900/30";
+};
+
+// Calculate trend from recent games using linear regression
+const calculateTrend = (games: { rating: number | null; date: string }[], minGames: number = 3): "up" | "down" | "stable" | null => {
+  // Filter games with valid ratings and sort by date ascending
+  const validGames = games
+    .filter(g => g.rating && g.rating > 0)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  if (validGames.length < minGames) return null;
+  
+  // Take last N games for trend calculation
+  const recentGames = validGames.slice(-8);
+  if (recentGames.length < minGames) return null;
+  
+  // Linear regression to find slope
+  const n = recentGames.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  
+  recentGames.forEach((game, i) => {
+    const x = i;
+    const y = game.rating!;
+    sumX += x;
+    sumY += y;
+    sumXY += x * y;
+    sumX2 += x * x;
+  });
+  
+  const denominator = (n * sumX2 - sumX * sumX);
+  if (denominator === 0) return "stable";
+  
+  const slope = (n * sumXY - sumX * sumY) / denominator;
+  
+  // Threshold for determining trend direction
+  const threshold = 0.05;
+  if (slope > threshold) return "up";
+  if (slope < -threshold) return "down";
+  return "stable";
+};
+
+// Calculate NBA trend based on recent PPG
+const calculateNBATrend = (games: DailyUpdate[], minGames: number = 3): "up" | "down" | "stable" | null => {
+  const validGames = games
+    .filter(g => g.played && g.stats?.pts !== undefined)
+    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+  
+  if (validGames.length < minGames) return null;
+  
+  const recentGames = validGames.slice(-10);
+  if (recentGames.length < minGames) return null;
+  
+  const n = recentGames.length;
+  let sumX = 0, sumY = 0, sumXY = 0, sumX2 = 0;
+  
+  recentGames.forEach((game, i) => {
+    const x = i;
+    const y = game.stats?.pts || 0;
+    sumX += x;
+    sumY += y;
+    sumXY += x * y;
+    sumX2 += x * x;
+  });
+  
+  const denominator = (n * sumX2 - sumX * sumX);
+  if (denominator === 0) return "stable";
+  
+  const slope = (n * sumXY - sumX * sumY) / denominator;
+  
+  // Higher threshold for NBA points (larger numbers)
+  const threshold = 0.3;
+  if (slope > threshold) return "up";
+  if (slope < -threshold) return "down";
+  return "stable";
+};
+
+// Trend indicator component
+const TrendIndicator = ({ trend }: { trend: "up" | "down" | "stable" | null }) => {
+  if (!trend) return null;
+  
+  if (trend === "up") {
+    return <TrendUp size={14} weight="bold" className="text-emerald-500" />;
+  }
+  if (trend === "down") {
+    return <TrendDown size={14} weight="bold" className="text-red-500" />;
+  }
+  return <Minus size={12} weight="bold" className="text-muted-foreground" />;
 };
 
 // Aggregate season stats for an athlete
@@ -173,14 +262,18 @@ const StatsPage = () => {
       athleteRatings[u.athlete_id].games.push(u);
     });
     
-    // Calculate averages and sort
+    // Calculate averages, trends, and sort
     return Object.entries(athleteRatings)
-      .map(([athleteId, data]) => ({
-        athleteId,
-        avgRating: data.total / data.count,
-        gamesPlayed: data.count,
-        lastGame: data.games[0] // Most recent game for context
-      }))
+      .map(([athleteId, data]) => {
+        const trend = calculateTrend(data.games.map(g => ({ rating: g.rating, date: g.date })));
+        return {
+          athleteId,
+          avgRating: data.total / data.count,
+          gamesPlayed: data.count,
+          lastGame: data.games[0], // Most recent game for context
+          trend
+        };
+      })
       .filter(item => item.gamesPlayed >= 1) // At least 1 rated game
       .sort((a, b) => b.avgRating - a.avgRating)
       .slice(0, 10);
@@ -207,13 +300,18 @@ const StatsPage = () => {
     .sort((a, b) => b.stats.assists - a.stats.assists)
     .slice(0, 10);
 
-  // Get NBA stats
+  // Get NBA stats with trends
   const basketballAthletes = athletes.filter(a => a.sport === "basketball");
   const nbaLeaders = basketballAthletes
-    .map(athlete => ({
-      athlete,
-      stats: aggregateSeasonStats(seasonStats, athlete.id, "basketball")
-    }))
+    .map(athlete => {
+      const athleteGames = dailyUpdates.filter(u => u.athlete_id === athlete.id);
+      const trend = calculateNBATrend(athleteGames);
+      return {
+        athlete,
+        stats: aggregateSeasonStats(seasonStats, athlete.id, "basketball"),
+        trend
+      };
+    })
     .filter(item => item.stats.gamesPlayed > 0)
     .sort((a, b) => b.stats.ppg - a.stats.ppg);
 
@@ -335,12 +433,15 @@ const StatsPage = () => {
                         </div>
                       </div>
 
-                      {/* Average Rating */}
-                      <div className={`text-right ${getRatingBg(item.avgRating)} px-3 py-1 rounded-lg`}>
-                        <div className={`text-lg font-bold ${getRatingColor(item.avgRating)}`}>
-                          {item.avgRating.toFixed(1)}
+                      {/* Average Rating with Trend */}
+                      <div className="flex items-center gap-2">
+                        <TrendIndicator trend={item.trend} />
+                        <div className={`text-right ${getRatingBg(item.avgRating)} px-3 py-1 rounded-lg`}>
+                          <div className={`text-lg font-bold ${getRatingColor(item.avgRating)}`}>
+                            {item.avgRating.toFixed(1)}
+                          </div>
+                          <div className="text-[10px] text-muted-foreground">avg rating</div>
                         </div>
-                        <div className="text-[10px] text-muted-foreground">avg rating</div>
                       </div>
                     </Link>
                   );
@@ -501,22 +602,25 @@ const StatsPage = () => {
                       <div className="text-xs text-muted-foreground">{item.athlete.team}</div>
                     </div>
 
-                    <div className="grid grid-cols-4 gap-3 text-center">
-                      <div>
-                        <div className="text-sm font-bold text-foreground">{item.stats.ppg.toFixed(1)}</div>
-                        <div className="text-[10px] text-muted-foreground">PPG</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-foreground">{item.stats.rpg.toFixed(1)}</div>
-                        <div className="text-[10px] text-muted-foreground">RPG</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-foreground">{item.stats.apg.toFixed(1)}</div>
-                        <div className="text-[10px] text-muted-foreground">APG</div>
-                      </div>
-                      <div>
-                        <div className="text-sm font-bold text-foreground">{item.stats.gamesPlayed}</div>
-                        <div className="text-[10px] text-muted-foreground">GP</div>
+                    <div className="flex items-center gap-2">
+                      <TrendIndicator trend={item.trend} />
+                      <div className="grid grid-cols-4 gap-3 text-center">
+                        <div>
+                          <div className="text-sm font-bold text-foreground">{item.stats.ppg.toFixed(1)}</div>
+                          <div className="text-[10px] text-muted-foreground">PPG</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-foreground">{item.stats.rpg.toFixed(1)}</div>
+                          <div className="text-[10px] text-muted-foreground">RPG</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-foreground">{item.stats.apg.toFixed(1)}</div>
+                          <div className="text-[10px] text-muted-foreground">APG</div>
+                        </div>
+                        <div>
+                          <div className="text-sm font-bold text-foreground">{item.stats.gamesPlayed}</div>
+                          <div className="text-[10px] text-muted-foreground">GP</div>
+                        </div>
                       </div>
                     </div>
                   </Link>
