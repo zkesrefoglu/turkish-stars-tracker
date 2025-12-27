@@ -36,6 +36,8 @@ const TEAM_IDS: Record<string, number> = {
   'Torino FC': 503,
 };
 
+const COOLDOWN_SECONDS = 120; // Minimum 2 minutes between API calls
+
 interface AthleteProfile {
   id: string;
   name: string;
@@ -46,7 +48,7 @@ interface AthleteProfile {
 
 async function fetchApiFootball(endpoint: string, apiKey: string): Promise<any> {
   const url = `https://v3.football.api-sports.io${endpoint}`;
-  console.log(`Fetching: ${url}`);
+  console.log(`[API CALL] Fetching: ${url}`);
   
   const response = await fetch(url, {
     headers: {
@@ -103,7 +105,7 @@ Deno.serve(async (req) => {
     const hasAuthHeader = authHeader && authHeader.startsWith('Bearer ');
     
     if (!hasValidWebhookSecret && !hasAuthHeader) {
-      console.error('Unauthorized: Invalid or missing webhook secret and no auth header');
+      console.error('[SKIP] Unauthorized: Invalid or missing webhook secret and no auth header');
       return new Response(JSON.stringify({ error: 'Unauthorized' }), {
         status: 401,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -114,40 +116,81 @@ Deno.serve(async (req) => {
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+    // ========== COOLDOWN CHECK ==========
+    const { data: lastSync } = await supabase
+      .from('sync_logs')
+      .select('synced_at')
+      .eq('sync_type', 'football-live')
+      .eq('status', 'success')
+      .order('synced_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (lastSync) {
+      const lastSyncTime = new Date(lastSync.synced_at).getTime();
+      const now = Date.now();
+      const secondsSinceLast = (now - lastSyncTime) / 1000;
+      
+      if (secondsSinceLast < COOLDOWN_SECONDS) {
+        console.log(`[SKIP] Cooldown active: ${Math.round(COOLDOWN_SECONDS - secondsSinceLast)}s remaining`);
+        return new Response(JSON.stringify({
+          success: true,
+          skipped: true,
+          reason: 'Cooldown active',
+          waitSeconds: Math.round(COOLDOWN_SECONDS - secondsSinceLast),
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    // ========== END COOLDOWN CHECK ==========
+
     // ========== SMART SCHEDULING CHECK ==========
-    // Check if any matches are happening within a 3-hour window before making API calls
+    // STRICT 3-hour window: match must be within 3 hours before AND 3 hours after
     const now = new Date();
-    const twoHoursAgo = new Date(now.getTime() - 2 * 60 * 60 * 1000);
-    const oneHourAhead = new Date(now.getTime() + 1 * 60 * 60 * 1000);
+    const threeHoursAgo = new Date(now.getTime() - 3 * 60 * 60 * 1000);
+    const threeHoursAhead = new Date(now.getTime() + 3 * 60 * 60 * 1000);
     
+    // Only fetch football matches (not NBA)
     const { data: upcomingMatches, error: scheduleError } = await supabase
       .from('athlete_upcoming_matches')
       .select('id, match_date, athlete_id, opponent, competition')
-      .gte('match_date', twoHoursAgo.toISOString())
-      .lte('match_date', oneHourAhead.toISOString());
+      .neq('competition', 'NBA') // Exclude NBA
+      .gte('match_date', threeHoursAgo.toISOString())
+      .lte('match_date', threeHoursAhead.toISOString());
 
     if (scheduleError) {
-      console.error('Error checking schedule:', scheduleError);
+      console.error('[SKIP] Error checking schedule:', scheduleError);
       // Continue anyway in case of schedule error
     }
 
-    if (!upcomingMatches || upcomingMatches.length === 0) {
-      console.log('No matches scheduled in current time window - skipping API calls');
-      console.log(`Checked window: ${twoHoursAgo.toISOString()} to ${oneHourAhead.toISOString()}`);
+    // Also check for existing live matches
+    const { data: existingLive } = await supabase
+      .from('athlete_live_matches')
+      .select('id')
+      .neq('competition', 'NBA')
+      .in('match_status', ['live', 'halftime'])
+      .limit(1);
+
+    const hasUpcoming = (upcomingMatches?.length || 0) > 0;
+    const hasLive = (existingLive?.length || 0) > 0;
+
+    if (!hasUpcoming && !hasLive) {
+      console.log(`[SKIP] No football matches in window: ${threeHoursAgo.toISOString()} to ${threeHoursAhead.toISOString()}`);
       return new Response(JSON.stringify({ 
         success: true, 
         skipped: true,
-        reason: 'No matches scheduled in current time window',
+        reason: 'No football matches scheduled in current time window',
         checkedWindow: {
-          from: twoHoursAgo.toISOString(),
-          to: oneHourAhead.toISOString()
+          from: threeHoursAgo.toISOString(),
+          to: threeHoursAhead.toISOString()
         }
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     }
 
-    console.log(`Found ${upcomingMatches.length} matches in current window - proceeding with API calls`);
+    console.log(`[PROCEED] Found ${upcomingMatches?.length || 0} football matches in window, ${hasLive ? 'has' : 'no'} live matches`);
     // ========== END SMART SCHEDULING CHECK ==========
 
     const apiKey = Deno.env.get('API_FOOTBALL_KEY');
@@ -165,17 +208,25 @@ Deno.serve(async (req) => {
       throw new Error(`Failed to fetch athletes: ${athletesError.message}`);
     }
 
-    console.log(`Found ${athletes?.length || 0} football athletes to check`);
+    console.log(`[API CALL] Found ${athletes?.length || 0} football athletes to check`);
 
     // Get live fixtures for all our teams
     const teamIds = [...new Set(athletes?.map(a => TEAM_IDS[a.team]).filter(Boolean))];
-    console.log(`Checking live matches for team IDs: ${teamIds.join(', ')}`);
+    console.log(`[API CALL] Checking live matches for team IDs: ${teamIds.join(', ')}`);
 
     // Fetch all currently live fixtures
     const liveData = await fetchApiFootball('/fixtures?live=all', apiKey);
     
     if (!liveData?.response) {
-      console.log('No live fixtures data returned');
+      console.log('[API CALL] No live fixtures data returned');
+      
+      // Log successful sync (for cooldown tracking)
+      await supabase.from('sync_logs').insert({
+        sync_type: 'football-live',
+        status: 'success',
+        details: { liveMatches: 0, reason: 'No live data available' },
+      });
+      
       return new Response(JSON.stringify({ 
         success: true, 
         message: 'No live data available',
@@ -185,7 +236,7 @@ Deno.serve(async (req) => {
       });
     }
 
-    console.log(`Found ${liveData.response.length} total live fixtures`);
+    console.log(`[API CALL] Found ${liveData.response.length} total live fixtures`);
 
     // Filter to only our teams' matches
     const relevantFixtures = liveData.response.filter((fixture: any) => {
@@ -194,7 +245,7 @@ Deno.serve(async (req) => {
       return teamIds.includes(homeId) || teamIds.includes(awayId);
     });
 
-    console.log(`Found ${relevantFixtures.length} relevant live fixtures for our teams`);
+    console.log(`[API CALL] Found ${relevantFixtures.length} relevant live fixtures for our teams`);
 
     const processedMatches: any[] = [];
 
@@ -344,15 +395,15 @@ Deno.serve(async (req) => {
     // Clean up finished matches (mark as finished, will be removed by daily cleanup)
     if (relevantFixtures.length === 0) {
       // No live matches - check if any existing live matches should be marked finished
-      const { data: existingLive } = await supabase
+      const { data: existingLiveMatches } = await supabase
         .from('athlete_live_matches')
         .select('id, athlete_id, match_status')
         .in('match_status', ['live', 'halftime']);
 
-      if (existingLive?.length) {
-        console.log(`Found ${existingLive.length} stale live matches to mark as finished`);
+      if (existingLiveMatches?.length) {
+        console.log(`Found ${existingLiveMatches.length} stale live matches to mark as finished`);
         
-        for (const match of existingLive) {
+        for (const match of existingLiveMatches) {
           await supabase
             .from('athlete_live_matches')
             .update({ match_status: 'finished' })
@@ -360,6 +411,17 @@ Deno.serve(async (req) => {
         }
       }
     }
+
+    // Log successful sync (for cooldown tracking)
+    await supabase.from('sync_logs').insert({
+      sync_type: 'football-live',
+      status: 'success',
+      details: { 
+        liveMatches: processedMatches.length,
+        totalLiveFixtures: liveData.response.length,
+        relevantFixtures: relevantFixtures.length,
+      },
+    });
 
     return new Response(JSON.stringify({
       success: true,

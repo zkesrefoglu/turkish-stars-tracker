@@ -7,9 +7,10 @@ const corsHeaders = {
 
 const BALLDONTLIE_BASE_URL = 'https://api.balldontlie.io/v1';
 const ROCKETS_TEAM_ID = 11;
+const COOLDOWN_SECONDS = 60; // Minimum 60 seconds between API calls
 
 async function fetchWithAuth(url: string, apiKey: string): Promise<any> {
-  console.log(`Fetching: ${url}`);
+  console.log(`[API CALL] Fetching: ${url}`);
   
   const response = await fetch(url, {
     headers: { 'Authorization': apiKey },
@@ -74,16 +75,87 @@ Deno.serve(async (req) => {
   }
 
   try {
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
+    // ========== COOLDOWN CHECK ==========
+    const { data: lastSync } = await supabase
+      .from('sync_logs')
+      .select('synced_at')
+      .eq('sync_type', 'nba-live')
+      .eq('status', 'success')
+      .order('synced_at', { ascending: false })
+      .limit(1)
+      .single();
+
+    if (lastSync) {
+      const lastSyncTime = new Date(lastSync.synced_at).getTime();
+      const now = Date.now();
+      const secondsSinceLast = (now - lastSyncTime) / 1000;
+      
+      if (secondsSinceLast < COOLDOWN_SECONDS) {
+        console.log(`[SKIP] Cooldown active: ${Math.round(COOLDOWN_SECONDS - secondsSinceLast)}s remaining`);
+        return new Response(JSON.stringify({
+          success: true,
+          skipped: true,
+          reason: 'Cooldown active',
+          waitSeconds: Math.round(COOLDOWN_SECONDS - secondsSinceLast),
+        }), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+    }
+    // ========== END COOLDOWN CHECK ==========
+
+    // ========== MATCH WINDOW CHECK ==========
+    const now = new Date();
+    const windowStart = new Date(now.getTime() - 4 * 60 * 60 * 1000); // 4 hours ago
+    const windowEnd = new Date(now.getTime() + 90 * 60 * 1000); // 90 mins ahead
+    
+    const { data: upcomingNba } = await supabase
+      .from('athlete_upcoming_matches')
+      .select('id, match_date, opponent')
+      .eq('competition', 'NBA')
+      .gte('match_date', windowStart.toISOString())
+      .lte('match_date', windowEnd.toISOString())
+      .limit(1);
+
+    // Also check for existing live match
+    const { data: existingLive } = await supabase
+      .from('athlete_live_matches')
+      .select('id')
+      .eq('competition', 'NBA')
+      .in('match_status', ['live', 'halftime'])
+      .limit(1);
+
+    const hasUpcoming = (upcomingNba?.length || 0) > 0;
+    const hasLive = (existingLive?.length || 0) > 0;
+
+    if (!hasUpcoming && !hasLive) {
+      console.log(`[SKIP] Outside match window: no NBA games between ${windowStart.toISOString()} and ${windowEnd.toISOString()}`);
+      return new Response(JSON.stringify({
+        success: true,
+        skipped: true,
+        reason: 'Outside match window - no NBA games scheduled',
+        checkedWindow: {
+          from: windowStart.toISOString(),
+          to: windowEnd.toISOString(),
+        },
+      }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
+
+    console.log(`[PROCEED] Match window check passed: upcoming=${hasUpcoming}, live=${hasLive}`);
+    // ========== END MATCH WINDOW CHECK ==========
+
     const apiKey = Deno.env.get('BALLDONTLIE_API_KEY');
     if (!apiKey) {
       throw new Error('BALLDONTLIE_API_KEY not configured');
     }
 
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-    const supabase = createClient(supabaseUrl, supabaseKey);
-
-    console.log('Starting NBA live match sync...');
+    console.log('[API CALL] Starting NBA live match sync...');
 
     // Get Alperen Sengun from database
     const { data: athlete, error: athleteError } = await supabase
@@ -104,7 +176,7 @@ Deno.serve(async (req) => {
     const startDate = yesterday.toISOString().split('T')[0];
     const endDate = tomorrow.toISOString().split('T')[0];
 
-    console.log(`Fetching Rockets games from ${startDate} to ${endDate}`);
+    console.log(`[API CALL] Fetching Rockets games from ${startDate} to ${endDate}`);
 
     const gamesData = await fetchWithAuth(
       `${BALLDONTLIE_BASE_URL}/games?team_ids[]=${ROCKETS_TEAM_ID}&start_date=${startDate}&end_date=${endDate}&per_page=10`,
@@ -240,7 +312,14 @@ Deno.serve(async (req) => {
       }
     }
 
-    console.log('NBA live match sync completed');
+    // Log successful sync (for cooldown tracking)
+    await supabase.from('sync_logs').insert({
+      sync_type: 'nba-live',
+      status: 'success',
+      details: { liveMatchFound: liveMatchUpdated, matchDetails },
+    });
+
+    console.log('[API CALL] NBA live match sync completed');
 
     return new Response(JSON.stringify({
       success: true,

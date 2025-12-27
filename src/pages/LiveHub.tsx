@@ -882,8 +882,8 @@ const LiveHub = () => {
   const [seasonStats, setSeasonStats] = useState<SeasonStats[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Keep live NBA games synced
-  useNbaLivePolling({ enabled: true, intervalMs: 30000 });
+  // Keep live NBA games synced (60s interval, auto-skips outside match window)
+  useNbaLivePolling({ enabled: true, intervalMs: 60000 });
 
   // Fetch all data
   useEffect(() => {

@@ -384,8 +384,8 @@ const TurkishStars = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sportFilter, setSportFilter] = useState<"all" | "football" | "basketball">("all");
 
-  // Poll for live NBA matches
-  useNbaLivePolling({ enabled: true, intervalMs: 30000 });
+  // NBA polling disabled on this page to reduce API costs
+  // Live updates come from LiveHub/LivePage instead
 
   useEffect(() => {
     const fetchData = async () => {
