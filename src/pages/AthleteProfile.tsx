@@ -17,7 +17,7 @@ import { PreviousGameCard } from "@/components/PreviousGameCard";
 import { PerformanceSplitsTable } from "@/components/PerformanceSplitsTable";
 import { FantasyInsightCard } from "@/components/FantasyInsightCard";
 import { AdvancedStatsCard } from "@/components/AdvancedStatsCard";
-import { PlayerRadarChart } from "@/components/PlayerRadarChart";
+import { PlayerRadarChart, MiniRadar } from "@/components/PlayerRadarChart";
 import { supabase } from "@/integrations/supabase/client";
 import { getCompetitionLogo } from "@/lib/competitionLogos";
 import { ArrowLeft, AlertTriangle, Calendar, TrendingUp, User, ChevronDown, ChevronUp, Instagram, ExternalLink, Newspaper, DollarSign, History, HeartPulse, BarChart3 } from "lucide-react";
@@ -677,6 +677,16 @@ const AthleteProfilePage = () => {
                           <div className="w-full mt-4 pt-4 border-t border-border/50">
                             <div className="text-xs text-muted-foreground uppercase mb-2">Recent Form</div>
                             <FormGraphic matches={matchHistory} maxMatches={10} />
+                          </div>
+                        )}
+                        
+                        {/* Mini Radar Chart for Football */}
+                        {athlete.sport === "football" && (
+                          <div className="w-full mt-4 pt-4 border-t border-border/50">
+                            <div className="text-xs text-muted-foreground uppercase mb-2">Performance Profile</div>
+                            <div className="bg-card/50 rounded-lg p-2">
+                              <MiniRadar athleteId={athlete.id} />
+                            </div>
                           </div>
                         )}
                       </div>
