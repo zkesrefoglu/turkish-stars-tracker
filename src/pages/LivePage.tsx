@@ -49,8 +49,8 @@ const LivePage = () => {
   const [recentMatches, setRecentMatches] = useState<LiveMatch[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Poll for live NBA matches every 30 seconds
-  useNbaLivePolling({ enabled: true, intervalMs: 30000 });
+  // Poll for live NBA matches only when within match window (60s interval)
+  useNbaLivePolling({ enabled: true, intervalMs: 60000 });
 
   useEffect(() => {
     const fetchData = async () => {
