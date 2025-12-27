@@ -77,6 +77,359 @@ export type Database = {
           },
         ]
       }
+      athlete_advanced_stats: {
+        Row: {
+          aerials_lost: number | null
+          aerials_won: number | null
+          aerials_won_pct: number | null
+          assists: number | null
+          assists_per90: number | null
+          athlete_id: string | null
+          avg_shot_distance: number | null
+          ball_recoveries: number | null
+          blocks: number | null
+          carries: number | null
+          carries_into_final_third: number | null
+          carries_into_penalty_area: number | null
+          challenges: number | null
+          challenges_lost: number | null
+          challenges_won: number | null
+          challenges_won_pct: number | null
+          clean_sheet_pct: number | null
+          clean_sheets: number | null
+          clearances: number | null
+          competition: string
+          created_at: string | null
+          crosses_into_penalty_area: number | null
+          dispossessed: number | null
+          errors_leading_to_shot: number | null
+          fbref_url: string | null
+          fouls_committed: number | null
+          fouls_drawn: number | null
+          free_kick_shots: number | null
+          gca_per90: number | null
+          goal_creating_actions: number | null
+          goals: number | null
+          goals_against: number | null
+          goals_against_per90: number | null
+          goals_assists: number | null
+          goals_assists_per90: number | null
+          goals_per_shot: number | null
+          goals_per_shot_on_target: number | null
+          goals_per90: number | null
+          id: string
+          interceptions: number | null
+          key_passes: number | null
+          last_updated: string | null
+          live_ball_touches: number | null
+          long_passes_attempted: number | null
+          long_passes_completed: number | null
+          matches_played: number | null
+          medium_passes_attempted: number | null
+          medium_passes_completed: number | null
+          minutes: number | null
+          miscontrols: number | null
+          non_penalty_goals: number | null
+          npxg: number | null
+          offsides: number | null
+          pass_completion_pct: number | null
+          passes_attempted: number | null
+          passes_blocked: number | null
+          passes_completed: number | null
+          passes_into_final_third: number | null
+          passes_into_penalty_area: number | null
+          penalty_attempted: number | null
+          penalty_goals: number | null
+          pressure_success_pct: number | null
+          pressure_successes: number | null
+          pressures: number | null
+          pressures_att_third: number | null
+          pressures_def_third: number | null
+          pressures_mid_third: number | null
+          progressive_carries: number | null
+          progressive_carry_distance: number | null
+          progressive_pass_distance: number | null
+          progressive_passes: number | null
+          psxg: number | null
+          psxg_minus_ga: number | null
+          red_cards: number | null
+          save_pct: number | null
+          saves: number | null
+          sca_per90: number | null
+          season: string
+          short_passes_attempted: number | null
+          short_passes_completed: number | null
+          shot_creating_actions: number | null
+          shots_blocked: number | null
+          shots_on_target: number | null
+          shots_on_target_pct: number | null
+          shots_on_target_per90: number | null
+          shots_per90: number | null
+          shots_total: number | null
+          starts: number | null
+          tackles: number | null
+          tackles_att_third: number | null
+          tackles_def_third: number | null
+          tackles_mid_third: number | null
+          tackles_plus_interceptions: number | null
+          tackles_won: number | null
+          take_ons_attempted: number | null
+          take_ons_success_pct: number | null
+          take_ons_successful: number | null
+          take_ons_tackled: number | null
+          through_balls: number | null
+          total_carry_distance: number | null
+          total_pass_distance: number | null
+          touches: number | null
+          touches_att_pen: number | null
+          touches_att_third: number | null
+          touches_def_pen: number | null
+          touches_def_third: number | null
+          touches_mid_third: number | null
+          xa: number | null
+          xa_per90: number | null
+          xg: number | null
+          xg_per90: number | null
+          yellow_cards: number | null
+        }
+        Insert: {
+          aerials_lost?: number | null
+          aerials_won?: number | null
+          aerials_won_pct?: number | null
+          assists?: number | null
+          assists_per90?: number | null
+          athlete_id?: string | null
+          avg_shot_distance?: number | null
+          ball_recoveries?: number | null
+          blocks?: number | null
+          carries?: number | null
+          carries_into_final_third?: number | null
+          carries_into_penalty_area?: number | null
+          challenges?: number | null
+          challenges_lost?: number | null
+          challenges_won?: number | null
+          challenges_won_pct?: number | null
+          clean_sheet_pct?: number | null
+          clean_sheets?: number | null
+          clearances?: number | null
+          competition: string
+          created_at?: string | null
+          crosses_into_penalty_area?: number | null
+          dispossessed?: number | null
+          errors_leading_to_shot?: number | null
+          fbref_url?: string | null
+          fouls_committed?: number | null
+          fouls_drawn?: number | null
+          free_kick_shots?: number | null
+          gca_per90?: number | null
+          goal_creating_actions?: number | null
+          goals?: number | null
+          goals_against?: number | null
+          goals_against_per90?: number | null
+          goals_assists?: number | null
+          goals_assists_per90?: number | null
+          goals_per_shot?: number | null
+          goals_per_shot_on_target?: number | null
+          goals_per90?: number | null
+          id?: string
+          interceptions?: number | null
+          key_passes?: number | null
+          last_updated?: string | null
+          live_ball_touches?: number | null
+          long_passes_attempted?: number | null
+          long_passes_completed?: number | null
+          matches_played?: number | null
+          medium_passes_attempted?: number | null
+          medium_passes_completed?: number | null
+          minutes?: number | null
+          miscontrols?: number | null
+          non_penalty_goals?: number | null
+          npxg?: number | null
+          offsides?: number | null
+          pass_completion_pct?: number | null
+          passes_attempted?: number | null
+          passes_blocked?: number | null
+          passes_completed?: number | null
+          passes_into_final_third?: number | null
+          passes_into_penalty_area?: number | null
+          penalty_attempted?: number | null
+          penalty_goals?: number | null
+          pressure_success_pct?: number | null
+          pressure_successes?: number | null
+          pressures?: number | null
+          pressures_att_third?: number | null
+          pressures_def_third?: number | null
+          pressures_mid_third?: number | null
+          progressive_carries?: number | null
+          progressive_carry_distance?: number | null
+          progressive_pass_distance?: number | null
+          progressive_passes?: number | null
+          psxg?: number | null
+          psxg_minus_ga?: number | null
+          red_cards?: number | null
+          save_pct?: number | null
+          saves?: number | null
+          sca_per90?: number | null
+          season: string
+          short_passes_attempted?: number | null
+          short_passes_completed?: number | null
+          shot_creating_actions?: number | null
+          shots_blocked?: number | null
+          shots_on_target?: number | null
+          shots_on_target_pct?: number | null
+          shots_on_target_per90?: number | null
+          shots_per90?: number | null
+          shots_total?: number | null
+          starts?: number | null
+          tackles?: number | null
+          tackles_att_third?: number | null
+          tackles_def_third?: number | null
+          tackles_mid_third?: number | null
+          tackles_plus_interceptions?: number | null
+          tackles_won?: number | null
+          take_ons_attempted?: number | null
+          take_ons_success_pct?: number | null
+          take_ons_successful?: number | null
+          take_ons_tackled?: number | null
+          through_balls?: number | null
+          total_carry_distance?: number | null
+          total_pass_distance?: number | null
+          touches?: number | null
+          touches_att_pen?: number | null
+          touches_att_third?: number | null
+          touches_def_pen?: number | null
+          touches_def_third?: number | null
+          touches_mid_third?: number | null
+          xa?: number | null
+          xa_per90?: number | null
+          xg?: number | null
+          xg_per90?: number | null
+          yellow_cards?: number | null
+        }
+        Update: {
+          aerials_lost?: number | null
+          aerials_won?: number | null
+          aerials_won_pct?: number | null
+          assists?: number | null
+          assists_per90?: number | null
+          athlete_id?: string | null
+          avg_shot_distance?: number | null
+          ball_recoveries?: number | null
+          blocks?: number | null
+          carries?: number | null
+          carries_into_final_third?: number | null
+          carries_into_penalty_area?: number | null
+          challenges?: number | null
+          challenges_lost?: number | null
+          challenges_won?: number | null
+          challenges_won_pct?: number | null
+          clean_sheet_pct?: number | null
+          clean_sheets?: number | null
+          clearances?: number | null
+          competition?: string
+          created_at?: string | null
+          crosses_into_penalty_area?: number | null
+          dispossessed?: number | null
+          errors_leading_to_shot?: number | null
+          fbref_url?: string | null
+          fouls_committed?: number | null
+          fouls_drawn?: number | null
+          free_kick_shots?: number | null
+          gca_per90?: number | null
+          goal_creating_actions?: number | null
+          goals?: number | null
+          goals_against?: number | null
+          goals_against_per90?: number | null
+          goals_assists?: number | null
+          goals_assists_per90?: number | null
+          goals_per_shot?: number | null
+          goals_per_shot_on_target?: number | null
+          goals_per90?: number | null
+          id?: string
+          interceptions?: number | null
+          key_passes?: number | null
+          last_updated?: string | null
+          live_ball_touches?: number | null
+          long_passes_attempted?: number | null
+          long_passes_completed?: number | null
+          matches_played?: number | null
+          medium_passes_attempted?: number | null
+          medium_passes_completed?: number | null
+          minutes?: number | null
+          miscontrols?: number | null
+          non_penalty_goals?: number | null
+          npxg?: number | null
+          offsides?: number | null
+          pass_completion_pct?: number | null
+          passes_attempted?: number | null
+          passes_blocked?: number | null
+          passes_completed?: number | null
+          passes_into_final_third?: number | null
+          passes_into_penalty_area?: number | null
+          penalty_attempted?: number | null
+          penalty_goals?: number | null
+          pressure_success_pct?: number | null
+          pressure_successes?: number | null
+          pressures?: number | null
+          pressures_att_third?: number | null
+          pressures_def_third?: number | null
+          pressures_mid_third?: number | null
+          progressive_carries?: number | null
+          progressive_carry_distance?: number | null
+          progressive_pass_distance?: number | null
+          progressive_passes?: number | null
+          psxg?: number | null
+          psxg_minus_ga?: number | null
+          red_cards?: number | null
+          save_pct?: number | null
+          saves?: number | null
+          sca_per90?: number | null
+          season?: string
+          short_passes_attempted?: number | null
+          short_passes_completed?: number | null
+          shot_creating_actions?: number | null
+          shots_blocked?: number | null
+          shots_on_target?: number | null
+          shots_on_target_pct?: number | null
+          shots_on_target_per90?: number | null
+          shots_per90?: number | null
+          shots_total?: number | null
+          starts?: number | null
+          tackles?: number | null
+          tackles_att_third?: number | null
+          tackles_def_third?: number | null
+          tackles_mid_third?: number | null
+          tackles_plus_interceptions?: number | null
+          tackles_won?: number | null
+          take_ons_attempted?: number | null
+          take_ons_success_pct?: number | null
+          take_ons_successful?: number | null
+          take_ons_tackled?: number | null
+          through_balls?: number | null
+          total_carry_distance?: number | null
+          total_pass_distance?: number | null
+          touches?: number | null
+          touches_att_pen?: number | null
+          touches_att_third?: number | null
+          touches_def_pen?: number | null
+          touches_def_third?: number | null
+          touches_mid_third?: number | null
+          xa?: number | null
+          xa_per90?: number | null
+          xg?: number | null
+          xg_per90?: number | null
+          yellow_cards?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_advanced_stats_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_daily_updates: {
         Row: {
           athlete_id: string
@@ -401,6 +754,119 @@ export type Database = {
           },
         ]
       }
+      athlete_percentile_rankings: {
+        Row: {
+          aerials_won_pct_pct: number | null
+          athlete_id: string | null
+          blocks_per90_pct: number | null
+          carries_into_final_third_per90_pct: number | null
+          clean_sheet_pct_pct: number | null
+          clearances_per90_pct: number | null
+          comparison_group: string | null
+          gca_per90_pct: number | null
+          goals_per90_pct: number | null
+          id: string
+          interceptions_per90_pct: number | null
+          key_passes_per90_pct: number | null
+          last_updated: string | null
+          minutes_played: number | null
+          npxg_per90_pct: number | null
+          pass_completion_pct: number | null
+          period: string | null
+          pressure_success_pct_pct: number | null
+          pressures_per90_pct: number | null
+          progressive_carries_per90_pct: number | null
+          progressive_passes_per90_pct: number | null
+          psxg_minus_ga_per90_pct: number | null
+          save_pct_pct: number | null
+          sca_per90_pct: number | null
+          shots_on_target_per90_pct: number | null
+          shots_per90_pct: number | null
+          source_url: string | null
+          tackles_per90_pct: number | null
+          take_ons_success_pct: number | null
+          through_balls_per90_pct: number | null
+          touches_per90_pct: number | null
+          xa_per90_pct: number | null
+        }
+        Insert: {
+          aerials_won_pct_pct?: number | null
+          athlete_id?: string | null
+          blocks_per90_pct?: number | null
+          carries_into_final_third_per90_pct?: number | null
+          clean_sheet_pct_pct?: number | null
+          clearances_per90_pct?: number | null
+          comparison_group?: string | null
+          gca_per90_pct?: number | null
+          goals_per90_pct?: number | null
+          id?: string
+          interceptions_per90_pct?: number | null
+          key_passes_per90_pct?: number | null
+          last_updated?: string | null
+          minutes_played?: number | null
+          npxg_per90_pct?: number | null
+          pass_completion_pct?: number | null
+          period?: string | null
+          pressure_success_pct_pct?: number | null
+          pressures_per90_pct?: number | null
+          progressive_carries_per90_pct?: number | null
+          progressive_passes_per90_pct?: number | null
+          psxg_minus_ga_per90_pct?: number | null
+          save_pct_pct?: number | null
+          sca_per90_pct?: number | null
+          shots_on_target_per90_pct?: number | null
+          shots_per90_pct?: number | null
+          source_url?: string | null
+          tackles_per90_pct?: number | null
+          take_ons_success_pct?: number | null
+          through_balls_per90_pct?: number | null
+          touches_per90_pct?: number | null
+          xa_per90_pct?: number | null
+        }
+        Update: {
+          aerials_won_pct_pct?: number | null
+          athlete_id?: string | null
+          blocks_per90_pct?: number | null
+          carries_into_final_third_per90_pct?: number | null
+          clean_sheet_pct_pct?: number | null
+          clearances_per90_pct?: number | null
+          comparison_group?: string | null
+          gca_per90_pct?: number | null
+          goals_per90_pct?: number | null
+          id?: string
+          interceptions_per90_pct?: number | null
+          key_passes_per90_pct?: number | null
+          last_updated?: string | null
+          minutes_played?: number | null
+          npxg_per90_pct?: number | null
+          pass_completion_pct?: number | null
+          period?: string | null
+          pressure_success_pct_pct?: number | null
+          pressures_per90_pct?: number | null
+          progressive_carries_per90_pct?: number | null
+          progressive_passes_per90_pct?: number | null
+          psxg_minus_ga_per90_pct?: number | null
+          save_pct_pct?: number | null
+          sca_per90_pct?: number | null
+          shots_on_target_per90_pct?: number | null
+          shots_per90_pct?: number | null
+          source_url?: string | null
+          tackles_per90_pct?: number | null
+          take_ons_success_pct?: number | null
+          through_balls_per90_pct?: number | null
+          touches_per90_pct?: number | null
+          xa_per90_pct?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "athlete_percentile_rankings_athlete_id_fkey"
+            columns: ["athlete_id"]
+            isOneToOne: false
+            referencedRelation: "athlete_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       athlete_profiles: {
         Row: {
           action_photo_url: string | null
@@ -412,6 +878,8 @@ export type Database = {
           current_market_value: number | null
           date_of_birth: string | null
           espn_id: number | null
+          fbref_id: string | null
+          fbref_url: string | null
           fotmob_id: number | null
           height_cm: number | null
           id: string
@@ -444,6 +912,8 @@ export type Database = {
           current_market_value?: number | null
           date_of_birth?: string | null
           espn_id?: number | null
+          fbref_id?: string | null
+          fbref_url?: string | null
           fotmob_id?: number | null
           height_cm?: number | null
           id?: string
@@ -476,6 +946,8 @@ export type Database = {
           current_market_value?: number | null
           date_of_birth?: string | null
           espn_id?: number | null
+          fbref_id?: string | null
+          fbref_url?: string | null
           fotmob_id?: number | null
           height_cm?: number | null
           id?: string

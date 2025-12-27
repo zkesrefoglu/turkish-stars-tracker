@@ -47,3 +47,6 @@ verify_jwt = false
 
 [functions.fetch-football-standings]
 verify_jwt = false
+
+[functions.fetch-fbref-stats]
+verify_jwt = false
