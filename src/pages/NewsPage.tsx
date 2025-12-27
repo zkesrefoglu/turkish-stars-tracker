@@ -31,6 +31,11 @@ const NewsPage = () => {
   const [athletes, setAthletes] = useState<Athlete[]>([]);
   const [selectedAthlete, setSelectedAthlete] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [failedImages, setFailedImages] = useState<Set<string>>(new Set());
+
+  const handleImageError = (id: string) => {
+    setFailedImages(prev => new Set(prev).add(id));
+  };
 
   useEffect(() => {
     const fetchAthletes = async () => {
@@ -143,11 +148,12 @@ const NewsPage = () => {
                 <div className="flex gap-4 p-4">
                   {/* Thumbnail */}
                   <div className="flex-shrink-0">
-                    {item.image_url ? (
+                    {item.image_url && !failedImages.has(item.id) ? (
                       <img
                         src={item.image_url}
                         alt=""
                         className="w-24 h-24 object-cover rounded-lg"
+                        onError={() => handleImageError(item.id)}
                       />
                     ) : (
                       <div className="w-24 h-24 bg-muted rounded-lg flex items-center justify-center">
