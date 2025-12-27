@@ -374,12 +374,6 @@ const MatchCard = ({
       </div>
       
       <div className="flex items-center gap-1.5">
-        <svg width="14" height="10" viewBox="0 0 30 20" className="rounded-sm flex-shrink-0">
-          <rect width="30" height="20" fill="#E30A17"/>
-          <circle cx="11" cy="10" r="6" fill="white"/>
-          <circle cx="12.5" cy="10" r="4.8" fill="#E30A17"/>
-          <polygon points="19,10 15.5,11.8 16.2,8 13.5,5.5 17.3,5 19,1.5 20.7,5 24.5,5.5 21.8,8 22.5,11.8" fill="white" transform="scale(0.55) translate(16, 8)"/>
-        </svg>
         <span className="text-xs font-medium text-foreground truncate">{athlete.name.split(' ')[0]}</span>
       </div>
       
