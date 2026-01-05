@@ -182,9 +182,10 @@ const AthleteCard = ({
   const injuryStatus = latestUpdate?.injury_status || "healthy";
   const injuryBadge = getInjuryBadge(injuryStatus);
 
-  // Calculate form (last 5 matches)
+  // Calculate form (last 5 matches) - include matches with results even if played is false
+  // since some syncs don't properly set the played field
   const form = recentMatches
-    .filter(m => m.played)
+    .filter(m => m.played || m.match_result)
     .slice(0, 5)
     .map(m => parseMatchResult(m.match_result, athlete.sport))
     .filter(Boolean);
