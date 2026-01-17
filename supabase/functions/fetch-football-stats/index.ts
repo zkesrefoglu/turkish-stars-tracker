@@ -303,11 +303,21 @@ async function fetchTeamFixturesWithStats(
     return fixtures;
   }
 
-  const fixturesData = await fetchApiFootball(`/fixtures?team=${teamId}&${type}=10`, apiKey);
+  let fixturesData;
+  
+  if (type === 'next') {
+    // For upcoming, just get next 10
+    fixturesData = await fetchApiFootball(`/fixtures?team=${teamId}&next=10`, apiKey);
+  } else {
+    // For past matches, get FULL SEASON
+    fixturesData = await fetchApiFootball(`/fixtures?team=${teamId}&season=${CURRENT_SEASON}&status=FT`, apiKey);
+  }
   
   if (!fixturesData?.response) {
     return fixtures;
   }
+
+  console.log(`Found ${fixturesData.response.length} fixtures for ${teamName} (type: ${type})`);
 
   for (const fixture of fixturesData.response) {
     const fixtureId = fixture.fixture?.id;
@@ -345,7 +355,8 @@ async function fetchTeamFixturesWithStats(
         fixtureData.stats = {};
       }
       
-      await new Promise(resolve => setTimeout(resolve, 200));
+      // Rate limit - important with more fixtures!
+      await new Promise(resolve => setTimeout(resolve, 300));
     }
     
     fixtures.push(fixtureData);
