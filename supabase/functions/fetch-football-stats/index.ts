@@ -7,7 +7,18 @@ const corsHeaders = {
 };
 
 const API_FOOTBALL_BASE = 'https://v3.football.api-sports.io';
-const CURRENT_SEASON = 2024;
+
+// Auto-detect season: European football seasons span Aug-May
+// If we're in Aug+ of year Y, the season is Y (i.e. Y/Y+1)
+// If we're in Jan-Jul of year Y, the season is Y-1 (i.e. Y-1/Y)
+function getCurrentSeason(): number {
+  const now = new Date();
+  const month = now.getMonth() + 1; // 1-indexed
+  const year = now.getFullYear();
+  return month >= 8 ? year : year - 1;
+}
+
+const CURRENT_SEASON = getCurrentSeason();
 
 // Team IDs
 const TEAM_IDS: Record<string, number> = {
@@ -21,6 +32,7 @@ const TEAM_IDS: Record<string, number> = {
   'Inter Milan': 505,
   'Inter': 505,
   'Cagliari': 490,
+  'Cagliari Calcio': 490,
   'Bournemouth': 35,
   'AS Roma': 497,
   'Al-Ahli': 2932,
@@ -446,7 +458,7 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Starting football stats fetch...');
+    console.log(`Starting football stats fetch... (season: ${CURRENT_SEASON})`);
 
     const { data: athletes, error: athletesError } = await supabase
       .from('athlete_profiles')

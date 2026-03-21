@@ -944,9 +944,17 @@ const LiveHub = () => {
     return isToday(matchDate) || isTomorrow(matchDate);
   });
 
-  const recentPerformances = dailyUpdates
-    .filter(u => u.played && u.stats && Object.keys(u.stats).length > 0)
-    .slice(0, 5);
+  const recentPerformances = (() => {
+    const seen = new Set<string>();
+    return dailyUpdates
+      .filter(u => u.played && u.stats && Object.keys(u.stats).length > 0)
+      .filter(u => {
+        if (seen.has(u.athlete_id)) return false;
+        seen.add(u.athlete_id);
+        return true;
+      })
+      .slice(0, 5);
+  })();
 
   const injuryAlerts = dailyUpdates
     .filter(u => u.injury_status && u.injury_status !== 'healthy')
