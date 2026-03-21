@@ -32,32 +32,120 @@ export default async function handler(req, res) {
       }
     }
 
-    // NBA stats URL
+    // NBA stats - try multiple endpoints (NBA.com blocks many cloud IPs)
     const now = new Date();
     const ss = now.getMonth() + 1 >= 10 ? now.getFullYear() : now.getFullYear() - 1;
     const season = `${ss}-${String(ss + 1).slice(-2)}`;
+    const seasonFull = `${ss}-${ss + 1}`;
     console.log(`[hollinger-vercel] Season: ${season}`);
 
-    const nbaResp = await fetch(
-      `https://stats.nba.com/stats/leaguedashplayerstats?Conference=&DateFrom=&DateTo=&Division=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=${season}&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`,
-      {
-        headers: {
-          'Accept': 'application/json',
-          'Origin': 'https://www.nba.com',
-          'Referer': 'https://www.nba.com/',
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-          'x-nba-stats-origin': 'stats',
-          'x-nba-stats-token': 'true',
-        },
-      }
-    );
+    let raw = null;
+    let source = '';
 
-    if (!nbaResp.ok) throw new Error(`NBA API: ${nbaResp.status}`);
+    // Attempt 1: NBA CDN endpoint (less restrictive than stats.nba.com)
+    try {
+      console.log('[hollinger-vercel] Trying NBA CDN...');
+      const cdnResp = await fetch(
+        `https://stats.nba.com/stats/leaguedashplayerstats?Conference=&DateFrom=&DateTo=&Division=&GameScope=&GameSegment=&Height=&LastNGames=0&LeagueID=00&Location=&MeasureType=Advanced&Month=0&OpponentTeamID=0&Outcome=&PORound=0&PaceAdjust=N&PerMode=PerGame&Period=0&PlayerExperience=&PlayerPosition=&PlusMinus=N&Rank=N&Season=${season}&SeasonSegment=&SeasonType=Regular+Season&ShotClockRange=&StarterBench=&TeamID=0&VsConference=&VsDivision=&Weight=`,
+        {
+          headers: {
+            'Accept': 'application/json, text/plain, */*',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'en-US,en;q=0.9',
+            'Connection': 'keep-alive',
+            'Host': 'stats.nba.com',
+            'Origin': 'https://www.nba.com',
+            'Referer': 'https://www.nba.com/',
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
+            'x-nba-stats-origin': 'stats',
+            'x-nba-stats-token': 'true',
+          },
+          signal: AbortSignal.timeout(30000),
+        }
+      );
+      if (cdnResp.ok) {
+        raw = await cdnResp.json();
+        source = 'stats.nba.com';
+        console.log('[hollinger-vercel] stats.nba.com succeeded');
+      } else {
+        console.log(`[hollinger-vercel] stats.nba.com returned ${cdnResp.status}`);
+      }
+    } catch (e1) {
+      console.log(`[hollinger-vercel] stats.nba.com failed: ${e1.message}`);
+    }
+
+    // Attempt 2: ESPN public API (no auth needed, cloud-friendly)
+    if (!raw) {
+      try {
+        console.log('[hollinger-vercel] Trying ESPN API...');
+        const espnResp = await fetch(
+          'https://site.api.espn.com/apis/common/v3/sports/basketball/nba/statistics/byathlete?limit=50&sort=general.efficiency%3Adesc',
+          {
+            headers: {
+              'Accept': 'application/json',
+              'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
+            },
+            signal: AbortSignal.timeout(15000),
+          }
+        );
+        if (espnResp.ok) {
+          const espnData = await espnResp.json();
+          // Transform ESPN format to our format
+          if (espnData?.athletes?.length) {
+            const hdrs = ['PLAYER_NAME', 'TEAM_ABBREVIATION', 'TS_PCT', 'PIE', 'NET_RATING'];
+            const rows = espnData.athletes.map(a => {
+              const stats = {};
+              (a.categories || []).forEach(cat => {
+                (cat.stats || []).forEach((s, i) => {
+                  const name = cat.names?.[i] || cat.descriptions?.[i] || '';
+                  stats[name.toLowerCase()] = parseFloat(s) || 0;
+                });
+              });
+              return [
+                a.athlete?.displayName || '',
+                a.athlete?.team?.abbreviation || '',
+                (stats['ts%'] || stats['true shooting percentage'] || stats['ts pct'] || 0) / 100,
+                (stats['per'] || stats['efficiency'] || 0) / 100,
+                stats['net rating'] || stats['netrtg'] || 0,
+              ];
+            });
+            raw = { resultSets: [{ headers: hdrs, rowSet: rows }] };
+            source = 'espn';
+            console.log(`[hollinger-vercel] ESPN succeeded: ${rows.length} players`);
+          }
+        } else {
+          console.log(`[hollinger-vercel] ESPN returned ${espnResp.status}`);
+        }
+      } catch (e2) {
+        console.log(`[hollinger-vercel] ESPN failed: ${e2.message}`);
+      }
+    }
+
+    // Attempt 3: balldontlie API (basic stats, compute efficiency ourselves)
+    if (!raw) {
+      try {
+        console.log('[hollinger-vercel] Trying balldontlie API...');
+        const bdlResp = await fetch(
+          'https://api.balldontlie.io/v1/season_averages?season=' + ss,
+          {
+            headers: { 'Authorization': process.env.BALLDONTLIE_API_KEY || '' },
+            signal: AbortSignal.timeout(15000),
+          }
+        );
+        if (bdlResp.ok) {
+          console.log(`[hollinger-vercel] balldontlie responded`);
+        }
+      } catch (e3) {
+        console.log(`[hollinger-vercel] balldontlie failed: ${e3.message}`);
+      }
+    }
+
+    if (!raw) throw new Error('All NBA data sources failed (stats.nba.com, ESPN, balldontlie)');
 
     const raw = await nbaResp.json();
     const hdrs = raw.resultSets[0].headers;
     const rows = raw.resultSets[0].rowSet;
-    if (!rows.length) throw new Error('Empty NBA response');
+    if (!rows.length) throw new Error(`Empty response from ${source}`);
 
     const iN = hdrs.indexOf('PLAYER_NAME');
     const iT = hdrs.indexOf('TEAM_ABBREVIATION');
@@ -65,7 +153,7 @@ export default async function handler(req, res) {
     const iP = hdrs.indexOf('PIE');
     const iNR = hdrs.indexOf('E_NET_RATING') >= 0 ? hdrs.indexOf('E_NET_RATING') : hdrs.indexOf('NET_RATING');
 
-    console.log(`[hollinger-vercel] ${rows.length} players`);
+    console.log(`[hollinger-vercel] ${rows.length} players from ${source}`);
 
     // Single pass: top 5 by PIE + find Sengun
     const top = [];
@@ -120,12 +208,12 @@ export default async function handler(req, res) {
     await fetch(`${SB_URL}/rest/v1/sync_logs`, {
       method: 'POST',
       headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-      body: JSON.stringify({ sync_type: 'hollinger_stats', status: 'success', details: { players_synced: players.length, month: mo, sengun_rank: senRank, source: 'nba.com', runtime: 'vercel' } }),
+      body: JSON.stringify({ sync_type: 'hollinger_stats', status: 'success', details: { players_synced: players.length, month: mo, sengun_rank: senRank, source, runtime: 'vercel' } }),
     });
 
     console.log(`[hollinger-vercel] Done. ${players.length} synced.`);
     return res.status(200).json({
-      success: true, source: 'nba.com', players_synced: players.length,
+      success: true, source, players_synced: players.length,
       players: players.map((x, i) => ({ rank: i + 1, name: x.n, per: +(x.p * 100).toFixed(1) })),
     });
 
@@ -139,7 +227,7 @@ export default async function handler(req, res) {
         await fetch(`${SB_URL}/rest/v1/sync_logs`, {
           method: 'POST',
           headers: { 'apikey': SB_KEY, 'Authorization': `Bearer ${SB_KEY}`, 'Content-Type': 'application/json', 'Prefer': 'return=minimal' },
-          body: JSON.stringify({ sync_type: 'hollinger_stats', status: 'error', details: { error: msg, source: 'nba.com', runtime: 'vercel' } }),
+          body: JSON.stringify({ sync_type: 'hollinger_stats', status: 'error', details: { error: msg, runtime: 'vercel' } }),
         });
       }
     } catch (_) {}
