@@ -142,7 +142,6 @@ export default async function handler(req, res) {
 
     if (!raw) throw new Error('All NBA data sources failed (stats.nba.com, ESPN, balldontlie)');
 
-    const raw = await nbaResp.json();
     const hdrs = raw.resultSets[0].headers;
     const rows = raw.resultSets[0].rowSet;
     if (!rows.length) throw new Error(`Empty response from ${source}`);
