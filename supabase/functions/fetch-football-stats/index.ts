@@ -1,10 +1,52 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { validateAuth, checkCooldown } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
 };
+
+// ---- Inlined auth (cross-directory imports fail in Supabase edge function deployment) ----
+async function validateAuth(req: Request): Promise<{ authorized: boolean; reason: string; userId?: string }> {
+  const webhookSecret = Deno.env.get('STATS_WEBHOOK_SECRET');
+  const providedSecret = req.headers.get('x-webhook-secret');
+  const authHeader = req.headers.get('authorization');
+  if (providedSecret) {
+    if (!webhookSecret) return { authorized: false, reason: 'STATS_WEBHOOK_SECRET not configured' };
+    if (providedSecret === webhookSecret) return { authorized: true, reason: 'webhook_secret' };
+    return { authorized: false, reason: 'Invalid webhook secret' };
+  }
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.replace('Bearer ', '');
+    if (token.length < 100 || token === 'fake' || token === 'test') return { authorized: false, reason: 'Invalid token format' };
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return { authorized: false, reason: 'Invalid or expired token' };
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: roleData } = await adminClient.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
+      if (!roleData) return { authorized: false, reason: 'User is not an admin', userId: user.id };
+      return { authorized: true, reason: 'admin_user', userId: user.id };
+    } catch (_) { return { authorized: false, reason: 'Auth validation error' }; }
+  }
+  return { authorized: false, reason: 'Missing authentication' };
+}
+
+async function checkCooldown(syncType: string, cooldownSeconds: number): Promise<{ canRun: boolean; lastRun?: Date; waitSeconds?: number }> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, serviceRoleKey);
+  const { data, error } = await supabase.from('sync_logs').select('synced_at').eq('sync_type', syncType).eq('status', 'success').order('synced_at', { ascending: false }).limit(1).maybeSingle();
+  if (error) return { canRun: true };
+  if (!data) return { canRun: true };
+  const lastRun = new Date(data.synced_at);
+  const elapsedSeconds = (Date.now() - lastRun.getTime()) / 1000;
+  if (elapsedSeconds < cooldownSeconds) return { canRun: false, lastRun, waitSeconds: Math.ceil(cooldownSeconds - elapsedSeconds) };
+  return { canRun: true, lastRun };
+}
+// ---- End inlined auth ----
 
 const API_FOOTBALL_BASE = 'https://v3.football.api-sports.io';
 
@@ -610,6 +652,7 @@ Deno.serve(async (req) => {
         athletes_processed: results.length,
         successful: results.filter(r => r.status === 'success').length,
         auth_method: authResult.reason,
+        season: CURRENT_SEASON,
       },
     });
 

@@ -903,7 +903,13 @@ const LiveHub = () => {
         supabase.from('athlete_daily_updates').select('*').order('date', { ascending: false }).limit(50),
         supabase.from('athlete_transfer_rumors').select('*').eq('status', 'active').order('rumor_date', { ascending: false }).limit(10),
         supabase.from('athlete_news').select('*').order('published_at', { ascending: false, nullsFirst: false }).limit(10),
-        supabase.from('athlete_season_stats').select('*').ilike('season', '%24%') // Get 2024-25 season
+        // Dynamic season filter: current year - 1 covers both football (Aug-May) and NBA (Oct-Jun)
+        (() => {
+          const yr = new Date().getFullYear();
+          const key = (yr - 1).toString().slice(-2); // e.g. "25" in 2026
+          return supabase.from('athlete_season_stats').select('*')
+            .or(`season.ilike.%${key}%,season.ilike.%${yr}%`);
+        })()
       ]);
 
       if (athletesRes.data) setAthletes(athletesRes.data);
