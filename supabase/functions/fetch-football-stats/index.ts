@@ -533,6 +533,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const START_TIME = Date.now();
+  // Time budgets (milliseconds) - stay well under Supabase's ~150s limit
+  const STATS_BUDGET_MS = 80_000;    // 80s for full stats (phase 1)
+  const DISCOVER_BUDGET_MS = 130_000; // stop discovery at 130s (phase 2)
+  const HARD_STOP_MS = 140_000;       // absolute stop at 140s, write logs and bail
+
+  function elapsed(): number { return Date.now() - START_TIME; }
+
   try {
     // Validate authorization
     const authResult = await validateAuth(req);
@@ -562,7 +570,7 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apiFootballKey = Deno.env.get('API_FOOTBALL_KEY');
-    
+
     if (!apiFootballKey) {
       throw new Error('API_FOOTBALL_KEY not configured');
     }
@@ -571,7 +579,8 @@ Deno.serve(async (req) => {
 
     console.log(`Starting football stats fetch... (season: ${CURRENT_SEASON})`);
 
-    const { data: athletes, error: athletesError } = await supabase
+    // Fetch all football athletes
+    const { data: allAthletes, error: athletesError } = await supabase
       .from('athlete_profiles')
       .select('id, slug, api_football_id, name, team')
       .eq('sport', 'football');
@@ -580,52 +589,36 @@ Deno.serve(async (req) => {
       throw new Error(`Error fetching athletes: ${athletesError.message}`);
     }
 
-    console.log(`Found ${athletes?.length || 0} football athletes`);
+    // Split into two groups: those with IDs (full stats) and those without (need discovery)
+    const withId = (allAthletes || []).filter(a => a.api_football_id != null);
+    const withoutId = (allAthletes || []).filter(a => a.api_football_id == null);
+
+    console.log(`Total: ${allAthletes?.length || 0} athletes | ${withId.length} with ID | ${withoutId.length} need discovery`);
 
     const results: any[] = [];
 
-    for (const athlete of athletes || []) {
+    // ============ PHASE 1: Full stats for athletes WITH api_football_id ============
+    console.log('--- PHASE 1: Full stats ---');
+    for (const athlete of withId) {
+      if (elapsed() > STATS_BUDGET_MS) {
+        console.log(`Stats budget exhausted at ${Math.round(elapsed()/1000)}s, processed ${results.length} athletes`);
+        break;
+      }
+
       try {
-        let playerId = athlete.api_football_id;
-        
-        if (!playerId) {
-          const teamId = TEAM_IDS[athlete.team];
-          if (teamId) {
-            playerId = await findPlayerInTeam(teamId, athlete.name, apiFootballKey);
-          }
-
-          // Fallback: search by name directly if team wasn't mapped or squad search failed
-          if (!playerId) {
-            console.log(`Team not in TEAM_IDS or squad search failed for ${athlete.name}, trying direct name search...`);
-            playerId = await searchPlayerByName(athlete.name, apiFootballKey);
-          }
-
-          if (playerId) {
-            await supabase
-              .from('athlete_profiles')
-              .update({ api_football_id: playerId })
-              .eq('id', athlete.id);
-            console.log(`Saved API ID ${playerId} for ${athlete.name}`);
-          }
-
-          if (!playerId) {
-            results.push({ athlete: athlete.name, status: 'not_found' });
-            continue;
-          }
-        }
-
+        const playerId = athlete.api_football_id;
         console.log(`Processing ${athlete.name} (ID: ${playerId})...`);
-        
+
         const playerData = await fetchApiFootball(
           `/players?id=${playerId}&season=${CURRENT_SEASON}`,
           apiFootballKey
         );
-        
+
         const seasonStats = playerData ? parseSeasonStats(playerData) : [];
-        
+
         const recentMatches = await fetchTeamFixturesWithStats(
-          apiFootballKey, 
-          athlete.team, 
+          apiFootballKey,
+          athlete.team,
           playerId,
           athlete.name,
           'last'
@@ -674,44 +667,56 @@ Deno.serve(async (req) => {
             });
         }
 
-        const upcomingMatches = await fetchTeamFixturesWithStats(
-          apiFootballKey, 
-          athlete.team,
-          playerId,
-          athlete.name,
-          'next'
-        );
-        
-        await supabase
-          .from('athlete_upcoming_matches')
-          .delete()
-          .eq('athlete_id', athlete.id);
+        // Only fetch upcoming if we still have time
+        if (elapsed() < STATS_BUDGET_MS - 5000) {
+          const upcomingMatches = await fetchTeamFixturesWithStats(
+            apiFootballKey,
+            athlete.team,
+            playerId,
+            athlete.name,
+            'next'
+          );
 
-        for (const match of upcomingMatches.slice(0, 5)) {
-          if (match.match_date) {
-            await supabase
-              .from('athlete_upcoming_matches')
-              .insert({
-                athlete_id: athlete.id,
-                match_date: match.match_date,
-                opponent: match.opponent,
-                competition: match.competition,
-                home_away: match.home_away,
-              });
+          await supabase
+            .from('athlete_upcoming_matches')
+            .delete()
+            .eq('athlete_id', athlete.id);
+
+          for (const match of upcomingMatches.slice(0, 5)) {
+            if (match.match_date) {
+              await supabase
+                .from('athlete_upcoming_matches')
+                .insert({
+                  athlete_id: athlete.id,
+                  match_date: match.match_date,
+                  opponent: match.opponent,
+                  competition: match.competition,
+                  home_away: match.home_away,
+                });
+            }
           }
+
+          results.push({
+            athlete: athlete.name,
+            api_football_id: playerId,
+            status: 'success',
+            matches_with_stats: matchesWithStats,
+            total_matches: recentMatches.filter(m => m.status === 'FT').length,
+            upcoming_matches: upcomingMatches.length,
+            season_stats: seasonStats.length,
+          });
+        } else {
+          results.push({
+            athlete: athlete.name,
+            api_football_id: playerId,
+            status: 'success_partial',
+            matches_with_stats: matchesWithStats,
+            total_matches: recentMatches.filter(m => m.status === 'FT').length,
+            season_stats: seasonStats.length,
+          });
         }
 
-        results.push({
-          athlete: athlete.name,
-          api_football_id: playerId,
-          status: 'success',
-          matches_with_stats: matchesWithStats,
-          total_matches: recentMatches.filter(m => m.status === 'FT').length,
-          upcoming_matches: upcomingMatches.length,
-          season_stats: seasonStats.length,
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
       } catch (playerError: any) {
         console.error(`Error processing ${athlete.name}:`, playerError);
@@ -719,24 +724,87 @@ Deno.serve(async (req) => {
       }
     }
 
+    // ============ PHASE 2: Discover IDs for athletes WITHOUT api_football_id ============
+    if (withoutId.length > 0 && elapsed() < DISCOVER_BUDGET_MS) {
+      console.log(`--- PHASE 2: Discovering IDs (${withoutId.length} athletes, ${Math.round((DISCOVER_BUDGET_MS - elapsed())/1000)}s remaining) ---`);
+
+      for (const athlete of withoutId) {
+        if (elapsed() > DISCOVER_BUDGET_MS) {
+          console.log(`Discovery budget exhausted at ${Math.round(elapsed()/1000)}s`);
+          break;
+        }
+
+        try {
+          let playerId: number | null = null;
+
+          const teamId = TEAM_IDS[athlete.team];
+          if (teamId) {
+            playerId = await findPlayerInTeam(teamId, athlete.name, apiFootballKey);
+          }
+
+          if (!playerId) {
+            console.log(`Squad search failed for ${athlete.name}, trying direct name search...`);
+            playerId = await searchPlayerByName(athlete.name, apiFootballKey);
+          }
+
+          if (playerId) {
+            await supabase
+              .from('athlete_profiles')
+              .update({ api_football_id: playerId })
+              .eq('id', athlete.id);
+            console.log(`Discovered & saved API ID ${playerId} for ${athlete.name}`);
+            results.push({ athlete: athlete.name, api_football_id: playerId, status: 'discovered' });
+          } else {
+            console.log(`Not found in API-Football: ${athlete.name}`);
+            results.push({ athlete: athlete.name, status: 'not_found' });
+          }
+
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+        } catch (discoverError: any) {
+          console.error(`Error discovering ${athlete.name}:`, discoverError);
+          results.push({ athlete: athlete.name, status: 'discover_error', error: discoverError?.message });
+        }
+      }
+    } else if (withoutId.length > 0) {
+      console.log(`Skipping discovery phase - no time left (${Math.round(elapsed()/1000)}s elapsed)`);
+    }
+
     // Log the sync
+    const statsProcessed = results.filter(r => r.status === 'success' || r.status === 'success_partial').length;
+    const discovered = results.filter(r => r.status === 'discovered').length;
+    const notFound = results.filter(r => r.status === 'not_found').length;
+
     await supabase.from('sync_logs').insert({
       sync_type: 'football_stats',
       status: 'success',
       details: {
-        athletes_processed: results.length,
-        successful: results.filter(r => r.status === 'success').length,
+        athletes_total: allAthletes?.length || 0,
+        with_id: withId.length,
+        without_id: withoutId.length,
+        stats_processed: statsProcessed,
+        discovered: discovered,
+        not_found: notFound,
+        errors: results.filter(r => r.status === 'error' || r.status === 'discover_error').length,
         auth_method: authResult.reason,
         season: CURRENT_SEASON,
+        elapsed_seconds: Math.round(elapsed() / 1000),
       },
     });
 
-    console.log('Football stats fetch completed');
+    console.log(`Football stats fetch completed in ${Math.round(elapsed()/1000)}s`);
 
     return new Response(JSON.stringify({
       success: true,
       timestamp: new Date().toISOString(),
       api: 'API-Football',
+      elapsed_seconds: Math.round(elapsed() / 1000),
+      summary: {
+        total_athletes: allAthletes?.length || 0,
+        stats_processed: statsProcessed,
+        discovered: discovered,
+        not_found: notFound,
+      },
       results,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -747,6 +815,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: false,
       error: error?.message,
+      elapsed_seconds: Math.round(elapsed() / 1000),
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
