@@ -140,6 +140,47 @@ const TEAM_IDS: Record<string, number> = {
   'Karlsruher SC': 163,
   'Karlsruher': 163,
   'FC Thun': 615,
+  // ASCII aliases for existing teams
+  '1. FC Nurnberg': 162,
+  'Nurnberg': 162,
+  '1.FC Koln': 192,
+  'FC Koln': 192,
+  'Koln': 192,
+  // New teams - March 2026 batch 2
+  'Olympiacos Piraeus': 553,
+  'Olympiacos': 553,
+  'Olympiakos': 553,
+  'FC Midtjylland': 401,
+  'Midtjylland': 401,
+  'KVC Westerlo': 266,
+  'Westerlo': 266,
+  'Oxford United': 1352,
+  'Oxford': 1352,
+  'Eintracht Braunschweig': 191,
+  'Braunschweig': 191,
+  'Heracles Almelo': 202,
+  'Heracles': 202,
+  'FC Utrecht': 209,
+  'Utrecht': 209,
+  '1.FC Heidenheim 1846': 1636,
+  '1.FC Heidenheim': 1636,
+  'Heidenheim': 1636,
+  'Gamba Osaka': 285,
+  'KV Mechelen': 554,
+  'Mechelen': 554,
+  'Zulte Waregem': 557,
+  'Beerschot VA': 556,
+  'Beerschot': 556,
+  'Rapid Vienna': 571,
+  'Al-Nasr SC': 2935,
+  'Al Nasr': 2935,
+  'Al-Jazira Club': 2931,
+  'Al-Jazira': 2931,
+  'Al Jazira': 2931,
+  'FC Orenburg': 1576,
+  'Orenburg': 1576,
+  'Zira FC': 4147,
+  'Zira': 4147,
 };
 
 // Player name mappings for Turkish characters
@@ -193,6 +234,30 @@ const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Eymen Erdoğan': ['Eymen Erdogan', 'Erdoğan', 'Erdogan', 'E. Erdoğan'],
   'Eymen Demir': ['Eymen Demir', 'E. Demir'],
   'Furkan Dursun': ['Furkan Dursun', 'Dursun', 'F. Dursun'],
+  // New athletes - March 2026 batch 2 (23 new)
+  'Yusuf Yazici': ['Yusuf Yazici', 'Yazici', 'Y. Yazici'],
+  'Eren Dinkci': ['Eren Dinkci', 'Dinkci', 'E. Dinkci'],
+  'Aral Simsir': ['Aral Simsir', 'Simsir', 'A. Simsir'],
+  'Dogucan Haspolat': ['Dogucan Haspolat', 'Haspolat', 'D. Haspolat'],
+  'Yunus Konak': ['Yunus Konak', 'Konak', 'Y. Konak', 'Yunus Emre Konak'],
+  'Emin Bayram': ['Emin Bayram', 'Bayram', 'E. Bayram'],
+  'Cenk Ozkacar': ['Cenk Ozkacar', 'Ozkacar', 'C. Ozkacar'],
+  'Enis Destan': ['Enis Destan', 'Destan', 'E. Destan'],
+  'Serdar Saatci': ['Serdar Saatci', 'Saatci', 'S. Saatci'],
+  'Ravil Tagir': ['Ravil Tagir', 'Tagir', 'R. Tagir'],
+  'Eren Yardimci': ['Eren Yardimci', 'Erencan Yardimci', 'Yardimci', 'E. Yardimci'],
+  'Deniz Hummel': ['Deniz Hummel', 'Deniz Hummet', 'Hummel', 'Hummet', 'D. Hummel', 'D. Hummet'],
+  'Kenan Karaman': ['Kenan Karaman', 'Karaman', 'K. Karaman'],
+  'Hasan Kurucay': ['Hasan Kurucay', 'Kurucay', 'H. Kurucay'],
+  'Naci Unuvar': ['Naci Unuvar', 'Unuvar', 'N. Unuvar'],
+  'Emircan Gurluk': ['Emircan Gurluk', 'Feyttullah Gurluk', 'Gurluk', 'E. Gurluk', 'F. Gurluk'],
+  'Mehmet Aydin': ['Mehmet Aydin', 'Aydin', 'M. Aydin'],
+  'Furkan Demir': ['Furkan Demir', 'F. Demir'],
+  'Emirhan Demircan': ['Emirhan Demircan', 'Demircan', 'E. Demircan'],
+  'Kadir Seven': ['Kadir Seven', 'Seven', 'K. Seven'],
+  'Halil Ozdemir': ['Halil Ozdemir', 'Ozdemir', 'H. Ozdemir'],
+  'Eren Aydin': ['Eren Aydin', 'E. Aydin'],
+  'Emre Uzun': ['Emre Uzun', 'Uzun', 'E. Uzun'],
 };
 
 interface ApiFootballResponse {
@@ -536,7 +601,7 @@ Deno.serve(async (req) => {
   const START_TIME = Date.now();
   // Time budgets (milliseconds) - stay well under Supabase's ~150s limit
   const STATS_BUDGET_MS = 80_000;    // 80s for full stats (phase 1)
-  const DISCOVER_BUDGET_MS = 130_000; // stop discovery at 130s (phase 2)
+  // Discovery phase removed in v22 -- only tracked athletes with API IDs are processed
   const HARD_STOP_MS = 140_000;       // absolute stop at 140s, write logs and bail
 
   function elapsed(): number { return Date.now() - START_TIME; }
@@ -577,23 +642,23 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log(`Starting football stats fetch... (season: ${CURRENT_SEASON})`);
+    console.log(`Starting football stats fetch (season: ${CURRENT_SEASON}, v22)`);
 
-    // Fetch all football athletes
-    const { data: allAthletes, error: athletesError } = await supabase
+    // Fetch only tracked football athletes with API IDs
+    const { data: trackedAthletes, error: athletesError } = await supabase
       .from('athlete_profiles')
       .select('id, slug, api_football_id, name, team')
-      .eq('sport', 'football');
+      .eq('sport', 'football')
+      .eq('track_stats', true)
+      .not('api_football_id', 'is', null);
 
     if (athletesError) {
       throw new Error(`Error fetching athletes: ${athletesError.message}`);
     }
 
-    // Split into two groups: those with IDs (full stats) and those without (need discovery)
-    const withId = (allAthletes || []).filter(a => a.api_football_id != null);
-    const withoutId = (allAthletes || []).filter(a => a.api_football_id == null);
+    const withId = trackedAthletes || [];
 
-    console.log(`Total: ${allAthletes?.length || 0} athletes | ${withId.length} with ID | ${withoutId.length} need discovery`);
+    console.log(`Total: ${withId.length} tracked athletes with API IDs`);
 
     const results: any[] = [];
 
@@ -724,69 +789,20 @@ Deno.serve(async (req) => {
       }
     }
 
-    // ============ PHASE 2: Discover IDs for athletes WITHOUT api_football_id ============
-    if (withoutId.length > 0 && elapsed() < DISCOVER_BUDGET_MS) {
-      console.log(`--- PHASE 2: Discovering IDs (${withoutId.length} athletes, ${Math.round((DISCOVER_BUDGET_MS - elapsed())/1000)}s remaining) ---`);
-
-      for (const athlete of withoutId) {
-        if (elapsed() > DISCOVER_BUDGET_MS) {
-          console.log(`Discovery budget exhausted at ${Math.round(elapsed()/1000)}s`);
-          break;
-        }
-
-        try {
-          let playerId: number | null = null;
-
-          const teamId = TEAM_IDS[athlete.team];
-          if (teamId) {
-            playerId = await findPlayerInTeam(teamId, athlete.name, apiFootballKey);
-          }
-
-          if (!playerId) {
-            console.log(`Squad search failed for ${athlete.name}, trying direct name search...`);
-            playerId = await searchPlayerByName(athlete.name, apiFootballKey);
-          }
-
-          if (playerId) {
-            await supabase
-              .from('athlete_profiles')
-              .update({ api_football_id: playerId })
-              .eq('id', athlete.id);
-            console.log(`Discovered & saved API ID ${playerId} for ${athlete.name}`);
-            results.push({ athlete: athlete.name, api_football_id: playerId, status: 'discovered' });
-          } else {
-            console.log(`Not found in API-Football: ${athlete.name}`);
-            results.push({ athlete: athlete.name, status: 'not_found' });
-          }
-
-          await new Promise(resolve => setTimeout(resolve, 200));
-
-        } catch (discoverError: any) {
-          console.error(`Error discovering ${athlete.name}:`, discoverError);
-          results.push({ athlete: athlete.name, status: 'discover_error', error: discoverError?.message });
-        }
-      }
-    } else if (withoutId.length > 0) {
-      console.log(`Skipping discovery phase - no time left (${Math.round(elapsed()/1000)}s elapsed)`);
-    }
+    // Phase 2 (discovery) removed in v22 -- track_stats controls which athletes get processed
 
     // Log the sync
     const statsProcessed = results.filter(r => r.status === 'success' || r.status === 'success_partial').length;
-    const discovered = results.filter(r => r.status === 'discovered').length;
-    const notFound = results.filter(r => r.status === 'not_found').length;
 
     await supabase.from('sync_logs').insert({
       sync_type: 'football_stats',
       status: 'success',
       details: {
-        athletes_total: allAthletes?.length || 0,
-        with_id: withId.length,
-        without_id: withoutId.length,
+        tracked_athletes: withId.length,
         stats_processed: statsProcessed,
-        discovered: discovered,
-        not_found: notFound,
-        errors: results.filter(r => r.status === 'error' || r.status === 'discover_error').length,
+        errors: results.filter(r => r.status === 'error').length,
         auth_method: authResult.reason,
+        version: 'v22',
         season: CURRENT_SEASON,
         elapsed_seconds: Math.round(elapsed() / 1000),
       },
@@ -800,10 +816,8 @@ Deno.serve(async (req) => {
       api: 'API-Football',
       elapsed_seconds: Math.round(elapsed() / 1000),
       summary: {
-        total_athletes: allAthletes?.length || 0,
+        tracked_athletes: withId.length,
         stats_processed: statsProcessed,
-        discovered: discovered,
-        not_found: notFound,
       },
       results,
     }), {

@@ -221,7 +221,7 @@ const StatsPage = () => {
   useEffect(() => {
     const fetchData = async () => {
       const [athletesRes, updatesRes, statsRes] = await Promise.all([
-        supabase.from("athlete_profiles").select("*").order("name"),
+        supabase.from("athlete_profiles").select("*").eq("show_on_site", true).order("name"),
         supabase.from("athlete_daily_updates").select("*").order("date", { ascending: false }),
         supabase.from("athlete_season_stats").select("*").ilike("season", "%24%")
       ]);
