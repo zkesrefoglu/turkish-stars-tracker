@@ -97,6 +97,49 @@ const TEAM_IDS: Record<string, number> = {
   'AC Pisa': 520,
   'Torino': 503,
   'Torino FC': 503,
+  // New teams - March 2026
+  'TSG 1899 Hoffenheim': 167,
+  'Hoffenheim': 167,
+  'TSG Hoffenheim': 167,
+  'NEC Nijmegen': 413,
+  'NEC': 413,
+  '1. FC Nürnberg': 162,
+  'Nürnberg': 162,
+  'FC Nürnberg': 162,
+  'SC Braga': 217,
+  'Braga': 217,
+  '1.FC Union Berlin': 182,
+  'Union Berlin': 182,
+  'FC Union Berlin': 182,
+  'FC Schalke 04': 174,
+  'Schalke 04': 174,
+  'Schalke': 174,
+  'FC Augsburg': 170,
+  'Augsburg': 170,
+  'Arminia Bielefeld': 188,
+  'Bielefeld': 188,
+  'SK Rapid Wien': 571,
+  'Rapid Wien': 571,
+  'Hannover 96': 180,
+  'Hannover': 180,
+  'Olympique Lyon': 80,
+  'Lyon': 80,
+  'VfL Wolfsburg': 161,
+  'Wolfsburg': 161,
+  'PSV Eindhoven': 148,
+  'PSV': 148,
+  'Ajax Amsterdam': 194,
+  'Ajax': 194,
+  'Bayer 04 Leverkusen': 168,
+  'Leverkusen': 168,
+  '1.FC Köln': 192,
+  'FC Köln': 192,
+  'Köln': 192,
+  '1.FC Kaiserslautern': 164,
+  'Kaiserslautern': 164,
+  'Karlsruher SC': 163,
+  'Karlsruher': 163,
+  'FC Thun': 615,
 };
 
 // Player name mappings for Turkish characters
@@ -124,6 +167,32 @@ const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Deniz Gül': ['Deniz Gul', 'Gül', 'Gul', 'D. Gül'],
   'Emirhan İlkhan': ['Emirhan Ilkhan', 'İlkhan', 'Ilkhan', 'E. İlkhan', 'E. Ilkhan'],
   'Emirhan Ilkhan': ['Emirhan İlkhan', 'İlkhan', 'Ilkhan', 'E. İlkhan', 'E. Ilkhan'],
+  // New athletes - March 2026
+  'Ozan Kabak': ['Ozan Kabak', 'Kabak', 'O. Kabak'],
+  'Ahmetcan Kaplan': ['Ahmetcan Kaplan', 'Kaplan', 'A. Kaplan'],
+  'Berkay Yılmaz': ['Berkay Yilmaz', 'Yılmaz', 'Yilmaz', 'B. Yılmaz'],
+  'Demir Ege Tıknaz': ['Demir Ege Tiknaz', 'Tıknaz', 'Tiknaz', 'D. Tıknaz', 'Ege Tıknaz', 'Ege Tiknaz'],
+  'Livan Burcu': ['Livan Burcu', 'Burcu', 'L. Burcu'],
+  'Mertcan Ayhan': ['Mertcan Ayhan', 'Ayhan', 'M. Ayhan'],
+  'Başar Önal': ['Basar Onal', 'Önal', 'Onal', 'B. Önal'],
+  'Mert Kömür': ['Mert Komur', 'Kömür', 'Komur', 'M. Kömür'],
+  'Taylan Bulut': ['Taylan Bulut', 'Bulut', 'T. Bulut'],
+  'Deniz Ofli': ['Deniz Ofli', 'Ofli', 'D. Ofli'],
+  'Eyyüb Yaşar': ['Eyyub Yasar', 'Yaşar', 'Yasar', 'E. Yaşar'],
+  'Emirhan Altundağ': ['Emirhan Altundag', 'Altundağ', 'Altundag', 'E. Altundağ'],
+  'Haktan Şener': ['Haktan Sener', 'Şener', 'Sener', 'H. Şener'],
+  'Darwin Soylu': ['Darwin Soylu', 'Soylu', 'D. Soylu'],
+  'Metin Şen': ['Metin Sen', 'Şen', 'Sen', 'M. Şen'],
+  'Hasan Bulut': ['Hasan Bulut', 'H. Bulut'],
+  'Emre Can Duran': ['Emre Can Duran', 'Duran', 'E. Duran'],
+  'Hasan Ayyıldız': ['Hasan Ayyildiz', 'Ayyıldız', 'Ayyildiz', 'H. Ayyıldız'],
+  'Burak Kır': ['Burak Kir', 'Kır', 'Kir', 'B. Kır'],
+  'Thierry Karadeniz': ['Thierry Karadeniz', 'Karadeniz', 'T. Karadeniz'],
+  'Yüksel Küçük': ['Yuksel Kucuk', 'Küçük', 'Kucuk', 'Y. Küçük'],
+  'Halil Koç': ['Halil Koc', 'Koç', 'Koc', 'H. Koç'],
+  'Eymen Erdoğan': ['Eymen Erdogan', 'Erdoğan', 'Erdogan', 'E. Erdoğan'],
+  'Eymen Demir': ['Eymen Demir', 'E. Demir'],
+  'Furkan Dursun': ['Furkan Dursun', 'Dursun', 'F. Dursun'],
 };
 
 interface ApiFootballResponse {
@@ -523,16 +592,22 @@ Deno.serve(async (req) => {
           const teamId = TEAM_IDS[athlete.team];
           if (teamId) {
             playerId = await findPlayerInTeam(teamId, athlete.name, apiFootballKey);
-            
-            if (playerId) {
-              await supabase
-                .from('athlete_profiles')
-                .update({ api_football_id: playerId })
-                .eq('id', athlete.id);
-              console.log(`Saved API ID ${playerId} for ${athlete.name}`);
-            }
           }
-          
+
+          // Fallback: search by name directly if team wasn't mapped or squad search failed
+          if (!playerId) {
+            console.log(`Team not in TEAM_IDS or squad search failed for ${athlete.name}, trying direct name search...`);
+            playerId = await searchPlayerByName(athlete.name, apiFootballKey);
+          }
+
+          if (playerId) {
+            await supabase
+              .from('athlete_profiles')
+              .update({ api_football_id: playerId })
+              .eq('id', athlete.id);
+            console.log(`Saved API ID ${playerId} for ${athlete.name}`);
+          }
+
           if (!playerId) {
             results.push({ athlete: athlete.name, status: 'not_found' });
             continue;
