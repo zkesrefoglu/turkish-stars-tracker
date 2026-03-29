@@ -24,7 +24,7 @@ const LEAGUE_IDS: Record<string, number> = {
   '1ste Nationale VV':      506,   // Belgium D3
   'Super Lig':              203,   // Turkey
   'Liga Portugal':           94,   // Portugal
-  'Superliga':              120,   // Denmark
+  'Superliga':              119,   // Denmark
   'Super League 1':         197,   // Greece
   'Swiss Super League':     207,   // Switzerland
   'Saudi Pro League':       307,   // Saudi Arabia
