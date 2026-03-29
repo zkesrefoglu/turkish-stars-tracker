@@ -46,32 +46,23 @@ interface LeagueStandingsTableProps {
   highlightTeam?: string;
 }
 
-// Helper to get compact view indices (team + 2 above + 2 below)
+// Display-friendly league names
+const LEAGUE_DISPLAY_NAMES: Record<string, string> = {
+  'EPL': 'Premier League',
+  'Russian Premier League': 'Russian Premier League',
+  'J1 100 Year Vision League': 'J1 League',
+};
+
+const getLeagueDisplayName = (league: string) => LEAGUE_DISPLAY_NAMES[league] || league;
+
+// Show top 4 + athlete's team in 5th slot (or just top 5 if team is already there)
 const getCompactIndices = (teamIndex: number, totalLength: number): number[] => {
-  const indices: number[] = [];
-  const radius = 2; // Show 2 teams above and below
-  
-  for (let i = teamIndex - radius; i <= teamIndex + radius; i++) {
-    if (i >= 0 && i < totalLength) {
-      indices.push(i);
-    }
+  if (teamIndex < 5) {
+    // Team is in the top 5 — just show top 5
+    return Array.from({ length: Math.min(5, totalLength) }, (_, i) => i);
   }
-  
-  // Ensure we have at least 5 teams if possible
-  while (indices.length < 5 && indices.length < totalLength) {
-    const firstIdx = indices[0];
-    const lastIdx = indices[indices.length - 1];
-    
-    if (firstIdx > 0) {
-      indices.unshift(firstIdx - 1);
-    } else if (lastIdx < totalLength - 1) {
-      indices.push(lastIdx + 1);
-    } else {
-      break;
-    }
-  }
-  
-  return indices;
+  // Top 4 + the athlete's team
+  return [0, 1, 2, 3, teamIndex];
 };
 
 export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueStandingsTableProps) => {
@@ -118,7 +109,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
       <Card className="p-4 bg-card border-border">
         <div className="flex items-center gap-2 mb-4">
           <Trophy className="w-5 h-5 text-accent" />
-          <h3 className="font-semibold text-foreground">{league} Standings</h3>
+          <h3 className="font-semibold text-foreground">{getLeagueDisplayName(league)} Standings</h3>
         </div>
         <div className="space-y-2">
           {[...Array(5)].map((_, i) => (
@@ -134,7 +125,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
       <Card className="p-4 bg-card border-border">
         <div className="flex items-center gap-2 mb-4">
           <Trophy className="w-5 h-5 text-accent" />
-          <h3 className="font-semibold text-foreground">{league} Standings</h3>
+          <h3 className="font-semibold text-foreground">{getLeagueDisplayName(league)} Standings</h3>
         </div>
         <p className="text-sm text-muted-foreground">Unable to load standings</p>
       </Card>
@@ -291,7 +282,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Trophy className="w-5 h-5 text-accent" />
-            <h3 className="font-semibold text-foreground">{league}</h3>
+            <h3 className="font-semibold text-foreground">{getLeagueDisplayName(league)}</h3>
           </div>
           {highlightedTeamIndex !== -1 && (
             <div className="text-sm text-muted-foreground">
@@ -317,14 +308,24 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
               </TableRow>
             </TableHeader>
             <TableBody>
-              {teamsToShow.map((team) => {
+              {teamsToShow.map((team, idx) => {
                 const isHighlighted = highlightTeam && team.teamName.toLowerCase().includes(highlightTeam.toLowerCase());
                 const isChampionsLeague = team.rank <= 4;
                 const isEuropaLeague = team.rank === 5 || team.rank === 6;
                 const isRelegation = team.rank > footballStandings.length - 3;
-                
+                const prevTeam = idx > 0 ? teamsToShow[idx - 1] : null;
+                const hasGap = prevTeam && team.rank - prevTeam.rank > 1;
+
                 return (
-                  <TableRow 
+                  <>
+                  {hasGap && !expanded && (
+                    <TableRow key={`gap-${team.teamId}`} className="border-border hover:bg-transparent">
+                      <TableCell colSpan={9} className="py-1 text-center">
+                        <span className="text-[10px] text-muted-foreground tracking-widest">...</span>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  <TableRow
                     key={team.teamId}
                     className={`border-border transition-colors ${
                       isHighlighted ? 'bg-accent/10 hover:bg-accent/15' : 'hover:bg-muted/50'
@@ -389,12 +390,13 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
                       </div>
                     </TableCell>
                   </TableRow>
+                  </>
                 );
               })}
             </TableBody>
           </Table>
         </div>
-        
+
         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
           <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
             <span className="flex items-center gap-1">
