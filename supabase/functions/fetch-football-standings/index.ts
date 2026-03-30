@@ -28,13 +28,12 @@ const LEAGUE_IDS: Record<string, number> = {
   'Super League 1':         197,   // Greece
   'Swiss Super League':     207,   // Switzerland
   'Saudi Pro League':       307,   // Saudi Arabia
-  'UAE Pro League':         218,   // UAE
-  'Russian Premier League': 384,   // Russia
-  'Premyer Liqa':           235,   // Azerbaijan
+  'UAE Pro League':         301,   // UAE
+  'Russian Premier League': 235,   // Russia (confirmed 235 returns RPL teams)
+  'Premyer Liqa':           419,   // Azerbaijan
   'J1 100 Year Vision League': 98, // Japan (J1 League)
-  '2. Liga':                 14,   // Austria
-  // Austria Bundesliga — needs special key to avoid clash with Germany
-  'Austrian Bundesliga':     13,   // Austria (alias handled below)
+  '2. Liga':                219,   // Austria (was 14, confirmed 219)
+  'Austrian Bundesliga':    218,   // Austria (was 13, confirmed 218)
 
   // Youth / regional — may or may not have standings
   'Championnat National U19': 529, // France U19

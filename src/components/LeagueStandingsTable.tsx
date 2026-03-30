@@ -55,6 +55,18 @@ const LEAGUE_DISPLAY_NAMES: Record<string, string> = {
 
 const getLeagueDisplayName = (league: string) => LEAGUE_DISPLAY_NAMES[league] || league;
 
+// Normalize team name for fuzzy matching: strip non-alphanumeric, lowercase
+// "1.FC Heidenheim 1846" → "1fcheidenheim1846", "1. FC Heidenheim" → "1fcheidenheim"
+const normalizeTeamName = (name: string): string =>
+  name.toLowerCase().replace(/[^a-z0-9]/g, '');
+
+// Check if two team names match (either contains the other after normalization)
+const teamNameMatches = (apiName: string, dbName: string): boolean => {
+  const a = normalizeTeamName(apiName);
+  const b = normalizeTeamName(dbName);
+  return a.includes(b) || b.includes(a);
+};
+
 // Show top 4 + athlete's team in 5th slot (or just top 5 if team is already there)
 const getCompactIndices = (teamIndex: number, totalLength: number): number[] => {
   if (teamIndex < 5) {
@@ -134,8 +146,8 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
 
   // NBA Standings
   if (sport === 'basketball' && nbaStandings.length > 0) {
-    const highlightedTeamIndex = nbaStandings.findIndex(t => 
-      highlightTeam && t.name.toLowerCase().includes(highlightTeam.toLowerCase())
+    const highlightedTeamIndex = nbaStandings.findIndex(t =>
+      highlightTeam && teamNameMatches(t.name, highlightTeam)
     );
     
     const compactIndices = highlightedTeamIndex !== -1 
@@ -178,7 +190,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
             <TableBody>
               {teamsToShow.map((team) => {
                 const originalIndex = nbaStandings.findIndex(t => t.teamId === team.teamId);
-                const isHighlighted = highlightTeam && team.name.toLowerCase().includes(highlightTeam.toLowerCase());
+                const isHighlighted = highlightTeam && teamNameMatches(team.name, highlightTeam);
                 const isPlayoffSpot = originalIndex < 6;
                 const isPlayInSpot = originalIndex >= 6 && originalIndex < 10;
                 
@@ -265,8 +277,8 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
 
   // Football Standings
   if (sport === 'football' && footballStandings.length > 0) {
-    const highlightedTeamIndex = footballStandings.findIndex(t => 
-      highlightTeam && t.teamName.toLowerCase().includes(highlightTeam.toLowerCase())
+    const highlightedTeamIndex = footballStandings.findIndex(t =>
+      highlightTeam && teamNameMatches(t.teamName, highlightTeam)
     );
     
     const compactIndices = highlightedTeamIndex !== -1 
@@ -309,7 +321,7 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
             </TableHeader>
             <TableBody>
               {teamsToShow.map((team, idx) => {
-                const isHighlighted = highlightTeam && team.teamName.toLowerCase().includes(highlightTeam.toLowerCase());
+                const isHighlighted = highlightTeam && teamNameMatches(team.teamName, highlightTeam);
                 const isChampionsLeague = team.rank <= 4;
                 const isEuropaLeague = team.rank === 5 || team.rank === 6;
                 const isRelegation = team.rank > footballStandings.length - 3;
