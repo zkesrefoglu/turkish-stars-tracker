@@ -391,7 +391,7 @@ const TurkishStars = () => {
   useEffect(() => {
     const fetchData = async () => {
       const [athletesRes, updatesRes, matchesRes, statsRes] = await Promise.all([
-        supabase.from("athlete_profiles").select("*").order("name"),
+        supabase.from("athlete_profiles").select("*").eq("show_on_site", true).order("name"),
         supabase.from("athlete_daily_updates").select("*").order("date", { ascending: false }),
         supabase.from("athlete_upcoming_matches").select("*").order("match_date"),
         supabase.from("athlete_season_stats").select("*").or("season.ilike.%24%,season.ilike.%25%") // 2024-25 and 2025-26 seasons

@@ -903,7 +903,13 @@ const LiveHub = () => {
         supabase.from('athlete_daily_updates').select('*').order('date', { ascending: false }).limit(50),
         supabase.from('athlete_transfer_rumors').select('*').eq('status', 'active').order('rumor_date', { ascending: false }).limit(10),
         supabase.from('athlete_news').select('*').order('published_at', { ascending: false, nullsFirst: false }).limit(10),
-        supabase.from('athlete_season_stats').select('*').ilike('season', '%24%') // Get 2024-25 season
+        // Dynamic season filter: current year - 1 covers both football (Aug-May) and NBA (Oct-Jun)
+        (() => {
+          const yr = new Date().getFullYear();
+          const key = (yr - 1).toString().slice(-2); // e.g. "25" in 2026
+          return supabase.from('athlete_season_stats').select('*')
+            .or(`season.ilike.%${key}%,season.ilike.%${yr}%`);
+        })()
       ]);
 
       if (athletesRes.data) setAthletes(athletesRes.data);
@@ -944,9 +950,17 @@ const LiveHub = () => {
     return isToday(matchDate) || isTomorrow(matchDate);
   });
 
-  const recentPerformances = dailyUpdates
-    .filter(u => u.played && u.stats && Object.keys(u.stats).length > 0)
-    .slice(0, 5);
+  const recentPerformances = (() => {
+    const seen = new Set<string>();
+    return dailyUpdates
+      .filter(u => u.played && u.stats && Object.keys(u.stats).length > 0)
+      .filter(u => {
+        if (seen.has(u.athlete_id)) return false;
+        seen.add(u.athlete_id);
+        return true;
+      })
+      .slice(0, 5);
+  })();
 
   const injuryAlerts = dailyUpdates
     .filter(u => u.injury_status && u.injury_status !== 'healthy')

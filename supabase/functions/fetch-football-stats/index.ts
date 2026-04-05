@@ -1,13 +1,66 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { validateAuth, checkCooldown } from '../_shared/auth.ts';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-webhook-secret',
 };
 
+// ---- Inlined auth (cross-directory imports fail in Supabase edge function deployment) ----
+async function validateAuth(req: Request): Promise<{ authorized: boolean; reason: string; userId?: string }> {
+  const webhookSecret = Deno.env.get('STATS_WEBHOOK_SECRET');
+  const providedSecret = req.headers.get('x-webhook-secret');
+  const authHeader = req.headers.get('authorization');
+  if (providedSecret) {
+    if (!webhookSecret) return { authorized: false, reason: 'STATS_WEBHOOK_SECRET not configured' };
+    if (providedSecret === webhookSecret) return { authorized: true, reason: 'webhook_secret' };
+    return { authorized: false, reason: 'Invalid webhook secret' };
+  }
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    const token = authHeader.replace('Bearer ', '');
+    if (token.length < 100 || token === 'fake' || token === 'test') return { authorized: false, reason: 'Invalid token format' };
+    try {
+      const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+      const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY')!;
+      const supabase = createClient(supabaseUrl, supabaseAnonKey, { global: { headers: { Authorization: `Bearer ${token}` } } });
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      if (userError || !user) return { authorized: false, reason: 'Invalid or expired token' };
+      const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+      const adminClient = createClient(supabaseUrl, serviceRoleKey);
+      const { data: roleData } = await adminClient.from('user_roles').select('role').eq('user_id', user.id).eq('role', 'admin').maybeSingle();
+      if (!roleData) return { authorized: false, reason: 'User is not an admin', userId: user.id };
+      return { authorized: true, reason: 'admin_user', userId: user.id };
+    } catch (_) { return { authorized: false, reason: 'Auth validation error' }; }
+  }
+  return { authorized: false, reason: 'Missing authentication' };
+}
+
+async function checkCooldown(syncType: string, cooldownSeconds: number): Promise<{ canRun: boolean; lastRun?: Date; waitSeconds?: number }> {
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+  const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+  const supabase = createClient(supabaseUrl, serviceRoleKey);
+  const { data, error } = await supabase.from('sync_logs').select('synced_at').eq('sync_type', syncType).eq('status', 'success').order('synced_at', { ascending: false }).limit(1).maybeSingle();
+  if (error) return { canRun: true };
+  if (!data) return { canRun: true };
+  const lastRun = new Date(data.synced_at);
+  const elapsedSeconds = (Date.now() - lastRun.getTime()) / 1000;
+  if (elapsedSeconds < cooldownSeconds) return { canRun: false, lastRun, waitSeconds: Math.ceil(cooldownSeconds - elapsedSeconds) };
+  return { canRun: true, lastRun };
+}
+// ---- End inlined auth ----
+
 const API_FOOTBALL_BASE = 'https://v3.football.api-sports.io';
-const CURRENT_SEASON = 2024;
+
+// Auto-detect season: European football seasons span Aug-May
+// If we're in Aug+ of year Y, the season is Y (i.e. Y/Y+1)
+// If we're in Jan-Jul of year Y, the season is Y-1 (i.e. Y-1/Y)
+function getCurrentSeason(): number {
+  const now = new Date();
+  const month = now.getMonth() + 1; // 1-indexed
+  const year = now.getFullYear();
+  return month >= 8 ? year : year - 1;
+}
+
+const CURRENT_SEASON = getCurrentSeason();
 
 // Team IDs
 const TEAM_IDS: Record<string, number> = {
@@ -21,6 +74,7 @@ const TEAM_IDS: Record<string, number> = {
   'Inter Milan': 505,
   'Inter': 505,
   'Cagliari': 490,
+  'Cagliari Calcio': 490,
   'Bournemouth': 35,
   'AS Roma': 497,
   'Al-Ahli': 2932,
@@ -43,6 +97,90 @@ const TEAM_IDS: Record<string, number> = {
   'AC Pisa': 520,
   'Torino': 503,
   'Torino FC': 503,
+  // New teams - March 2026
+  'TSG 1899 Hoffenheim': 167,
+  'Hoffenheim': 167,
+  'TSG Hoffenheim': 167,
+  'NEC Nijmegen': 413,
+  'NEC': 413,
+  '1. FC Nürnberg': 162,
+  'Nürnberg': 162,
+  'FC Nürnberg': 162,
+  'SC Braga': 217,
+  'Braga': 217,
+  '1.FC Union Berlin': 182,
+  'Union Berlin': 182,
+  'FC Union Berlin': 182,
+  'FC Schalke 04': 174,
+  'Schalke 04': 174,
+  'Schalke': 174,
+  'FC Augsburg': 170,
+  'Augsburg': 170,
+  'Arminia Bielefeld': 188,
+  'Bielefeld': 188,
+  'SK Rapid Wien': 781,
+  'Rapid Wien': 781,
+  'Hannover 96': 180,
+  'Hannover': 180,
+  'Olympique Lyon': 80,
+  'Lyon': 80,
+  'VfL Wolfsburg': 161,
+  'Wolfsburg': 161,
+  'PSV Eindhoven': 197,
+  'PSV': 197,
+  'Ajax Amsterdam': 194,
+  'Ajax': 194,
+  'Bayer 04 Leverkusen': 168,
+  'Leverkusen': 168,
+  '1.FC Köln': 192,
+  'FC Köln': 192,
+  'Köln': 192,
+  '1.FC Kaiserslautern': 745,
+  'Kaiserslautern': 745,
+  'Karlsruher SC': 785,
+  'Karlsruher': 785,
+  'FC Thun': 615,
+  // ASCII aliases for existing teams
+  '1. FC Nurnberg': 162,
+  'Nurnberg': 162,
+  '1.FC Koln': 192,
+  'FC Koln': 192,
+  'Koln': 192,
+  // New teams - March 2026 batch 2 (IDs verified against API)
+  'Olympiacos Piraeus': 553,
+  'Olympiacos': 553,
+  'Olympiakos': 553,
+  'FC Midtjylland': 397,
+  'Midtjylland': 397,
+  'KVC Westerlo': 261,
+  'Westerlo': 261,
+  'Oxford United': 1338,
+  'Oxford': 1338,
+  'Eintracht Braunschweig': 744,
+  'Braunschweig': 744,
+  'Heracles Almelo': 206,
+  'Heracles': 206,
+  'FC Utrecht': 207,
+  'Utrecht': 207,
+  '1.FC Heidenheim 1846': 180,
+  '1.FC Heidenheim': 180,
+  'Heidenheim': 180,
+  'Gamba Osaka': 293,
+  'KV Mechelen': 266,
+  'Mechelen': 266,
+  'Zulte Waregem': 600,
+  'Beerschot VA': 263,
+  'Beerschot': 263,
+  'Rapid Vienna': 781,
+  'Al-Nasr SC': 10155,
+  'Al Nasr': 10155,
+  'Al-Jazira Club': 2871,
+  'Al-Jazira': 2871,
+  'Al Jazira': 2871,
+  'FC Orenburg': 1080,
+  'Orenburg': 1080,
+  'Zira FC': 648,
+  'Zira': 648,
 };
 
 // Player name mappings for Turkish characters
@@ -70,6 +208,56 @@ const PLAYER_NAME_VARIANTS: Record<string, string[]> = {
   'Deniz Gül': ['Deniz Gul', 'Gül', 'Gul', 'D. Gül'],
   'Emirhan İlkhan': ['Emirhan Ilkhan', 'İlkhan', 'Ilkhan', 'E. İlkhan', 'E. Ilkhan'],
   'Emirhan Ilkhan': ['Emirhan İlkhan', 'İlkhan', 'Ilkhan', 'E. İlkhan', 'E. Ilkhan'],
+  // New athletes - March 2026
+  'Ozan Kabak': ['Ozan Kabak', 'Kabak', 'O. Kabak'],
+  'Ahmetcan Kaplan': ['Ahmetcan Kaplan', 'Kaplan', 'A. Kaplan'],
+  'Berkay Yılmaz': ['Berkay Yilmaz', 'Yılmaz', 'Yilmaz', 'B. Yılmaz'],
+  'Demir Ege Tıknaz': ['Demir Ege Tiknaz', 'Tıknaz', 'Tiknaz', 'D. Tıknaz', 'Ege Tıknaz', 'Ege Tiknaz'],
+  'Livan Burcu': ['Livan Burcu', 'Burcu', 'L. Burcu'],
+  'Mertcan Ayhan': ['Mertcan Ayhan', 'Ayhan', 'M. Ayhan'],
+  'Başar Önal': ['Basar Onal', 'Önal', 'Onal', 'B. Önal'],
+  'Mert Kömür': ['Mert Komur', 'Kömür', 'Komur', 'M. Kömür'],
+  'Taylan Bulut': ['Taylan Bulut', 'Bulut', 'T. Bulut'],
+  'Deniz Ofli': ['Deniz Ofli', 'Ofli', 'D. Ofli'],
+  'Eyyüb Yaşar': ['Eyyub Yasar', 'Yaşar', 'Yasar', 'E. Yaşar'],
+  'Emirhan Altundağ': ['Emirhan Altundag', 'Altundağ', 'Altundag', 'E. Altundağ'],
+  'Haktan Şener': ['Haktan Sener', 'Şener', 'Sener', 'H. Şener'],
+  'Darwin Soylu': ['Darwin Soylu', 'Soylu', 'D. Soylu'],
+  'Metin Şen': ['Metin Sen', 'Şen', 'Sen', 'M. Şen'],
+  'Hasan Bulut': ['Hasan Bulut', 'H. Bulut'],
+  'Emre Can Duran': ['Emre Can Duran', 'Duran', 'E. Duran'],
+  'Hasan Ayyıldız': ['Hasan Ayyildiz', 'Ayyıldız', 'Ayyildiz', 'H. Ayyıldız'],
+  'Burak Kır': ['Burak Kir', 'Kır', 'Kir', 'B. Kır'],
+  'Thierry Karadeniz': ['Thierry Karadeniz', 'Karadeniz', 'T. Karadeniz'],
+  'Yüksel Küçük': ['Yuksel Kucuk', 'Küçük', 'Kucuk', 'Y. Küçük'],
+  'Halil Koç': ['Halil Koc', 'Koç', 'Koc', 'H. Koç'],
+  'Eymen Erdoğan': ['Eymen Erdogan', 'Erdoğan', 'Erdogan', 'E. Erdoğan'],
+  'Eymen Demir': ['Eymen Demir', 'E. Demir'],
+  'Furkan Dursun': ['Furkan Dursun', 'Dursun', 'F. Dursun'],
+  // New athletes - March 2026 batch 2 (23 new)
+  'Yusuf Yazici': ['Yusuf Yazici', 'Yazici', 'Y. Yazici'],
+  'Eren Dinkci': ['Eren Dinkci', 'Dinkci', 'E. Dinkci'],
+  'Aral Simsir': ['Aral Simsir', 'Simsir', 'A. Simsir'],
+  'Dogucan Haspolat': ['Dogucan Haspolat', 'Haspolat', 'D. Haspolat'],
+  'Yunus Konak': ['Yunus Konak', 'Konak', 'Y. Konak', 'Yunus Emre Konak'],
+  'Emin Bayram': ['Emin Bayram', 'Bayram', 'E. Bayram'],
+  'Cenk Ozkacar': ['Cenk Ozkacar', 'Ozkacar', 'C. Ozkacar'],
+  'Enis Destan': ['Enis Destan', 'Destan', 'E. Destan'],
+  'Serdar Saatci': ['Serdar Saatci', 'Saatci', 'S. Saatci'],
+  'Ravil Tagir': ['Ravil Tagir', 'Tagir', 'R. Tagir'],
+  'Eren Yardimci': ['Eren Yardimci', 'Erencan Yardimci', 'Yardimci', 'E. Yardimci'],
+  'Deniz Hummel': ['Deniz Hummel', 'Deniz Hummet', 'Hummel', 'Hummet', 'D. Hummel', 'D. Hummet'],
+  'Kenan Karaman': ['Kenan Karaman', 'Karaman', 'K. Karaman'],
+  'Hasan Kurucay': ['Hasan Kurucay', 'Kurucay', 'H. Kurucay'],
+  'Naci Unuvar': ['Naci Unuvar', 'Unuvar', 'N. Unuvar'],
+  'Emircan Gurluk': ['Emircan Gurluk', 'Feyttullah Gurluk', 'Gurluk', 'E. Gurluk', 'F. Gurluk'],
+  'Mehmet Aydin': ['Mehmet Aydin', 'Aydin', 'M. Aydin'],
+  'Furkan Demir': ['Furkan Demir', 'F. Demir'],
+  'Emirhan Demircan': ['Emirhan Demircan', 'Demircan', 'E. Demircan'],
+  'Kadir Seven': ['Kadir Seven', 'Seven', 'K. Seven'],
+  'Halil Ozdemir': ['Halil Ozdemir', 'Ozdemir', 'H. Ozdemir'],
+  'Eren Aydin': ['Eren Aydin', 'E. Aydin'],
+  'Emre Uzun': ['Emre Uzun', 'Uzun', 'E. Uzun'],
 };
 
 interface ApiFootballResponse {
@@ -410,6 +598,14 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  const START_TIME = Date.now();
+  // Time budgets (milliseconds) - stay well under Supabase's ~150s limit
+  const STATS_BUDGET_MS = 80_000;    // 80s for full stats (phase 1)
+  // Discovery phase removed in v22 -- only tracked athletes with API IDs are processed
+  const HARD_STOP_MS = 140_000;       // absolute stop at 140s, write logs and bail
+
+  function elapsed(): number { return Date.now() - START_TIME; }
+
   try {
     // Validate authorization
     const authResult = await validateAuth(req);
@@ -439,64 +635,55 @@ Deno.serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const apiFootballKey = Deno.env.get('API_FOOTBALL_KEY');
-    
+
     if (!apiFootballKey) {
       throw new Error('API_FOOTBALL_KEY not configured');
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey);
 
-    console.log('Starting football stats fetch...');
+    console.log(`Starting football stats fetch (season: ${CURRENT_SEASON}, v22)`);
 
-    const { data: athletes, error: athletesError } = await supabase
+    // Fetch only tracked football athletes with API IDs
+    const { data: trackedAthletes, error: athletesError } = await supabase
       .from('athlete_profiles')
       .select('id, slug, api_football_id, name, team')
-      .eq('sport', 'football');
+      .eq('sport', 'football')
+      .eq('track_stats', true)
+      .not('api_football_id', 'is', null);
 
     if (athletesError) {
       throw new Error(`Error fetching athletes: ${athletesError.message}`);
     }
 
-    console.log(`Found ${athletes?.length || 0} football athletes`);
+    const withId = trackedAthletes || [];
+
+    console.log(`Total: ${withId.length} tracked athletes with API IDs`);
 
     const results: any[] = [];
 
-    for (const athlete of athletes || []) {
-      try {
-        let playerId = athlete.api_football_id;
-        
-        if (!playerId) {
-          const teamId = TEAM_IDS[athlete.team];
-          if (teamId) {
-            playerId = await findPlayerInTeam(teamId, athlete.name, apiFootballKey);
-            
-            if (playerId) {
-              await supabase
-                .from('athlete_profiles')
-                .update({ api_football_id: playerId })
-                .eq('id', athlete.id);
-              console.log(`Saved API ID ${playerId} for ${athlete.name}`);
-            }
-          }
-          
-          if (!playerId) {
-            results.push({ athlete: athlete.name, status: 'not_found' });
-            continue;
-          }
-        }
+    // ============ PHASE 1: Full stats for athletes WITH api_football_id ============
+    console.log('--- PHASE 1: Full stats ---');
+    for (const athlete of withId) {
+      if (elapsed() > STATS_BUDGET_MS) {
+        console.log(`Stats budget exhausted at ${Math.round(elapsed()/1000)}s, processed ${results.length} athletes`);
+        break;
+      }
 
+      try {
+        const playerId = athlete.api_football_id;
         console.log(`Processing ${athlete.name} (ID: ${playerId})...`);
-        
+
         const playerData = await fetchApiFootball(
           `/players?id=${playerId}&season=${CURRENT_SEASON}`,
           apiFootballKey
         );
-        
+
         const seasonStats = playerData ? parseSeasonStats(playerData) : [];
-        
+
         const recentMatches = await fetchTeamFixturesWithStats(
-          apiFootballKey, 
-          athlete.team, 
+          apiFootballKey,
+          athlete.team,
           playerId,
           athlete.name,
           'last'
@@ -545,44 +732,56 @@ Deno.serve(async (req) => {
             });
         }
 
-        const upcomingMatches = await fetchTeamFixturesWithStats(
-          apiFootballKey, 
-          athlete.team,
-          playerId,
-          athlete.name,
-          'next'
-        );
-        
-        await supabase
-          .from('athlete_upcoming_matches')
-          .delete()
-          .eq('athlete_id', athlete.id);
+        // Only fetch upcoming if we still have time
+        if (elapsed() < STATS_BUDGET_MS - 5000) {
+          const upcomingMatches = await fetchTeamFixturesWithStats(
+            apiFootballKey,
+            athlete.team,
+            playerId,
+            athlete.name,
+            'next'
+          );
 
-        for (const match of upcomingMatches.slice(0, 5)) {
-          if (match.match_date) {
-            await supabase
-              .from('athlete_upcoming_matches')
-              .insert({
-                athlete_id: athlete.id,
-                match_date: match.match_date,
-                opponent: match.opponent,
-                competition: match.competition,
-                home_away: match.home_away,
-              });
+          await supabase
+            .from('athlete_upcoming_matches')
+            .delete()
+            .eq('athlete_id', athlete.id);
+
+          for (const match of upcomingMatches.slice(0, 5)) {
+            if (match.match_date) {
+              await supabase
+                .from('athlete_upcoming_matches')
+                .insert({
+                  athlete_id: athlete.id,
+                  match_date: match.match_date,
+                  opponent: match.opponent,
+                  competition: match.competition,
+                  home_away: match.home_away,
+                });
+            }
           }
+
+          results.push({
+            athlete: athlete.name,
+            api_football_id: playerId,
+            status: 'success',
+            matches_with_stats: matchesWithStats,
+            total_matches: recentMatches.filter(m => m.status === 'FT').length,
+            upcoming_matches: upcomingMatches.length,
+            season_stats: seasonStats.length,
+          });
+        } else {
+          results.push({
+            athlete: athlete.name,
+            api_football_id: playerId,
+            status: 'success_partial',
+            matches_with_stats: matchesWithStats,
+            total_matches: recentMatches.filter(m => m.status === 'FT').length,
+            season_stats: seasonStats.length,
+          });
         }
 
-        results.push({
-          athlete: athlete.name,
-          api_football_id: playerId,
-          status: 'success',
-          matches_with_stats: matchesWithStats,
-          total_matches: recentMatches.filter(m => m.status === 'FT').length,
-          upcoming_matches: upcomingMatches.length,
-          season_stats: seasonStats.length,
-        });
-
-        await new Promise(resolve => setTimeout(resolve, 500));
+        await new Promise(resolve => setTimeout(resolve, 300));
 
       } catch (playerError: any) {
         console.error(`Error processing ${athlete.name}:`, playerError);
@@ -590,23 +789,36 @@ Deno.serve(async (req) => {
       }
     }
 
+    // Phase 2 (discovery) removed in v22 -- track_stats controls which athletes get processed
+
     // Log the sync
+    const statsProcessed = results.filter(r => r.status === 'success' || r.status === 'success_partial').length;
+
     await supabase.from('sync_logs').insert({
       sync_type: 'football_stats',
       status: 'success',
       details: {
-        athletes_processed: results.length,
-        successful: results.filter(r => r.status === 'success').length,
+        tracked_athletes: withId.length,
+        stats_processed: statsProcessed,
+        errors: results.filter(r => r.status === 'error').length,
         auth_method: authResult.reason,
+        version: 'v22',
+        season: CURRENT_SEASON,
+        elapsed_seconds: Math.round(elapsed() / 1000),
       },
     });
 
-    console.log('Football stats fetch completed');
+    console.log(`Football stats fetch completed in ${Math.round(elapsed()/1000)}s`);
 
     return new Response(JSON.stringify({
       success: true,
       timestamp: new Date().toISOString(),
       api: 'API-Football',
+      elapsed_seconds: Math.round(elapsed() / 1000),
+      summary: {
+        tracked_athletes: withId.length,
+        stats_processed: statsProcessed,
+      },
       results,
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -617,6 +829,7 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({
       success: false,
       error: error?.message,
+      elapsed_seconds: Math.round(elapsed() / 1000),
     }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },

@@ -52,13 +52,23 @@ export const TrendingSection = () => {
         `)
         .eq('played', true)
         .order('date', { ascending: false })
-        .limit(5);
+        .limit(30);
 
       if (data) {
-        setRecentUpdates(data.map(u => ({
-          ...u,
-          athlete: Array.isArray(u.athlete) ? u.athlete[0] : u.athlete
-        })));
+        // Dedup: keep only the most recent update per athlete
+        const seen = new Set<string>();
+        const deduped = data
+          .map(u => ({
+            ...u,
+            athlete: Array.isArray(u.athlete) ? u.athlete[0] : u.athlete
+          }))
+          .filter(u => {
+            if (seen.has(u.athlete_id)) return false;
+            seen.add(u.athlete_id);
+            return true;
+          })
+          .slice(0, 5);
+        setRecentUpdates(deduped);
       }
       setLoading(false);
     };
