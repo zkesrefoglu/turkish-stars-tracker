@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>API-Football Player Lookup</title>
+<style>
+  body { font-family: system-ui, sans-serif; max-width: 800px; margin: 40px auto; padding: 0 20px; background: #1a1a2e; color: #e0e0e0; }
+  h1 { color: #00d4ff; }
+  .search-box { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+  input, select, button { padding: 10px 14px; border-radius: 6px; border: 1px solid #333; background: #16213e; color: #e0e0e0; font-size: 14px; }
+  input { flex: 1; min-width: 200px; }
+  button { background: #00d4ff; color: #1a1a2e; font-weight: bold; cursor: pointer; border: none; }
+  button:hover { background: #00b8d9; }
+  .results { margin-top: 20px; }
+  .player-card { background: #16213e; border: 1px solid #333; border-radius: 8px; padding: 16px; margin-bottom: 12px; display: flex; gap: 16px; align-items: center; }
+  .player-card img { width: 60px; height: 60px; border-radius: 50%; background: #333; }
+  .player-info { flex: 1; }
+  .player-name { font-size: 18px; font-weight: bold; color: #00d4ff; }
+  .player-detail { color: #aaa; margin-top: 4px; }
+  .api-id { background: #0f3460; padding: 4px 10px; border-radius: 4px; font-family: monospace; font-size: 16px; color: #00d4ff; cursor: pointer; }
+  .api-id:hover { background: #1a5276; }
+  .sql-box { background: #0f3460; padding: 12px; border-radius: 6px; margin-top: 20px; font-family: monospace; font-size: 13px; white-space: pre-wrap; word-break: break-all; }
+  .copy-btn { font-size: 12px; padding: 4px 8px; margin-left: 8px; }
+  .status { color: #aaa; font-style: italic; margin: 10px 0; }
+  .error { color: #ff6b6b; }
+  .remaining { color: #ffd93d; margin: 10px 0; }
+  label { color: #aaa; font-size: 13px; }
+  .search-mode { display: flex; gap: 20px; margin-bottom: 15px; }
+  .search-mode label { cursor: pointer; color: #e0e0e0; }
+  .found-ids { margin-top: 30px; border-top: 1px solid #333; padding-top: 20px; }
+  table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+  th, td { padding: 8px 12px; text-align: left; border-bottom: 1px solid #333; }
+  th { color: #00d4ff; }
+</style>
+</head>
+<body>
+
+<h1>API-Football Player Lookup</h1>
+
+<div>
+  <label>API Key:</label>
+  <input type="text" id="apiKey" value="df5b3f91fb755ebcbb763588c36b5e21" style="width:100%; margin: 5px 0 15px;">
+</div>
+
+<div class="search-mode">
+  <label><input type="radio" name="mode" value="name" checked onchange="toggleMode()"> Search by Name</label>
+  <label><input type="radio" name="mode" value="team" onchange="toggleMode()"> Browse Team Squad</label>
+</div>
+
+<div id="nameSearch" class="search-box">
+  <input type="text" id="playerName" placeholder="Player last name (e.g. Kabak, Tiknaz)">
+  <select id="leagueId">
+    <option value="">-- League (required) --</option>
+    <option value="506">1ste Nationale VV (Belgium)</option>
+    <option value="14">2. Liga (Austria)</option>
+    <option value="79">2. Bundesliga (Germany)</option>
+    <option value="78">Bundesliga (Germany)</option>
+    <option value="13">Bundesliga (Austria)</option>
+    <option value="145">Challenger Pro League (Belgium)</option>
+    <option value="529">Championnat National U19 (France)</option>
+    <option value="40">Championship (England)</option>
+    <option value="88">Eredivisie (Netherlands)</option>
+    <option value="98">J1 League (Japan)</option>
+    <option value="144">Jupiler Pro League (Belgium)</option>
+    <option value="140">La Liga (Spain)</option>
+    <option value="94">Liga Portugal</option>
+    <option value="61">Ligue 1 (France)</option>
+    <option value="39">Premier League (England)</option>
+    <option value="235">Premyer Liqa (Azerbaijan)</option>
+    <option value="283">Regionalliga Bayern (Germany)</option>
+    <option value="384">Russian Premier League</option>
+    <option value="135">Serie A (Italy)</option>
+    <option value="197">Super League (Greece)</option>
+    <option value="207">Super League (Switzerland)</option>
+    <option value="203">Super Lig (Turkey)</option>
+    <option value="119">Superliga (Denmark)</option>
+    <option value="218">UAE Pro League</option>
+  </select>
+  <select id="seasonId">
+    <option value="2024">2024/25</option>
+    <option value="2025">2025/26</option>
+    <option value="2023">2023/24</option>
+  </select>
+  <button onclick="searchByName()">Search</button>
+</div>
+
+<div id="teamSearch" class="search-box" style="display:none;">
+  <select id="teamId">
+    <option value="">-- Select Team --</option>
+    <option value="162">1. FC Nurnberg</option>
+    <option value="192">1. FC Koln</option>
+    <option value="180">1. FC Heidenheim</option>
+    <option value="2871">Al-Jazira (UAE)</option>
+    <option value="10155">Al-Nasr SC (UAE)</option>
+    <option value="497">AS Roma</option>
+    <option value="263">Beerschot VA</option>
+    <option value="165">Borussia Dortmund</option>
+    <option value="35">Bournemouth</option>
+    <option value="51">Brighton</option>
+    <option value="744">Eintracht Braunschweig</option>
+    <option value="169">Eintracht Frankfurt</option>
+    <option value="170">FC Augsburg</option>
+    <option value="397">FC Midtjylland</option>
+    <option value="1080">FC Orenburg</option>
+    <option value="212">FC Porto</option>
+    <option value="174">FC Schalke 04</option>
+    <option value="207">FC Utrecht</option>
+    <option value="293">Gamba Osaka</option>
+    <option value="206">Heracles Almelo</option>
+    <option value="505">Inter Milan</option>
+    <option value="496">Juventus</option>
+    <option value="266">KV Mechelen</option>
+    <option value="261">KVC Westerlo</option>
+    <option value="79">Lille</option>
+    <option value="413">NEC Nijmegen</option>
+    <option value="553">Olympiacos</option>
+    <option value="1338">Oxford United</option>
+    <option value="781">Rapid Vienna</option>
+    <option value="541">Real Madrid</option>
+    <option value="217">SC Braga</option>
+    <option value="167">TSG Hoffenheim</option>
+    <option value="182">Union Berlin</option>
+    <option value="157">VfB Stuttgart</option>
+    <option value="648">Zira FC</option>
+    <option value="600">Zulte Waregem</option>
+    <optgroup label="--- Youth / Reserve Teams ---">
+    <option value="10262">1. FC Kaiserslautern U19</option>
+    <option value="10265">1. FC Koln U19</option>
+    <option value="7881">Ajax U19</option>
+    <option value="7886">Bayer Leverkusen U19</option>
+    <option value="7887">Bayern Munchen U19</option>
+    <option value="10263">Karlsruher SC U19</option>
+    <option value="7919">Olympique Lyonnais U19</option>
+    <option value="19957">Oud-Heverlee Leuven II</option>
+    <option value="7965">PSV U19</option>
+    <option value="7967">Schalke 04 U19</option>
+    <option value="8247">SK Rapid Wien II</option>
+    <option value="10278">VfL Wolfsburg U19</option>
+    </optgroup>
+  </select>
+  <button onclick="searchByTeam()">Load Squad</button>
+</div>
+
+<div class="remaining" id="remaining"></div>
+<div class="status" id="status"></div>
+<div class="results" id="results"></div>
+
+<div class="found-ids" id="foundSection" style="display:none;">
+  <h2>Found IDs</h2>
+  <table>
+    <thead><tr><th>Player</th><th>API ID</th><th>Action</th></tr></thead>
+    <tbody id="foundTable"></tbody>
+  </table>
+  <div class="sql-box" id="sqlOutput"></div>
+  <button class="copy-btn" onclick="copySQL()" style="margin-top:10px;">Copy SQL</button>
+</div>
+
+<script>
+const foundPlayers = {};
+
+function toggleMode() {
+  const mode = document.querySelector('input[name="mode"]:checked').value;
+  document.getElementById('nameSearch').style.display = mode === 'name' ? 'flex' : 'none';
+  document.getElementById('teamSearch').style.display = mode === 'team' ? 'flex' : 'none';
+}
+
+async function apiCall(url) {
+  const key = document.getElementById('apiKey').value;
+  const res = await fetch(url, { headers: { 'x-apisports-key': key } });
+  const data = await res.json();
+  // Show remaining calls
+  const remaining = res.headers.get('x-ratelimit-requests-remaining');
+  if (remaining) document.getElementById('remaining').textContent = 'API calls remaining today: ' + remaining;
+  return data;
+}
+
+async function searchByName() {
+  const name = document.getElementById('playerName').value.trim();
+  const league = document.getElementById('leagueId').value;
+  const season = document.getElementById('seasonId').value;
+  if (!name) return alert('Enter a player name');
+  if (!league) return alert('Select a league');
+
+  document.getElementById('status').textContent = 'Searching...';
+  document.getElementById('results').innerHTML = '';
+
+  try {
+    const data = await apiCall(`https://v3.football.api-sports.io/players?search=${encodeURIComponent(name)}&league=${league}&season=${season}`);
+
+    if (data.errors && Object.keys(data.errors).length > 0) {
+      document.getElementById('status').innerHTML = '<span class="error">Error: ' + JSON.stringify(data.errors) + '</span>';
+      return;
+    }
+
+    document.getElementById('status').textContent = data.results + ' result(s) found';
+    renderPlayers(data.response || []);
+  } catch (e) {
+    document.getElementById('status').innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+  }
+}
+
+async function searchByTeam() {
+  const teamId = document.getElementById('teamId').value;
+  if (!teamId) return alert('Select a team');
+
+  document.getElementById('status').textContent = 'Loading squad...';
+  document.getElementById('results').innerHTML = '';
+
+  try {
+    const data = await apiCall(`https://v3.football.api-sports.io/players/squads?team=${teamId}`);
+    const squad = data.response?.[0]?.players || [];
+
+    document.getElementById('status').textContent = squad.length + ' players in squad';
+
+    const html = squad.map(p => `
+      <div class="player-card">
+        <img src="${p.photo || ''}" onerror="this.style.display='none'">
+        <div class="player-info">
+          <div class="player-name">${p.name}</div>
+          <div class="player-detail">Position: ${p.position || 'N/A'} | #${p.number || 'N/A'}</div>
+        </div>
+        <span class="api-id" onclick="addToFound('${p.name.replace(/'/g,"\\'")}', ${p.id})" title="Click to add to found list">${p.id}</span>
+      </div>
+    `).join('');
+    document.getElementById('results').innerHTML = html;
+  } catch (e) {
+    document.getElementById('status').innerHTML = '<span class="error">Error: ' + e.message + '</span>';
+  }
+}
+
+function renderPlayers(players) {
+  const html = players.map(p => {
+    const player = p.player;
+    const stats = p.statistics?.[0] || {};
+    return `
+      <div class="player-card">
+        <img src="${player.photo || ''}" onerror="this.style.display='none'">
+        <div class="player-info">
+          <div class="player-name">${player.firstname} ${player.lastname}</div>
+          <div class="player-detail">
+            Team: ${stats.team?.name || 'N/A'} |
+            League: ${stats.league?.name || 'N/A'} |
+            Position: ${stats.games?.position || 'N/A'} |
+            Apps: ${stats.games?.appearences || 0}
+          </div>
+          <div class="player-detail">Age: ${player.age} | Nationality: ${player.nationality} | Born: ${player.birth?.date || 'N/A'}</div>
+        </div>
+        <span class="api-id" onclick="addToFound('${(player.firstname + ' ' + player.lastname).replace(/'/g,"\\'")}', ${player.id})" title="Click to add to found list">${player.id}</span>
+      </div>
+    `;
+  }).join('');
+  document.getElementById('results').innerHTML = html || '<div class="status">No results. Try a different season or league.</div>';
+}
+
+function addToFound(name, id) {
+  // Generate a slug from the name
+  const slug = name.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9\s-]/g, '').replace(/\s+/g, '-').replace(/-+/g, '-');
+
+  foundPlayers[slug] = { name, id, slug };
+  updateFoundSection();
+}
+
+function updateFoundSection() {
+  const section = document.getElementById('foundSection');
+  const table = document.getElementById('foundTable');
+  const sqlOut = document.getElementById('sqlOutput');
+
+  const entries = Object.values(foundPlayers);
+  if (entries.length === 0) { section.style.display = 'none'; return; }
+
+  section.style.display = 'block';
+
+  table.innerHTML = entries.map(e => `
+    <tr>
+      <td>${e.name}</td>
+      <td><code>${e.id}</code></td>
+      <td><button class="copy-btn" onclick="delete foundPlayers['${e.slug}']; updateFoundSection();">Remove</button></td>
+    </tr>
+  `).join('');
+
+  const sql = entries.map(e => `UPDATE athlete_profiles SET api_football_id = ${e.id}, track_stats = true WHERE slug = '${e.slug}';`).join('\n');
+  sqlOut.textContent = sql;
+}
+
+function copySQL() {
+  const sql = document.getElementById('sqlOutput').textContent;
+  navigator.clipboard.writeText(sql).then(() => alert('SQL copied to clipboard!'));
+}
+
+// Allow Enter key to trigger search
+document.getElementById('playerName').addEventListener('keypress', e => { if (e.key === 'Enter') searchByName(); });
+</script>
+
+</body>
+</html>
