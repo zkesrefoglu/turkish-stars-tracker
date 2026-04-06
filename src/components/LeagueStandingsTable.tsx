@@ -55,16 +55,72 @@ const LEAGUE_DISPLAY_NAMES: Record<string, string> = {
 
 const getLeagueDisplayName = (league: string) => LEAGUE_DISPLAY_NAMES[league] || league;
 
-// Normalize team name for fuzzy matching: strip non-alphanumeric, lowercase
-// "1.FC Heidenheim 1846" → "1fcheidenheim1846", "1. FC Heidenheim" → "1fcheidenheim"
+// Normalize team name for matching: strip common prefixes/suffixes, lowercase, remove non-alpha
 const normalizeTeamName = (name: string): string =>
-  name.toLowerCase().replace(/[^a-z0-9]/g, '');
+  name.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
 
-// Check if two team names match (either contains the other after normalization)
+// Known aliases: DB name → possible API names
+const TEAM_ALIASES: Record<string, string[]> = {
+  'inter milan': ['inter', 'internazionale', 'inter milano'],
+  'inter': ['inter milan', 'internazionale', 'inter milano'],
+  'brighton': ['brighton hove albion', 'brighton & hove albion'],
+  'manchester united': ['man united', 'man utd'],
+  'al ahli': ['al ahli saudi fc', 'al ahli club'],
+  'real madrid': ['real madrid cf'],
+  'juventus': ['juventus fc'],
+  'eintracht frankfurt': ['eint frankfurt', 'sge'],
+  'vfb stuttgart': ['stuttgart'],
+  'bayern munich': ['bayern munchen', 'bayern münchen', 'fc bayern'],
+  'borussia dortmund': ['dortmund', 'bvb'],
+  'bournemouth': ['afc bournemouth'],
+  'benfica': ['sl benfica'],
+  'lille': ['losc lille', 'losc'],
+  'galatasaray': ['galatasaray sk'],
+  'besiktas': ['besiktas jk', 'beşiktaş'],
+  'fc porto': ['porto'],
+  'cagliari calcio': ['cagliari'],
+  'torino': ['torino fc'],
+  'as roma': ['roma'],
+  'pisa': ['ac pisa', 'pisa sc'],
+  'olympiacos piraeus': ['olympiacos', 'olympiakos'],
+  'tsg 1899 hoffenheim': ['hoffenheim', 'tsg hoffenheim'],
+  '1fc heidenheim 1846': ['heidenheim', '1 fc heidenheim'],
+  '1fc union berlin': ['union berlin'],
+  '1 fc koln': ['koln', 'fc koln', 'fc cologne'],
+  'fc augsburg': ['augsburg'],
+  'fc schalke 04': ['schalke', 'schalke 04'],
+  'nec nijmegen': ['nec'],
+  'fc utrecht': ['utrecht'],
+  'kvc westerlo': ['westerlo'],
+  'oxford united': ['oxford'],
+};
+
+// Check if two team names match using exact normalized match or known aliases
 const teamNameMatches = (apiName: string, dbName: string): boolean => {
   const a = normalizeTeamName(apiName);
   const b = normalizeTeamName(dbName);
-  return a.includes(b) || b.includes(a);
+
+  // Exact match after normalization
+  if (a === b) return true;
+
+  // Check if either name starts with the other (handles "FC Barcelona" vs "Barcelona")
+  // But require at least 5 chars to avoid false positives like "Real" matching "Real Betis"
+  const aNoSpaces = a.replace(/\s/g, '');
+  const bNoSpaces = b.replace(/\s/g, '');
+  if (aNoSpaces.length >= 5 && bNoSpaces.length >= 5 && (aNoSpaces === bNoSpaces)) return true;
+
+  // Check aliases for the DB name
+  const dbLower = dbName.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+  const apiLower = apiName.toLowerCase().replace(/[^a-z0-9\s]/g, '').trim();
+
+  const aliases = TEAM_ALIASES[dbLower] || [];
+  if (aliases.some(alias => normalizeTeamName(alias) === normalizeTeamName(apiLower))) return true;
+
+  // Reverse check: see if the API name has aliases that match the DB name
+  const reverseAliases = TEAM_ALIASES[apiLower] || [];
+  if (reverseAliases.some(alias => normalizeTeamName(alias) === normalizeTeamName(dbLower))) return true;
+
+  return false;
 };
 
 // Show top 4 + athlete's team in 5th slot (or just top 5 if team is already there)
@@ -411,35 +467,3 @@ export const LeagueStandingsTable = ({ sport, league, highlightTeam }: LeagueSta
 
         <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
           <div className="flex flex-wrap gap-3 text-[10px] text-muted-foreground">
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-              UCL
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-orange-500"></span>
-              UEL
-            </span>
-            <span className="flex items-center gap-1">
-              <span className="w-2 h-2 rounded-full bg-red-500"></span>
-              Rel.
-            </span>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            onClick={() => setExpanded(!expanded)}
-            className="text-xs text-muted-foreground hover:text-foreground h-7 px-2"
-          >
-            {expanded ? (
-              <>Show Less <ChevronUp className="w-3 h-3 ml-1" /></>
-            ) : (
-              <>Full Table <ChevronDown className="w-3 h-3 ml-1" /></>
-            )}
-          </Button>
-        </div>
-      </Card>
-    );
-  }
-
-  return null;
-};
